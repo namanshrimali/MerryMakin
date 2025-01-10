@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/country_currency.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/service/cookies_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
+import 'package:merrymakin/commons/widgets/pro_add_comment.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
@@ -18,6 +21,7 @@ import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/service/event_service.dart';
 import 'package:share_plus/share_plus.dart';
+import '../commons/widgets/comment.dart';
 
 class EventDetailsScreen extends ConsumerStatefulWidget {
   final String? eventId;
@@ -54,7 +58,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 leading: const Icon(Icons.edit),
                 title: const Text('Edit Event'),
                 onTap: () {
-                  if (!event.isHostedByMe(CookiesService.locallyAvailableUserInfo)) {
+                  if (!event
+                      .isHostedByMe(CookiesService.locallyAvailableUserInfo)) {
                     return;
                   }
                   Navigator.pop(context); // Close the bottom sheet
@@ -122,176 +127,224 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     }
 
     return Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 200,
-              pinned: true,
-              leading: Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius:
-                      BorderRadius.circular(generalAppLevelPadding * 2),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-                ),
-              ),
-              actions: [
-                if (event.isHostedByMe(CookiesService.locallyAvailableUserInfo))
-                  Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius:
-                          BorderRadius.circular(generalAppLevelPadding * 2),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.more_horiz, color: Colors.white),
-                      onPressed: () => _showOptionsModal(context, event),
-                    ),
+        body: LayoutBuilder(builder: (context, constraints) {
+          final double height = constraints.maxHeight;
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: height * 0.4,
+                pinned: true,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius:
+                        BorderRadius.circular(generalAppLevelPadding * 2),
                   ),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: Image.network(
-                  event.imageUrl,
-                  fit: BoxFit.cover,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () =>
+                        context.canPop() ? context.pop() : context.go('/'),
+                  ),
+                ),
+                actions: [
+                  if (event
+                      .isHostedByMe(CookiesService.locallyAvailableUserInfo))
+                    Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius:
+                            BorderRadius.circular(generalAppLevelPadding * 2),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.more_horiz, color: Colors.white),
+                        onPressed: () => _showOptionsModal(context, event),
+                      ),
+                    ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Image.network(
+                    event.imageUrl,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(generalAppLevelPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ProText(
-                      event.name,
-                      textStyle: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(generalAppLevelPadding),
+                  child: ProListView(
+                    height: height * 0.6,
+                    listItems: [
+                      ProText(
+                        event.name,
+                        textStyle: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoRow(
-                      Icons.access_time,
-                      Row(
-                        children: [
-                          ProText(
-                            event.formattedStartDateTime,
-                    
-                          ),
-                        ],
+                      const SizedBox(height: 16),
+                      _buildInfoRow(
+                        Icons.access_time,
+                        Row(
+                          children: [
+                            ProText(
+                              event.formattedStartDateTime,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildInfoRow(
-                      Icons.star,
-                      Row(
-                        children: [
-                          const ProText('Hosted by '),
-                          Expanded(
-                            child: SizedBox(
-                              height: 24,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: event.hosts.length,
-                                itemBuilder: (context, index) {
-                                  final host = event.hosts[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: ProUserAvatar(user: host, ),
-                                  );
-                                },
+                      const SizedBox(height: 12),
+                      _buildInfoRow(
+                        Icons.star,
+                        Row(
+                          children: [
+                            const ProText('Hosted by '),
+                            Expanded(
+                              child: SizedBox(
+                                height: 24,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: event.hosts.length,
+                                  itemBuilder: (context, index) {
+                                    final host = event.hosts[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 4),
+                                      child: ProUserAvatar(
+                                        user: host,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                      // const SizedBox(height: 12),
+                      if (event.location != null && event.location!.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.location_on,
+                          ProText(
+                            event.location!,
+                            textStyle: const TextStyle(),
                           ),
-                        ],
-                      ),
-                    ),
-                    // const SizedBox(height: 12),
-                    if (event.location != null && event.location!.isNotEmpty)
-                      _buildInfoRow(
-                        Icons.location_on,
+                        ),
+                      if (event.location != null && event.location!.isNotEmpty)
+                        const SizedBox(height: 12),
+                      if (event.spots != null && event.spots! > 0)
+                        _buildInfoRow(
+                          Icons.person,
+                          ProText(
+                            '${event.spots} spots',
+                            textStyle: const TextStyle(),
+                          ),
+                        ),
+                      if (event.costPerSpot != null &&
+                          event.costPerSpot! > 0) ...[
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.attach_money,
+                          ProText(
+                            '${event.countryCurrency!.getCurrencySymbol()}${event.costPerSpot} per person',
+                            textStyle: const TextStyle(),
+                          ),
+                        ),
+                      ],
+                      if (event.description != null) ...[
+                        const SizedBox(height: 12),
                         ProText(
-                          event.location!,
-                          textStyle: const TextStyle(),
+                          event.description!,
+                          textStyle: const TextStyle(
+                            height: 1.5,
+                          ),
                         ),
-                      ),
-                    if (event.location != null && event.location!.isNotEmpty)
-                      const SizedBox(height: 12),
-                    if (event.spots != null && event.spots! > 0)
-                      _buildInfoRow(
-                        Icons.person,
-                        ProText(
-                          '${event.spots} spots',
-                          textStyle: const TextStyle(),
+                      ],
+                      if (event.attendees != null &&
+                          (event
+                                  .getAttendeesByRsvpStatus(RSVPStatus.GOING)
+                                  .isNotEmpty ||
+                              event
+                                  .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
+                                  .isNotEmpty)) ...[
+                        const SizedBox(height: 12),
+                        _buildGuestList(event),
+                      ],
+                      ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ProText(
+                              'Comments',
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            ProOutlinedButton(
+                              text: 'Comment',
+                              onPressed: () {
+                                openProBottomModalSheet(
+                                    context,
+                                    ProAddComment(
+                                        onUpdate: (final Comment comment) {
+                                          if (event.comments == null) {
+                                            event.comments = [];
+                                          }
+                                          // add comment to top of event.comments
+                                          event.comments!.insert(0, comment);
+                                          setState(() {});
+                                          addCommentToEvent(
+                                              event, comment, context);
+                                          ;
+                                        },
+                                        user: CookiesService
+                                            .locallyAvailableUserInfo));
+                              },
+                            ),
+                          ],
                         ),
-                      ),
-                    if (event.costPerSpot != null &&
-                        event.costPerSpot! > 0) ...[
-                      const SizedBox(height: 12),
-                      _buildInfoRow(
-                        Icons.attach_money,
-                        ProText(
-                          '${event.countryCurrency!.getCurrencySymbol()}${event.costPerSpot} per person',
-                          textStyle: const TextStyle(),
-                        ),
-                      ),
+                        ..._buildComments(event),
+                        const SizedBox(height: 200),
+                      ],
                     ],
-                    // const ProText(
-                    //   'About',
-                    //   textStyle: TextStyle(
-                    //     fontSize: 18,
-                    //     fontWeight: FontWeight.bold,
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 8),
-                    if (event.description != null) ...[
-                      const SizedBox(height: 12),
-                      ProText(
-                        event.description!,
-                        textStyle: const TextStyle(
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                    if (event.attendees != null && event.attendees!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      _buildGuestList(event),
-                    ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        floatingActionButton: event.isHostedByMe(CookiesService.locallyAvailableUserInfo)
-            ? buildActionButtonForHosts(context, event)
-            : buildActionButtonForGuests(context, event, ref));
+            ],
+          );
+        }),
+        floatingActionButton:
+            event.isHostedByMe(CookiesService.locallyAvailableUserInfo)
+                ? buildActionButtonForHosts(context, event)
+                : buildActionButtonForGuests(context, event, ref));
   }
 
-  Widget buildActionButtonForGuests(final BuildContext buildContext,
-      final Event event, WidgetRef ref) {
-        final RSVPStatus rsvpStatus = event.getRsvpStatusForUser(CookiesService.locallyAvailableUserInfo);
+  Widget buildActionButtonForGuests(
+      final BuildContext buildContext, final Event event, WidgetRef ref) {
+    final RSVPStatus rsvpStatus =
+        event.getRsvpStatusForUser(CookiesService.locallyAvailableUserInfo);
     final List<ProStackedFabObject> stackedFabs = [
       if (rsvpStatus != RSVPStatus.GOING)
         ProStackedFabObject(
             icon: RSVPStatus.GOING.getDisplayInfo().$1,
             title: RSVPStatus.GOING.getDisplayInfo().$2,
             onTap: () {
-              rsvpForEvent(event, RSVPStatus.GOING, CookiesService.locallyAvailableUserInfo).then((value) {
-                  ref.read(eventProvider.notifier).updateEvent(event);
-              }).onError((error, stackTrace) => showSnackBar(context, error.toString()));
+              rsvpForEvent(event, RSVPStatus.GOING,
+                      CookiesService.locallyAvailableUserInfo)
+                  .then((value) {
+                ref.read(eventProvider.notifier).updateEvent(event);
+              }).onError((error, stackTrace) =>
+                      showSnackBar(context, error.toString()));
             }),
       if (rsvpStatus != RSVPStatus.MAYBE)
         ProStackedFabObject(
             icon: RSVPStatus.MAYBE.getDisplayInfo().$1,
             title: RSVPStatus.MAYBE.getDisplayInfo().$2,
             onTap: () {
-              rsvpForEvent(event, RSVPStatus.MAYBE, CookiesService.locallyAvailableUserInfo);
+              rsvpForEvent(event, RSVPStatus.MAYBE,
+                  CookiesService.locallyAvailableUserInfo);
               ref.read(eventProvider.notifier).updateEvent(event);
             }),
       if (rsvpStatus != RSVPStatus.NOT_GOING)
@@ -299,7 +352,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             icon: RSVPStatus.NOT_GOING.getDisplayInfo().$1,
             title: RSVPStatus.NOT_GOING.getDisplayInfo().$2,
             onTap: () {
-              rsvpForEvent(event, RSVPStatus.NOT_GOING, CookiesService.locallyAvailableUserInfo);
+              rsvpForEvent(event, RSVPStatus.NOT_GOING,
+                  CookiesService.locallyAvailableUserInfo);
               ref.read(eventProvider.notifier).updateEvent(event);
             })
     ];
@@ -335,13 +389,15 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             backgroundColor: Theme.of(context).primaryColor,
             foregroundColor: Theme.of(context).scaffoldBackgroundColor,
             onPressed: () {
-              openProBottomModalSheet(context, _buildAllAttendeesWithStatus(event));
+              openProBottomModalSheet(
+                  context, _buildAllAttendeesWithStatus(event));
             },
             label: Row(
               children: [
                 const Icon(Icons.people),
                 const SizedBox(width: 8),
-                ProText('${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length} Going'),
+                ProText(
+                    '${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length} Going'),
               ],
             ),
           ),
@@ -350,7 +406,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           FloatingActionButton(
             heroTag: 'share',
             onPressed: () {
-              String shareMessage = 'RSVP to ${event.name}. http://merrymakin.com/${event.id}\n';
+              String shareMessage =
+                  'RSVP to ${event.name}. http://merrymakin.com/${event.id}\n';
 
               if (event.startDateTime != null) {
                 shareMessage +=
@@ -386,35 +443,73 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const ProText(
-                'Guest List',
-                textStyle: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const ProText(
+                    'Guest List',
+                    textStyle: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  ProOutlinedButton(
+                      onPressed: () {
+                        openProBottomModalSheet(
+                            context, _buildAllAttendeesWithStatus(event));
+                      },
+                      text: 'View All'),
+                ],
               ),
-              TextButton(onPressed: () {openProBottomModalSheet(context, _buildAllAttendeesWithStatus(event));}, child: const ProText('View All'))
+              Row(
+                children: [
+                  if (event
+                      .getAttendeesByRsvpStatus(RSVPStatus.GOING)
+                      .isNotEmpty)
+                    ProText(
+                        'Going ${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length}'),
+                  if (event
+                          .getAttendeesByRsvpStatus(RSVPStatus.GOING)
+                          .isNotEmpty &&
+                      event
+                          .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
+                          .isNotEmpty)
+                    ProText('·'),
+                  if (event
+                      .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
+                      .isNotEmpty)
+                    ProText(
+                        'Maybe ${event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE).length}'),
+                ],
+              )
             ],
           ),
         ),
-        if (event.attendees == null || event.attendees!.isEmpty)
-          const ProText('No guests yet')
-        else
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(right: 8.0),
-            child: Row(
-              children: event.getAttendeesByRsvpStatus(RSVPStatus.GOING)
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: 8.0),
+          child: Row(
+            children: [
+              ...event
+                  .getAttendeesByRsvpStatus(RSVPStatus.GOING)
                   .map((attendee) => Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: ProUserAvatar(user: attendee.user),
                       ))
                   .toList(),
-            ),
+              ...event
+                  .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
+                  .map((attendee) => Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ProUserAvatar(user: attendee.user),
+                      ))
+                  .toList(),
+            ],
           ),
+        ),
       ],
     );
   }
@@ -422,16 +517,17 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Widget _buildAllAttendeesWithStatus(Event event) {
     return ProTabView(
       childrenTabTitle: [
-        // 'All (${event.attendees!.length})',
+        'All (${event.attendees!.length})',
         'Going (${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length})',
         'Maybe (${event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE).length})',
         'Not Going (${event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING).length})',
       ],
       children: [
-        // _buildAttendeeList(event.attendees!),
+        _buildAttendeeList(event.attendees!),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING)),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE)),
-        _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING)),
+        _buildAttendeeList(
+            event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING)),
       ],
     );
   }
@@ -439,11 +535,22 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Widget _buildAttendeeList(List<Attendee> attendees) {
     return ProListView(
       height: 200,
-      listItems: attendees.map((attendee) => ListTile(
-        leading: ProUserAvatar(user: attendee.user),
-        title: ProText(attendee.user.getFirstAndLastName()),
-      )).toList(),
+      listItems: attendees
+          .map((attendee) => ListTile(
+                leading: ProUserAvatar(user: attendee.user),
+                title: ProText(attendee.user.getFirstAndLastName()),
+                trailing: Icon(attendee.rsvpStatus.getDisplayInfo().$1),
+              ))
+          .toList(),
     );
+  }
+
+  List<ProUserComment> _buildComments(Event event) {
+    event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return event.comments
+            ?.map((comment) => ProUserComment(comment: comment))
+            .toList() ??
+        [];
   }
 
   @override
@@ -457,12 +564,10 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     return FutureBuilder(
         future: findEventWithId(widget.eventId!),
         builder: (context, AsyncSnapshot<Event?> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting ||
-              snapshot.data == null) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          return _buildEvent(
-              context, snapshot.data!, ref);
+          return _buildEvent(context, snapshot.data!, ref);
         });
   }
 }

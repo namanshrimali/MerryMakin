@@ -1,3 +1,5 @@
+import 'comment.dart';
+
 class EventRequestDTO {
   String? id;
   String name;
@@ -13,6 +15,7 @@ class EventRequestDTO {
   List<String>? attendeeEmails; // email of attendees
   DateTime createdAt;
   DateTime updatedAt;
+  List<Comment>? comments;
 
   EventRequestDTO({
     this.id,
@@ -29,6 +32,7 @@ class EventRequestDTO {
     this.location,
     required this.createdAt,
     required this.updatedAt,
+    this.comments,
   });
 
   @override
@@ -47,7 +51,8 @@ class EventRequestDTO {
       hosts: ${hostEmails.map((h) => h.toString()).toList()},
       guests: ${attendeeEmails?.map((a) => a.toString()).toList()},
       createdAt: $createdAt,
-      updatedAt: $updatedAt
+      updatedAt: $updatedAt,
+      comments: ${comments?.map((c) => c.toString()).toList()}
     }''';
   }
 
@@ -86,6 +91,7 @@ class EventRequestDTO {
       'countryCurrency': countryCurrency,
       'hostEmails': hostEmails,
       'attendeeEmails': attendeeEmails,
+      'comments': comments?.map((c) => c.toMap()).toList(),
     };
   }
 }

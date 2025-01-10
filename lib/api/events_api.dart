@@ -5,6 +5,8 @@ import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/cookies_service.dart';
 
+import '../commons/models/event.dart';
+
 Future<Response> createEvent(
   EventRequestDTO event,
   Uri uri,
@@ -23,7 +25,7 @@ Future<Response> createEvent(
 }
 
 Future<Response> updateEvent(
-  EventRequestDTO event,
+  Event event,
   Uri uri,
 ) async {
   Map<String, String> headers = {

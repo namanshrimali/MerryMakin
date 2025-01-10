@@ -62,6 +62,8 @@ class CookiesService {
       locallyAvailableJwtToken = jwtToken;
       cookie.jwt = jwtToken;
       cookiesDAO.updateCookie(cookie);
+    } else {
+      print("No cookie to update");
     }
   }
 

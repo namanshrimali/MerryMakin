@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:merrymakin/commons/models/comment.dart';
 import '../models/event_attendee.dart';
 import '../models/event_request_dto.dart';
 import '../models/rsvp.dart';
@@ -26,7 +27,8 @@ class Event {
   List<Attendee>? attendees;
   DateTime createdAt;
   DateTime updatedAt;
-
+  List<Comment>? comments;
+  
   Event({
     this.id,
     required this.name,
@@ -43,6 +45,7 @@ class Event {
     this.location,
     required this.createdAt,
     required this.updatedAt,
+    this.comments = const [],
   });
 
   @override
@@ -61,7 +64,8 @@ class Event {
       hosts: ${hosts.map((h) => h.toString()).toList()},
       attendees: ${attendees?.map((a) => a.toString()).toList()},
       createdAt: $createdAt,
-      updatedAt: $updatedAt
+      updatedAt: $updatedAt,
+      comments: ${comments?.map((c) => c.toString()).toList()}
     }''';
     //       eventToAttendees: ${eventToAttendees?.map((a) => a.toString()).toList()},
 
@@ -95,6 +99,11 @@ class Event {
           ? []
           : map['attendees']
               .map((attendee) => Attendee.fromMap(attendee))
+              .toList()),
+      comments: List<Comment>.from(map['comments'] == null
+          ? []
+          : map['comments']
+              .map((comment) => Comment.fromMap(comment))
               .toList()),
       // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
       //         null
@@ -140,6 +149,7 @@ class Event {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'countryCurrency': countryCurrency?.name,
+      'comments': comments?.map((c) => c.toMap()).toList(),
     };
   }
 
@@ -178,6 +188,7 @@ class Event {
       attendeeEmails: attendees?.map((attendee) => attendee.user.email).toList(),
       createdAt: createdAt,
       updatedAt: updatedAt,
+      comments: comments,
     );
   }
 

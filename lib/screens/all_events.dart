@@ -58,8 +58,21 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
       case 'hosting':
         String? currentUserId = CookiesService.locallyAvailableUserInfo?.id;
         return widget.events
-            .where(
-                (event) => event.hosts.any((host) => host.id == currentUserId))
+            .where((event) => event.hosts.any((host) =>
+                host.id == currentUserId &&
+                (event.startDateTime == null ||
+                    event.startDateTime!.isAfter(now))))
+            .toList();
+
+      case 'attended':
+        return widget.events
+            .where((event) =>
+                event.attendees != null &&
+                event.attendees!.any((attendee) =>
+                    attendee.user.id ==
+                    CookiesService.locallyAvailableUserInfo?.id) &&
+                event.startDateTime != null &&
+                event.startDateTime!.isBefore(now))
             .toList();
 
       default:
@@ -81,16 +94,23 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
               event.startDateTime != null && event.startDateTime!.isBefore(now))
           .length,
       'hosting': widget.events
-          .where((event) => event.hosts.any((host) => host.id == currentUserId))
+          .where((event) => event.hosts.any((host) =>
+              host.id == currentUserId &&
+              (event.startDateTime == null ||
+                  event.startDateTime!.isAfter(now))))
           .length,
       'attended': widget.events
-          .where((event) => event.attendees != null && event.attendees!.any((attendee) => attendee.user.id == currentUserId) && event.startDateTime != null && event.startDateTime!.isBefore(now))
+          .where((event) =>
+              event.attendees != null &&
+              event.attendees!
+                  .any((attendee) => attendee.user.id == currentUserId) &&
+              event.startDateTime != null &&
+              event.startDateTime!.isBefore(now))
           .length,
     };
   }
 
   Widget buildEvents(BuildContext context) {
-
     final filteredEvents = getFilteredEvents();
     final eventCounts = getEventCounts();
 

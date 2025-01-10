@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:merrymakin/api/events_api.dart';
+import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/event.dart';
 // import 'package:merrymakin/commons/models/event_to_attendee.dart';
 // import 'package:merrymakin/commons/models/event_to_host.dart';
@@ -100,6 +101,10 @@ Future<void> rsvpForEvent(
   });
 }
 
+Future<void> addCommentToEvent(final Event event, final Comment comment, BuildContext context) {
+  return _updateEvent(event, context);
+}
+
 // Future<int?> _addOrUpdateRsvpForEvent(
 //     final EventToAttendee eventToAttendee) async {
 //   try {
@@ -121,7 +126,7 @@ Future<Event?> addOrUpdateEvent(final Event event, BuildContext context) {
 Future<Event?> _updateEvent(final Event event, BuildContext context) {
   final Uri uri = Uri(
       scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: '$DEV_PATH_EVENTS/${event.id!}');
-  return updateEvent(event.toEventRequestDTO(), uri)
+  return updateEvent(event, uri)
       .then((Response response) {
     if (response.statusCode == 200) {
       final Event savedEvent = Event.fromMap(jsonDecode(response.body));
