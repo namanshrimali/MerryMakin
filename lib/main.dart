@@ -12,6 +12,7 @@ Future<void> main() async {
   SQLiteDBHelper dbHelper = SQLiteDBHelper.instance;
   Database database = await dbHelper.database;
   AppFactory.forFirstTime(database);
+
   runApp(const ProviderScope(child: MyApp()));
 }
 

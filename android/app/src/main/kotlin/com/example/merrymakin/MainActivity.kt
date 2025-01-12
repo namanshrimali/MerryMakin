@@ -1,4 +1,4 @@
-package com.example.merrymakin
+package com.namanshrimali.merrymakin
 
 import io.flutter.embedding.android.FlutterActivity
 

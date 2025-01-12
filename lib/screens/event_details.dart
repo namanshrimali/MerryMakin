@@ -36,6 +36,7 @@ class EventDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
+  Event? event;
   Widget _buildInfoRow(IconData icon, Widget content) {
     return Row(
       children: [
@@ -94,7 +95,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                               'Delete',
                               style: TextStyle(color: Colors.red),
                             ),
-                            onPressed: () => Navigator.of(context).pop(true),
+                            onPressed: () {
+                              deleteEvent(event.id!).then((value) {
+                                ref
+                                    .read(eventProvider.notifier)
+                                    .updateEvent(event);
+                                context.go("/");
+                              });
+                            },
                           ),
                         ],
                       );
@@ -116,8 +124,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  Widget _buildEvent(BuildContext context, final Event? event, WidgetRef ref) {
-    if (event == null) {
+  Widget _buildEvent(
+      BuildContext context, final Event? receivedEvent, WidgetRef ref) {
+    if (receivedEvent == null) {
       return Scaffold(
         appBar: AppBar(),
         body: const Center(
@@ -132,7 +141,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           return CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: height * 0.4,
+                expandedHeight: height * 0.6,
                 pinned: true,
                 leading: Container(
                   margin: const EdgeInsets.all(8),
@@ -148,7 +157,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ),
                 ),
                 actions: [
-                  if (event
+                  if (receivedEvent
                       .isHostedByMe(CookiesService.locallyAvailableUserInfo))
                     Container(
                       margin: const EdgeInsets.all(8),
@@ -159,13 +168,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.more_horiz, color: Colors.white),
-                        onPressed: () => _showOptionsModal(context, event),
+                        onPressed: () =>
+                            _showOptionsModal(context, receivedEvent),
                       ),
                     ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Image.network(
-                    event.imageUrl,
+                    receivedEvent.imageUrl,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -177,7 +187,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     height: height * 0.6,
                     listItems: [
                       ProText(
-                        event.name,
+                        receivedEvent.name,
                         textStyle: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -189,7 +199,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                         Row(
                           children: [
                             ProText(
-                              event.formattedStartDateTime,
+                              receivedEvent.formattedStartDateTime,
                             ),
                           ],
                         ),
@@ -205,9 +215,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                 height: 24,
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: event.hosts.length,
+                                  itemCount: receivedEvent.hosts.length,
                                   itemBuilder: (context, index) {
-                                    final host = event.hosts[index];
+                                    final host = receivedEvent.hosts[index];
                                     return Padding(
                                       padding: const EdgeInsets.only(right: 4),
                                       child: ProUserAvatar(
@@ -222,53 +232,56 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                         ),
                       ),
                       // const SizedBox(height: 12),
-                      if (event.location != null && event.location!.isNotEmpty)
+                      if (receivedEvent.location != null &&
+                          receivedEvent.location!.isNotEmpty)
                         _buildInfoRow(
                           Icons.location_on,
                           ProText(
-                            event.location!,
+                            receivedEvent.location!,
                             textStyle: const TextStyle(),
                           ),
                         ),
-                      if (event.location != null && event.location!.isNotEmpty)
+                      if (receivedEvent.location != null &&
+                          receivedEvent.location!.isNotEmpty)
                         const SizedBox(height: 12),
-                      if (event.spots != null && event.spots! > 0)
+                      if (receivedEvent.spots != null &&
+                          receivedEvent.spots! > 0)
                         _buildInfoRow(
                           Icons.person,
                           ProText(
-                            '${event.spots} spots',
+                            '${receivedEvent.spots} spots',
                             textStyle: const TextStyle(),
                           ),
                         ),
-                      if (event.costPerSpot != null &&
-                          event.costPerSpot! > 0) ...[
+                      if (receivedEvent.costPerSpot != null &&
+                          receivedEvent.costPerSpot! > 0) ...[
                         const SizedBox(height: 12),
                         _buildInfoRow(
                           Icons.attach_money,
                           ProText(
-                            '${event.countryCurrency!.getCurrencySymbol()}${event.costPerSpot} per person',
+                            '${receivedEvent.countryCurrency!.getCurrencySymbol()}${receivedEvent.costPerSpot} per person',
                             textStyle: const TextStyle(),
                           ),
                         ),
                       ],
-                      if (event.description != null) ...[
+                      if (receivedEvent.description != null) ...[
                         const SizedBox(height: 12),
                         ProText(
-                          event.description!,
+                          receivedEvent.description!,
                           textStyle: const TextStyle(
                             height: 1.5,
                           ),
                         ),
                       ],
-                      if (event.attendees != null &&
-                          (event
+                      if (receivedEvent.attendees != null &&
+                          (receivedEvent
                                   .getAttendeesByRsvpStatus(RSVPStatus.GOING)
                                   .isNotEmpty ||
-                              event
+                              receivedEvent
                                   .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
                                   .isNotEmpty)) ...[
                         const SizedBox(height: 12),
-                        _buildGuestList(event),
+                        _buildGuestList(receivedEvent),
                       ],
                       ...[
                         const SizedBox(height: 12),
@@ -289,14 +302,19 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                     context,
                                     ProAddComment(
                                         onUpdate: (final Comment comment) {
-                                          if (event.comments == null) {
-                                            event.comments = [];
+                                          if (receivedEvent.comments == null) {
+                                            receivedEvent.comments = [];
                                           }
                                           // add comment to top of event.comments
-                                          event.comments!.insert(0, comment);
-                                          setState(() {});
-                                          addCommentToEvent(
-                                              event, comment, context);
+                                          receivedEvent.comments!.add(comment);
+                                          addCommentToEvent(receivedEvent,
+                                                  comment, context)
+                                              .whenComplete(() {
+                                            ref
+                                                .read(eventProvider.notifier)
+                                                .updateEvent(receivedEvent);
+                                          });
+
                                           ;
                                         },
                                         user: CookiesService
@@ -305,7 +323,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                             ),
                           ],
                         ),
-                        ..._buildComments(event),
+                        ..._buildComments(receivedEvent),
                         const SizedBox(height: 200),
                       ],
                     ],
@@ -316,9 +334,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           );
         }),
         floatingActionButton:
-            event.isHostedByMe(CookiesService.locallyAvailableUserInfo)
-                ? buildActionButtonForHosts(context, event)
-                : buildActionButtonForGuests(context, event, ref));
+            receivedEvent.isHostedByMe(CookiesService.locallyAvailableUserInfo)
+                ? buildActionButtonForHosts(context, receivedEvent)
+                : buildActionButtonForGuests(context, receivedEvent, ref));
   }
 
   Widget buildActionButtonForGuests(
@@ -558,15 +576,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     BuildContext context,
   ) {
     ref.watch(eventProvider);
-    if (widget.eventId == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return FutureBuilder(
         future: findEventWithId(widget.eventId!),
         builder: (context, AsyncSnapshot<Event?> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              event == null) {
             return const Center(child: CircularProgressIndicator());
           }
+          event = snapshot.data!;
           return _buildEvent(context, snapshot.data!, ref);
         });
   }

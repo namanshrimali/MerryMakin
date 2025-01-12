@@ -16,6 +16,8 @@ class EventRequestDTO {
   DateTime createdAt;
   DateTime updatedAt;
   List<Comment>? comments;
+  String? dressCode;
+  String? foodSituation;
 
   EventRequestDTO({
     this.id,
@@ -33,6 +35,8 @@ class EventRequestDTO {
     required this.createdAt,
     required this.updatedAt,
     this.comments,
+    this.dressCode,
+    this.foodSituation,
   });
 
   @override
@@ -52,7 +56,9 @@ class EventRequestDTO {
       guests: ${attendeeEmails?.map((a) => a.toString()).toList()},
       createdAt: $createdAt,
       updatedAt: $updatedAt,
-      comments: ${comments?.map((c) => c.toString()).toList()}
+      comments: ${comments?.map((c) => c.toString()).toList()},
+      dressCode: $dressCode,
+      foodSituation: $foodSituation
     }''';
   }
 
@@ -92,6 +98,8 @@ class EventRequestDTO {
       'hostEmails': hostEmails,
       'attendeeEmails': attendeeEmails,
       'comments': comments?.map((c) => c.toMap()).toList(),
+      'dressCode': dressCode ?? '',
+      'foodSituation': foodSituation ?? '',
     };
   }
 }

@@ -90,6 +90,7 @@ Future<void> rsvpForEvent(
     return Future.error('Please login to RSVP');
   }
 
+
   return sendRsvpForEvent(event.id!, rsvpStatus).then((response) {
     if (response.statusCode != 200) {
       return Future.error(
@@ -246,8 +247,8 @@ Future<Event> _saveUsersToDatabase(final Event event) async {
 }
 
 Future<void> deleteEvent(String eventId) async {
-  final eventsDao = AppFactory().eventDao;
-  await eventsDao.delete(eventId.toString());
+  await deleteEventFromServer(eventId);
+  // await eventsDao.delete(eventId.toString());
 }
 
 // Future<List<User>> _getHostsForEvent(final String eventId) async {

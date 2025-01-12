@@ -29,7 +29,6 @@ class OAuthLogin extends ConsumerStatefulWidget {
 class _OAuthLoginState extends ConsumerState<OAuthLogin> {
   String couldNotReachToOurServers =
       "Could not reach to our servers. You can sign in later in the app.";
-  String couldNotReachGoogleServer = "";
   String couldNotReachAppleServer =
       "Could not reach to Apple servers. You can sign in later in the app.";
   // bool isLoading = false;
@@ -117,7 +116,7 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
     }).onError((error, stackTrace) {
       showSnackBar(
         context,
-        couldNotReachToOurServers,
+        error.toString(),
       );
       if (widget.onPressedCallback != null) {
         widget.onPressedCallback!();

@@ -13,51 +13,67 @@ class ProTextField extends StatelessWidget {
   final Function? onSubmitted;
   final Function? onValidationCallback;
   final Function? onSaved;
+  final double? width;
+  final double? height;
+  final bool multiline;
+  final int? maxLines;
 
-  const ProTextField(
-      {super.key,
-      this.label,
-      this.hintText,
-      this.keyboardType,
-      this.autofocus = true,
-      this.textEditingController,
-      this.onSubmitted,
-      this.onChanged,
-      this.suffixWidget,
-      this.prefixWidget,
-      this.onValidationCallback,
-      this.initialValue, this.onSaved});
+  const ProTextField({
+    super.key,
+    this.label,
+    this.hintText,
+    this.keyboardType,
+    this.autofocus = true,
+    this.textEditingController,
+    this.onSubmitted,
+    this.onChanged,
+    this.suffixWidget,
+    this.prefixWidget,
+    this.onValidationCallback,
+    this.initialValue,
+    this.onSaved,
+    this.width,
+    this.height,
+    this.multiline = false,
+    this.maxLines,
+  });
 
   Widget buildNewType() {
-    return TextFormField(
-      autofocus: autofocus,
-      controller: textEditingController,
-      decoration: InputDecoration(
+    return SizedBox(
+      width: width,
+      height: height,
+      child: TextFormField(
+        autofocus: autofocus,
+        controller: textEditingController,
+        decoration: InputDecoration(
           border: const OutlineInputBorder(),
           contentPadding:
               const EdgeInsets.only(left: 8, right: 8, bottom: 18, top: 18),
           labelText: label,
           hintText: hintText,
           suffix: suffixWidget,
-          prefix: prefixWidget),
-      keyboardType: keyboardType,
-      initialValue: initialValue,
-      onSaved: (value) {
-        if (onSaved != null) {
-          onSaved!(value);
-        }
-      },
-      onChanged: ((value) {
-        if (onChanged != null) {
-          onChanged!(value);
-        }
-      }),
-      validator: (value) {
-        if (onValidationCallback!=null) {
-          return onValidationCallback!(value);
-        }
-        return null;
-      },
+          prefix: prefixWidget,
+        ),
+        keyboardType: multiline ? TextInputType.multiline : keyboardType,
+        maxLines: multiline ? (maxLines ?? null) : 1,
+        initialValue: initialValue,
+        onSaved: (value) {
+          if (onSaved != null) {
+            onSaved!(value);
+          }
+        },
+        onChanged: ((value) {
+          if (onChanged != null) {
+            onChanged!(value);
+          }
+        }),
+        validator: (value) {
+          if (onValidationCallback != null) {
+            return onValidationCallback!(value);
+          }
+          return null;
+        },
+      ),
     );
   }
 

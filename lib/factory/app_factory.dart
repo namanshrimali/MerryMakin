@@ -1,5 +1,7 @@
 import 'package:merrymakin/commons/dao/user_dao.dart';
 import 'package:merrymakin/commons/dao/cookies_dao.dart';
+import 'package:merrymakin/commons/resources.dart';
+import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/service/user_service.dart';
 import 'package:merrymakin/commons/service/cookies_service.dart';
 // import 'package:merrymakin/dao/event_to_attendee_dao.dart';
@@ -18,6 +20,7 @@ class AppFactory {
   late final CookiesDAO cookiesDAO;
   late final UserService userService;
   late final CookiesService cookiesService;
+  late final ImageService imageService;
   factory AppFactory.forFirstTime(Database database) {
     _instance ??= AppFactory._(database);
     return _instance!;
@@ -35,5 +38,7 @@ class AppFactory {
     cookiesDAO = CookiesDAO(_database);
     cookiesService = CookiesService(cookiesDAO, userDAO);
     userService = UserService(userDAO, cookiesService);
+    // Initialize image service
+    imageService = ImageService(IMAGE_REPOSITORY_JSON);
   }
 }

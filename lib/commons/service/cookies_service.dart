@@ -56,10 +56,11 @@ class CookiesService {
       print("No JWT token to set");
       return;
     }
+    locallyAvailableJwtToken = jwtToken;
+
     Cookie? cookie = await cookiesDAO.getCookie();
 
     if (cookie != null) {
-      locallyAvailableJwtToken = jwtToken;
       cookie.jwt = jwtToken;
       cookiesDAO.updateCookie(cookie);
     } else {

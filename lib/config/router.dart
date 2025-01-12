@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/screens/create_event_screen.dart';
 import 'package:merrymakin/screens/event_details.dart';
 import 'package:merrymakin/screens/base_screen.dart';
@@ -30,7 +31,7 @@ final router = GoRouter(
     GoRoute(
       path: '/events/new',
       builder: (context, state) {
-        return const AddOrEditEvent();
+        return AddOrEditEvent();
       },
     ),
     GoRoute(

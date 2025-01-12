@@ -71,6 +71,14 @@ Future<Response> getAllEvents() async {
   return response;
 }
 
+Future<Response> deleteEventFromServer(final String eventId) async {
+  Map<String, String> headers = {
+    "access-token": CookiesService.locallyAvailableJwtToken ?? ""
+  };
+  Uri uri = Uri(scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: "$DEV_PATH_EVENTS/$eventId");
+  return await sendDeleteRequest(uri, headers);
+}
+
 Future<Response> getEventById(String eventId) async {
   Map<String, String> headers = {
     "access-token": CookiesService.locallyAvailableJwtToken ?? ""
@@ -85,3 +93,4 @@ Future<Response> getEventById(String eventId) async {
   );
   return response;
 }
+

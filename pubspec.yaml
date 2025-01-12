@@ -48,13 +48,14 @@ dependencies:
   share_plus:
   go_router:
   flutter_launcher_icons:
+  cached_network_image:
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-# dart run flutter_launcher_icons:generate
+# dart run flutter_launcher_icons
 flutter_launcher_icons:
   android: true
   ios: true
@@ -83,6 +84,9 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+    # To add assets to your application, add an assets section, like this:
+  assets:
+    - lib/commons/assets/google_sign_in_button.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

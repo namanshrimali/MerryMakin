@@ -48,3 +48,12 @@ Future<http.Response> sendPatchRequest(final Uri url,
     return Future.error(e);
   }
 }
+
+Future<http.Response> sendDeleteRequest(final Uri url, final Map<String, String> headers) {
+  try {
+    return http.delete(url, headers: headers);
+  } catch (e) {
+    print(e);
+    return Future.error(e);
+  }
+}

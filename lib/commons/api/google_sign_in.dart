@@ -5,9 +5,11 @@ class GoogleSignInApi {
   static Future<GoogleSignInAccount?> signIn() {
     try {
       return _googleSignIn.signIn().onError((error, stackTrace) {
+        print("error: $error");
         return Future.error(error == null ? 'Sign in failed' : error);
       });
     } catch (e) {
+      print("error: $e");
       return Future.error("Cannot sign in");
     }
   }

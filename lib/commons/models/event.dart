@@ -28,6 +28,8 @@ class Event {
   DateTime createdAt;
   DateTime updatedAt;
   List<Comment>? comments;
+  String? dressCode;
+  String? foodSituation;
   
   Event({
     this.id,
@@ -46,6 +48,8 @@ class Event {
     required this.createdAt,
     required this.updatedAt,
     this.comments = const [],
+    this.dressCode,
+    this.foodSituation,
   });
 
   @override
@@ -65,7 +69,9 @@ class Event {
       attendees: ${attendees?.map((a) => a.toString()).toList()},
       createdAt: $createdAt,
       updatedAt: $updatedAt,
-      comments: ${comments?.map((c) => c.toString()).toList()}
+      comments: ${comments?.map((c) => c.toString()).toList()},
+      dressCode: $dressCode,
+      foodSituation: $foodSituation
     }''';
     //       eventToAttendees: ${eventToAttendees?.map((a) => a.toString()).toList()},
 
@@ -105,6 +111,8 @@ class Event {
           : map['comments']
               .map((comment) => Comment.fromMap(comment))
               .toList()),
+      dressCode: map['dressCode'],
+      foodSituation: map['foodSituation'],
       // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
       //         null
       //     ? []
@@ -130,7 +138,9 @@ class Event {
         costPerSpot REAL NULL,
         countryCurrency TEXT NULL,
         createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
+        updatedAt TEXT NOT NULL,
+        dressCode TEXT NULL,
+        foodSituation TEXT NULL
         )
     ''';
   }
@@ -150,6 +160,8 @@ class Event {
       'updatedAt': updatedAt.toIso8601String(),
       'countryCurrency': countryCurrency?.name,
       'comments': comments?.map((c) => c.toMap()).toList(),
+      'dressCode': dressCode ?? '',
+      'foodSituation': foodSituation ?? '',
     };
   }
 
@@ -189,6 +201,8 @@ class Event {
       createdAt: createdAt,
       updatedAt: updatedAt,
       comments: comments,
+      dressCode: dressCode,
+      foodSituation: foodSituation,
     );
   }
 

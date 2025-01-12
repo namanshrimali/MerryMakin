@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:merrymakin/commons/models/country_currency.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/service/cookies_service.dart';
+import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/pro_date_time_picker.dart';
+import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_text_field.dart';
+import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/service/event_service.dart';
+import 'package:merrymakin/commons/widgets/pro_image_picker.dart';
+import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AddOrEditEvent extends ConsumerStatefulWidget {
   final String? eventId;
-
-  const AddOrEditEvent({
+  AddOrEditEvent({
     super.key,
     this.eventId,
   });
@@ -25,8 +30,15 @@ class AddOrEditEvent extends ConsumerStatefulWidget {
 class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   late Event event;
   late Future<List<dynamic>> _future;
-
+  final ImageService imageService = AppFactory().imageService;
   final _formKey = GlobalKey<FormState>();
+
+  final Map<String, bool> _visibleFields = {
+    'spots': false,
+    'costPerSpot': false,
+    'dressCode': false,
+    'food': false,
+  };
 
   @override
   void initState() {
@@ -38,7 +50,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             : [],
         countryCurrency: CookiesService.locallyStoredCountryCurrency,
         createdAt: DateTime.now(),
-        updatedAt: DateTime.now());
+        updatedAt: DateTime.now(), imageUrl: imageService.getRandomImage());
 
     Future eventFuture = Future<void>(() {}); // initialize with empty future
     if (widget.eventId != null) {
@@ -86,7 +98,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
 
   String? validateSpotsField(String? spots) {
     // final double _enteredAmount = double.parse(_amountController.text);
-    if (spots == null || spots.isEmpty || int.tryParse(spots) == null || int.parse(spots) >= 0) {
+    if (spots == null ||
+        spots.isEmpty ||
+        int.tryParse(spots) == null ||
+        int.parse(spots) >= 0) {
       return null;
     }
     return '# spots must be a valid positive number';
@@ -121,12 +136,105 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return null;
   }
 
+  List<Widget> _buildEditableField(String fieldName, String hintText) {
+    if (_visibleFields[fieldName]!) {
+      return [
+        const SizedBox(height: generalAppLevelPadding),
+        ProTextField(
+          hintText: hintText,
+          initialValue: _getInitialValue(fieldName),
+          onSubmitted: (value) {
+            setState(() {
+              _updateEventField(fieldName, value);
+              _visibleFields[fieldName] = false;
+            });
+          },
+          width: double.infinity,
+        ),
+      ];
+    }
+    return [const SizedBox.shrink()];
+  }
+
+  String _getInitialValue(String fieldName) {
+    switch (fieldName) {
+      case 'spots':
+        return event.spots?.toString() ?? '';
+      case 'costPerSpot':
+        return event.costPerSpot?.toString() ?? '';
+      case 'dressCode':
+        return event.dressCode ?? '';
+      case 'food':
+        return event.foodSituation ?? '';
+      default:
+        return '';
+    }
+  }
+
+  void _updateEventField(String fieldName, String value) {
+    switch (fieldName) {
+      case 'spots':
+        event.spots = int.tryParse(value);
+        break;
+      case 'costPerSpot':
+        event.costPerSpot = double.tryParse(value);
+        break;
+      case 'dressCode':
+        event.dressCode = value;
+        break;
+      case 'food':
+        event.foodSituation = value;
+        break;
+    }
+  }
+
+  void _handleImageSelection() {
+    openProBottomModalSheet(
+      context,
+      SizedBox(
+        height: MediaQuery.of(context).size.height * 0.8,
+        child: ProImagePicker(
+          onImageSelected: (String imageUrl) {
+            setState(() {
+              event.imageUrl = imageUrl;
+            });
+            Navigator.pop(context); // Close bottom sheet
+          }, imageService: imageService,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventImage(final double height) {
+    return GestureDetector(
+      onTap: _handleImageSelection,
+      child: Container(
+          height: height, // Adjust height as needed
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(generalAppLevelPadding),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(generalAppLevelPadding),
+          child: CachedNetworkImage(
+                  imageUrl: event.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                )
+              ,
+        ),
+      ),
+    );
+  }
+
   Widget buildFormWidget(
     BuildContext context,
   ) {
     String addOrUpdate = event.id == null ? "New" : "Edit";
-    String costPerSpotLabelText = 'Cost per spot';
-    String totalSpotsText = 'Number of Spots';
     String titleText = '$addOrUpdate Event';
 
     return Scaffold(
@@ -139,131 +247,131 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-            right: generalAppLevelPadding * 2,
-            left: generalAppLevelPadding * 2),
-        child: Form(
-            key: _formKey,
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const SizedBox(
-                    height: generalAppLevelPadding / 2,
-                  ),
-                  ProTextField(
-                    label: 'Title',
-                    initialValue: event.name,
-                    onValidationCallback: validateTitleField,
-                    onChanged: (value) {
-                      event.name = value;
-                    },
-                    onSaved: (value) {
-                      event.name = value.toString().trim();
-                    },
-                  ),
-                  const SizedBox(
-                    height: generalAppLevelPadding,
-                  ),
-                  ProDateTimePicker(
-                      initialValue: event.startDateTime,
-                      firstDate: DateTime(2024),
-                      lastDate: DateTime(2100),
-                      hintText: 'Set date and time',
-                      onDateTimeSelected: onSelectDate),
-                  const SizedBox(
-                    height: generalAppLevelPadding,
-                  ),
-                  ProTextField(
-                    label: 'Location',
-                    hintText: 'Place name, address or link',
-                    initialValue: event.location,
-                    onValidationCallback: validateLocationField,
-                    onChanged: (value) {
-                      event.location = value;
-                    },
-                    onSaved: (value) {
-                      event.location = value.toString().trim();
-                    },
-                  ),
-                  const SizedBox(
-                    height: generalAppLevelPadding,
-                  ),
-                  ProTextField(
-                    label: totalSpotsText,
-                    hintText: 'Leave blank for unlimited spots',
-                    onChanged: (value) {
-                      if (int.tryParse(value) != null) {
-                        event.spots = int.parse(value);
-                      }
-                    },
-                    initialValue:
-                        event.spots == null ? '' : event.spots.toString(),
-                    onValidationCallback: validateSpotsField,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: false, signed: false),
-                    onSaved: (value) {
-                      if (int.tryParse(value) != null) {
-                        event.spots = int.parse(value);
-                      }
-                    },
-                    autofocus: true,
-                  ),
-                  const SizedBox(
-                    height: generalAppLevelPadding,
-                  ),
-                  ProTextField(
-                    label: costPerSpotLabelText,
-                    onChanged: (value) {
-                      if (double.tryParse(value) != null) {
-                        event.costPerSpot = double.parse(value);
-                      }
-                    },
-                    initialValue: event.costPerSpot == null
-                        ? ''
-                        : event.costPerSpot.toString(),
-                    onValidationCallback: validateAmountField,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: false),
-                    onSaved: (value) {
-                      if (int.tryParse(value) != null) {
-                        event.costPerSpot = double.parse(value);
-                      }
-                    },
-                    prefixWidget: Text(
-                        "${CookiesService.locallyStoredCountryCurrency.getCurrencySymbol()} "),
-                    autofocus: true,
-                  ),
-                  const SizedBox(
-                    height: generalAppLevelPadding,
-                  ),
-                  ProTextField(
-                    label: 'Description',
-                    hintText: 'Add a description of your event',
-                    initialValue: event.description,
-                    onValidationCallback: validateDescriptionField,
-                    onChanged: (value) {
-                      event.description = value;
-                    },
-                    onSaved: (value) {
-                      event.description = value.toString().trim();
-                    },
-                  ),
+      body: LayoutBuilder(builder: (context, constraints) {
+        double height = constraints.maxHeight;
+        return Padding(
+          padding: const EdgeInsets.only(
+              right: generalAppLevelPadding * 2,
+              left: generalAppLevelPadding * 2),
+          child: Form(
+              key: _formKey,
+              child: ProListView(height: height, listItems: [
+                const SizedBox(
+                  height: generalAppLevelPadding / 2,
+                ),
+                ProTextField(
+                  initialValue: event.name,
+                  onValidationCallback: validateTitleField,
+                  onChanged: (value) {
+                    event.name = value;
+                  },
+                  onSaved: (value) {
+                    event.name = value.toString().trim();
+                  },
+                ),
+                const SizedBox(height: generalAppLevelPadding),
+                _buildEventImage(height * 0.5),
+                const SizedBox(height: generalAppLevelPadding),
+                ProDateTimePicker(
+                    initialValue: event.startDateTime,
+                    firstDate: DateTime(2024),
+                    lastDate: DateTime(2100),
+                    hintText: 'Set date and time',
+                    onDateTimeSelected: onSelectDate),
+                const SizedBox(
+                  height: generalAppLevelPadding,
+                ),
+                ProTextField(
+                  hintText: 'Place name, address or link',
+                  initialValue: event.location,
+                  onValidationCallback: validateLocationField,
+                  onChanged: (value) {
+                    event.location = value;
+                  },
+                  onSaved: (value) {
+                    event.location = value.toString().trim();
+                  },
+                ),
 
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.end,
-                  //   children: [
-                  //     if (event.id != null &&
-                  //         widget.deleteTransaction != null)
-                  //       IconButton(
-                  //           onPressed: widget.deleteTransaction!,
-                  //           color: const Color.fromARGB(255, 255, 81, 69),
-                  //           icon: const Icon(Icons.delete)),
-                  //   ],
-                  // ),
-                ])),
-      ),
+                ..._buildEditableField('spots', 'Enter number of spots'),
+                ..._buildEditableField('costPerSpot', 'Enter cost per spot'),
+                ..._buildEditableField('dressCode', 'Enter dress code. Casual, black tie, etc.'),
+                ..._buildEditableField('food', 'Enter food situation. BYOB, potluck, etc.'),
+                const SizedBox(
+                  height: generalAppLevelPadding,
+                ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      if (!_visibleFields['spots']!)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ProOutlinedButton(
+                            text: 'Spots',
+                            onPressed: () =>
+                                setState(() => _visibleFields['spots'] = true),
+                          ),
+                        ),
+                      if (!_visibleFields['costPerSpot']!)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ProOutlinedButton(
+                            text: 'Cost per spot',
+                            onPressed: () => setState(
+                                () => _visibleFields['costPerSpot'] = true),
+                          ),
+                        ),
+                      if (!_visibleFields['dressCode']!)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ProOutlinedButton(
+                            text: 'Dress code',
+                            onPressed: () => setState(
+                                () => _visibleFields['dressCode'] = true),
+                          ),
+                        ),
+                      if (!_visibleFields['food']!)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ProOutlinedButton(
+                            text: 'Food situation',
+                            onPressed: () =>
+                                setState(() => _visibleFields['food'] = true),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: generalAppLevelPadding),
+                ProTextField(
+                  hintText: 'Add a description of your event',
+                  initialValue: event.description,
+                  onValidationCallback: validateDescriptionField,
+                  onChanged: (value) {
+                    event.description = value;
+                  },
+                  onSaved: (value) {
+                    event.description = value.toString().trim();
+                  },
+                  multiline: true,
+                  maxLines: 5,
+                ),
+
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.end,
+                //   children: [
+                //     if (event.id != null &&
+                //         widget.deleteTransaction != null)
+                //       IconButton(
+                //           onPressed: widget.deleteTransaction!,
+                //           color: const Color.fromARGB(255, 255, 81, 69),
+                //           icon: const Icon(Icons.delete)),
+                //   ],
+                // ),
+              ])),
+        );
+      }),
     );
   }
 
@@ -277,7 +385,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.data != null && snapshot.data!.isNotEmpty && snapshot.data![0] != null) {
+          if (snapshot.data != null &&
+              snapshot.data!.isNotEmpty &&
+              snapshot.data![0] != null) {
             event = snapshot.data![0];
           }
 

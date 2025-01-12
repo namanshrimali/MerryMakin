@@ -25,7 +25,7 @@ class UserService {
         await internalAddOrUpdateUser(user);
         await cookiesService.setAppUser(user);
         // successfully created user or user already existed in the system
-        await cookiesService.setJWT(response.headers['access-token'] ?? '');
+        await cookiesService.setJWT(response.headers['access-token']);
         return user;
       } else {
         print('Failed to post user ${response.statusCode}');
