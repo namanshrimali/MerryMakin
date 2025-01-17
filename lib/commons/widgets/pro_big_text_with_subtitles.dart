@@ -18,9 +18,9 @@ class ProTextWithSubtitles extends StatelessWidget {
         const SizedBox(
           height: 48, // TODO remove constants
         ),
-        Text(
+        ProText(
           subtitleText,
-          style: Theme.of(context).textTheme.headlineSmall,
+          textStyle: Theme.of(context).textTheme.headlineSmall,
         ),
       ],
     );

@@ -46,3 +46,11 @@ Future<User?> findByUsername(final String username, final String? jwtToken) asyn
       ? User.fromMap(jsonDecode(response.body))
       : null;
 }
+
+Future<Response> deleteUserByEmail(String jwtToken) async {
+  Map<String, String> headers = {"access-token": jwtToken};
+  return await sendDeleteRequest(
+    Uri(scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_USERS),
+    headers,
+  );
+}

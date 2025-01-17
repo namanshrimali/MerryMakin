@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/constants.dart';
-import '../widgets/pro_bottom_modal_sheet.dart';
-import '../widgets/pro_contact_us.dart';
 import '../widgets/pro_list_item.dart';
 import '../widgets/pro_list_view.dart';
 import '../widgets/pro_madeby_sprylylabs.dart';
 import '../widgets/pro_text.dart';
 import '../widgets/pro_user_card.dart';
-import '../models/country_currency.dart';
-import './update_currency.dart';
 import '../service/cookies_service.dart';
 import '../service/user_service.dart';
 
@@ -18,46 +14,29 @@ class ProfileScreen extends ConsumerStatefulWidget {
   final CookiesService cookiesService;
   final String sprylyService;
   final Function? onLogout;
+  final String deepLinkText;
   const ProfileScreen(
       {super.key,
       required this.userService,
       required this.cookiesService,
       required this.sprylyService,
-      this.onLogout});
+      this.onLogout,
+      required this.deepLinkText});
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  ProListItem get currencyUpdateListItem {
-    return ProListItem(
-      key: const Key("0"),
-      title: const ProText("Transactions Currency"),
-      trailing: ProText(
-          CookiesService.locallyStoredCountryCurrency.getCurrencySymbol()),
-      swipeForEditAndDelete: false,
-      onTap: () {
-        openProBottomModalSheet(
-            context,
-            titleText: "Update currency for all transactions",
-            UpdateCurrency(
-              cookiesService: widget.cookiesService,
-              onUpdate: (CountryCurrency countryCurrency) {},
-            )).then((updatedCountryCurrency) {
-          if (updatedCountryCurrency != null) {
-            setState(() {});
-          }
-        });
-      },
-    );
-  }
 
-  List<Widget> get preferences {
+  List<Widget> get accountSettings {
     return [
-      const ProText("Preferences and Feedback"),
-      currencyUpdateListItem,
-      ProContactUs(),
+      const ProText("Account Settings"),
+      ProListItem(
+        key: const Key("delete-account"),
+        title: const ProText('Delete Account'),
+        onTap: () {},
+      ),
     ];
   }
 
@@ -72,17 +51,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               height: height * 0.4,
               user: CookiesService.locallyAvailableUserInfo,
               userService: widget.userService,
-              sprylyService: widget.sprylyService), // userCard is not ready
-          const SizedBox(
-            height: generalAppLevelPadding,
-          ),
-          ...preferences,
-          if (CookiesService.locallyAvailableUserInfo != null)
-            TextButton(
-                onPressed: () {
-                  widget.onLogout?.call();
-                },
-                child: const ProText('Log Out')),
+              sprylyService: widget.sprylyService,
+              userHardLinkText: widget.deepLinkText), // userCard is not ready
           const SizedBox(
             height: generalAppLevelPadding * 2,
           ),

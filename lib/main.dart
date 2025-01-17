@@ -12,7 +12,6 @@ Future<void> main() async {
   SQLiteDBHelper dbHelper = SQLiteDBHelper.instance;
   Database database = await dbHelper.database;
   AppFactory.forFirstTime(database);
-
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -24,7 +23,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'MoneyMoney',
+      title: 'MerryMakin',
       routerConfig: router,
       theme: ThemeData(
           // This is the theme of your application.

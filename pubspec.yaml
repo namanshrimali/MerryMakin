@@ -1,5 +1,5 @@
 name: merrymakin
-description: "A new Flutter project."
+description: "Plan. Invite. Celebrate! Create stunning event pages, share invites effortlessly, and celebrate your way"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -60,7 +60,7 @@ flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icon/merrymakinlogo3.png"
+  image_path: "assets/icon/merrymakinlogo4.png"
   
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

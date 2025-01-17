@@ -9,20 +9,20 @@ Future<bool> openConfirmationForDeletion(BuildContext context, String? deleteMes
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Delete'),
-          content: deleteMessage == null || deleteMessage.isEmpty? const Text(defaultDeleteConfirmationText): ProText(deleteMessage),
+          title: const ProText('Confirm Delete'),
+          content: deleteMessage == null || deleteMessage.isEmpty? const ProText(defaultDeleteConfirmationText): ProText(deleteMessage),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(false); // Cancel the delete
               },
-              child: const Text('Cancel'),
+              child: const ProText('Cancel'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true); // Confirm the delete
               },
-              child: const Text('Delete'),
+              child: const ProText('Delete'),
             ),
           ],
         );

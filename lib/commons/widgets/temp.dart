@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/widgets/pro_text.dart';
 class BottomSheetDropdown extends StatefulWidget {
   @override
   _BottomSheetDropdownState createState() => _BottomSheetDropdownState();
@@ -20,7 +21,7 @@ class _BottomSheetDropdownState extends State<BottomSheetDropdown> {
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(value),
+          child: ProText(value),
         );
       }).toList(),
       decoration: InputDecoration(
@@ -78,7 +79,7 @@ class _CustomDropdownButtonFormFieldState<T>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(widget.value?.toString() ?? ''),
+            ProText(widget.value?.toString() ?? ''),
             Icon(Icons.arrow_drop_down),
           ],
         ),

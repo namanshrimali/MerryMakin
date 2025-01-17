@@ -9,29 +9,47 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class ProContactUs extends StatelessWidget {
-  final String subject =
-      Platform.isIOS ? "MoneyMoney for iOS" : "MoneyMoney for Android";
+  final String appName;
 
-  ProContactUs({super.key});
+  ProContactUs({super.key, required this.appName}) {}
   // Define email content
   SnackBar getCouldNotOpenMailAppSnackBar(String mailAppName) {
     return SnackBar(
-      content: Text('Could not open ${mailAppName}. Is it installed?'),
+      content: ProText('Could not open ${mailAppName}. Is it installed?'),
     );
   }
 
   void _openGmailAndroid(BuildContext context) async {
-    String gmailUrl =
-        'googlegmail:///co?subject=${subject}&body=&to=${contactUsEmail}';
-    if (!await launchUrlString(gmailUrl)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(getCouldNotOpenMailAppSnackBar("Gmail App"));
+    String subject =
+        Platform.isIOS ? "$appName for iOS" : "$appName for Android";
+    if (Platform.isAndroid) {
+      final Uri params = Uri(
+        scheme: 'mailto',
+        path: contactUsEmail,
+        query: 'subject=${subject}&body=',
+      );
+      final url = params.toString();
+      final urlPath = Uri.parse(url);
+      launchUrl(urlPath);
+    } else {
+      String gmailUrl =
+          'googlegmail:///co?subject=${subject}&body=&to=${contactUsEmail}';
+      try {
+        await launchUrlString(gmailUrl);
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(getCouldNotOpenMailAppSnackBar("Gmail App. ${e}"));
+        print(e);
+      }
     }
+
     Navigator.of(context).pop();
   }
 
   // Function to launch email client with pre-filled data
   void _sendEmail(BuildContext context) async {
+    String subject =
+        Platform.isIOS ? "$appName for iOS" : "$appName for Android";
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
       path: contactUsEmail, // Add recipient's email address

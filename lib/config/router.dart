@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:merrymakin/commons/screen/settings_screen.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/screens/create_event_screen.dart';
 import 'package:merrymakin/screens/event_details.dart';
@@ -11,6 +12,16 @@ final router = GoRouter(
       builder: (context, state) {
         return const BaseScreen();
       },
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => SettingsScreen(
+        userService: AppFactory().userService,
+        cookiesService: AppFactory().cookiesService,
+        onLogout: () {
+          AppFactory().deleteEverything();
+        },
+      ),
     ),
     GoRoute(
       path: '/:id',

@@ -7,6 +7,7 @@ import 'package:merrymakin/commons/service/cookies_service.dart';
 // import 'package:merrymakin/dao/event_to_attendee_dao.dart';
 // import 'package:merrymakin/dao/event_to_host_dao.dart';
 import 'package:merrymakin/dao/events_dao.dart';
+import 'package:merrymakin/service/event_service.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppFactory {
@@ -21,6 +22,8 @@ class AppFactory {
   late final UserService userService;
   late final CookiesService cookiesService;
   late final ImageService imageService;
+  late final Function deleteEverything;
+
   factory AppFactory.forFirstTime(Database database) {
     _instance ??= AppFactory._(database);
     return _instance!;
@@ -40,5 +43,10 @@ class AppFactory {
     userService = UserService(userDAO, cookiesService);
     // Initialize image service
     imageService = ImageService(IMAGE_REPOSITORY_JSON);
+    deleteEverything = () {
+      cookiesService.clearCookies();
+      userService.deleteAllUsers();
+      deleteAllEvents();
+    };
   }
 }

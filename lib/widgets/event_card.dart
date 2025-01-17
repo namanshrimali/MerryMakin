@@ -5,20 +5,42 @@ import 'package:merrymakin/commons/widgets/pro_image_card.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
 
+import '../commons/utils/constants.dart';
+
 class EventCard extends StatelessWidget {
   final Event event;
-  const EventCard({super.key, required this.event});
+  final double height;
+  const EventCard({super.key, required this.event, this.height = 300});
 
   @override
   Widget build(BuildContext context) {
-    return ProImageCard(
-      imageUrl: event.imageUrl,
-      title: event.name,
-      subtitle: event.formattedStartDateTime,
-      thirdRow: _buildThirdRow(event),
-      onTap: () {
-        context.push('/${event.id}');
-      },
+    return Column(
+      children: [
+        ProImageCard(
+          imageUrl: event.imageUrl,
+          imageHeight: height * 0.6,
+          title: event.name,
+          subtitle: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Icon(Icons.access_time, size: generalAppLevelPadding),
+            const SizedBox(width: generalAppLevelPadding / 2),
+            Expanded(
+              child: ProText(
+                event.formattedStartDateTime,
+                textStyle: const TextStyle(color: Colors.grey,),
+                maxLines: 2,
+              ),
+            ),
+          ],
+        ),
+        thirdRow: _buildThirdRow(event),
+        onTap: () {
+            context.push('/${event.id}');
+          },
+        ),
+        const Spacer(),
+      ],
     );
   }
 

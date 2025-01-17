@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/widgets/pro_text.dart';
 import '../../utils/constants.dart';
 import '../../widgets/buttons/pro_primary_button.dart';
 
@@ -23,7 +24,7 @@ class ProButtonWithIconAndText extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (iconAtPrefix && icon != null) Icon(icon),
-          Text(
+          ProText(
             text,
           ),
           if (!iconAtPrefix && icon != null) Icon(icon),

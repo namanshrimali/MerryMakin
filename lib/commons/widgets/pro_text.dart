@@ -8,15 +8,25 @@ class ProText extends StatelessWidget {
   final double? height;
   final FontWeight? weight;
   final bool hideOverflownDataWithEllipses;
+  final TextOverflow overflow;
+  final int? maxLines;
+  final TextAlign? textAlign;
+  final TextScaler? textScaler;
 
-  const ProText(this.data,
-      {super.key,
-      this.color,
-      this.fontStyle = FontStyle.normal,
-      this.weight,
-      this.height,
-      this.textStyle, 
-      this.hideOverflownDataWithEllipses = false});
+  const ProText(
+    this.data, {
+    super.key,
+    this.color,
+    this.fontStyle = FontStyle.normal,
+    this.weight,
+    this.height,
+    this.textStyle,
+    this.hideOverflownDataWithEllipses = false,
+    this.overflow = TextOverflow.ellipsis,
+    this.maxLines,
+    this.textAlign,
+    this.textScaler,
+  });
 
   TextStyle get textStyleForProText {
     return textStyle != null
@@ -27,7 +37,14 @@ class ProText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String textToBeShown = hideOverflownDataWithEllipses ? addEllipsisIfTooLong(data) : data;
-    Widget textBox = Text(textToBeShown, style: textStyleForProText);
+    Widget textBox = Text(
+      textToBeShown,
+      style: textStyleForProText,
+      overflow: overflow,
+      maxLines: maxLines,
+      textAlign: textAlign,
+      textScaler: textScaler,
+    );
     return height == null
         ? textBox
         : SizedBox(
@@ -37,10 +54,10 @@ class ProText extends StatelessWidget {
   }
 
   String addEllipsisIfTooLong(String word) {
-  if (word.length > 30) {
-    return word.substring(0, 30 - 3) + "...";
-  } else {
-    return word;
+    if (word.length > 30) {
+      return word.substring(0, 30 - 3) + "...";
+    } else {
+      return word;
+    }
   }
-}
 }

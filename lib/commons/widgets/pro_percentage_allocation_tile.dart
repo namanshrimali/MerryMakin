@@ -58,7 +58,7 @@ class _AllocationTileState extends State<AllocationTile> {
                   incomeAllocationPercentage, widget.goal);
             } catch (_) {}
           },
-          suffixWidget: const Text("%"),
+          suffixWidget: const ProText("%"),
         ),
       ),
     );

@@ -18,6 +18,8 @@ class EventRequestDTO {
   List<Comment>? comments;
   String? dressCode;
   String? foodSituation;
+  bool isGuestListHidden;
+  bool isGuestCountHidden;
 
   EventRequestDTO({
     this.id,
@@ -37,6 +39,8 @@ class EventRequestDTO {
     this.comments,
     this.dressCode,
     this.foodSituation,
+    this.isGuestListHidden = false,
+    this.isGuestCountHidden = false,
   });
 
   @override
@@ -58,7 +62,9 @@ class EventRequestDTO {
       updatedAt: $updatedAt,
       comments: ${comments?.map((c) => c.toString()).toList()},
       dressCode: $dressCode,
-      foodSituation: $foodSituation
+      foodSituation: $foodSituation,
+      isGuestListHidden: $isGuestListHidden,
+      isGuestCountHidden: $isGuestCountHidden
     }''';
   }
 
@@ -100,6 +106,8 @@ class EventRequestDTO {
       'comments': comments?.map((c) => c.toMap()).toList(),
       'dressCode': dressCode ?? '',
       'foodSituation': foodSituation ?? '',
+      'isGuestListHidden': isGuestListHidden ? 1 : 0,
+      'isGuestCountHidden': isGuestCountHidden ? 1 : 0,
     };
   }
 }

@@ -58,4 +58,24 @@ class UserService {
   Future<void> deleteAllUsers() {
     return userDAO.deleteAllUsers();
   }
+
+  Future<void> deleteUser() async {
+    try {
+      final User? user = CookiesService.locallyAvailableUserInfo;
+      final String? jwtToken = CookiesService.locallyAvailableJwtToken;
+      if (user == null || jwtToken == null) {
+        return Future.error('Login to delete user');
+      }
+      Response response = await deleteUserByEmail(jwtToken);
+      if (response.statusCode == 200) {
+        // await userDAO.deleteUser(user);
+      } else {
+        print('Failed to delete user ${response.statusCode}');
+        return Future.error('Failed to delete user ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      return Future.error(e);
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_sign_in_with_apple.dart';
 import '../providers/user_provider.dart';
 import '../models/spryly_services.dart';
 import '../api/google_sign_in.dart';
@@ -133,10 +134,6 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
               'lib/commons/assets/google_sign_in_button.svg',
             ),
           )
-        : SizedBox(
-            width: 250,
-            height: 44,
-            child: SignInWithAppleButton(onPressed: _signInWithApple),
-          );
+        : ProSignInWithAppleButton(onPressed: _signInWithApple);
   }
 }

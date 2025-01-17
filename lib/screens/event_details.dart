@@ -21,7 +21,7 @@ import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/service/event_service.dart';
 import 'package:share_plus/share_plus.dart';
-import '../commons/widgets/comment.dart';
+import '../commons/widgets/pro_user_comment.dart';
 
 class EventDetailsScreen extends ConsumerStatefulWidget {
   final String? eventId;
@@ -37,14 +37,17 @@ class EventDetailsScreen extends ConsumerStatefulWidget {
 
 class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Event? event;
-  Widget _buildInfoRow(IconData icon, Widget content) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey),
-        const SizedBox(width: 8),
-        Expanded(child: content),
-      ],
-    );
+  List<Widget> _buildInfoRow(IconData icon, Widget content) {
+    return [
+      const SizedBox(height: generalAppLevelPadding),
+      Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.grey),
+          const SizedBox(width: 8),
+          Expanded(child: content),
+        ],
+      )
+    ];
   }
 
   void _showOptionsModal(BuildContext context, Event event) {
@@ -57,7 +60,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text('Edit Event'),
+                title: const ProText('Edit Event'),
                 onTap: () {
                   if (!event
                       .isHostedByMe(CookiesService.locallyAvailableUserInfo)) {
@@ -69,9 +72,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text(
+                title: const ProText(
                   'Delete Event',
-                  style: TextStyle(color: Colors.red),
+                  textStyle: TextStyle(color: Colors.red),
                 ),
                 onTap: () async {
                   // Close the bottom sheet
@@ -82,18 +85,20 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: const Text('Delete Event'),
-                        content: const Text(
-                            'Are you sure you want to delete this event?'),
+                        title: const ProText('Delete Event'),
+                        content: const ProText(
+                          'Are you sure you want to delete this event?',
+                          maxLines: 2,
+                        ),
                         actions: [
                           TextButton(
-                            child: const Text('Cancel'),
+                            child: const ProText('Cancel'),
                             onPressed: () => Navigator.of(context).pop(false),
                           ),
                           TextButton(
-                            child: const Text(
+                            child: const ProText(
                               'Delete',
-                              style: TextStyle(color: Colors.red),
+                              textStyle: TextStyle(color: Colors.red),
                             ),
                             onPressed: () {
                               deleteEvent(event.id!).then((value) {
@@ -183,18 +188,18 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(generalAppLevelPadding),
-                  child: ProListView(
-                    height: height * 0.6,
-                    listItems: [
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       ProText(
                         receivedEvent.name,
                         textStyle: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
+                        maxLines: 1,
                       ),
-                      const SizedBox(height: 16),
-                      _buildInfoRow(
+                      ..._buildInfoRow(
                         Icons.access_time,
                         Row(
                           children: [
@@ -204,8 +209,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildInfoRow(
+                      ..._buildInfoRow(
                         Icons.star,
                         Row(
                           children: [
@@ -231,22 +235,19 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                           ],
                         ),
                       ),
-                      // const SizedBox(height: 12),
+                      // const SizedBox(height: generalAppLevelPadding / 2),
                       if (receivedEvent.location != null &&
                           receivedEvent.location!.isNotEmpty)
-                        _buildInfoRow(
+                        ..._buildInfoRow(
                           Icons.location_on,
                           ProText(
                             receivedEvent.location!,
                             textStyle: const TextStyle(),
                           ),
                         ),
-                      if (receivedEvent.location != null &&
-                          receivedEvent.location!.isNotEmpty)
-                        const SizedBox(height: 12),
                       if (receivedEvent.spots != null &&
                           receivedEvent.spots! > 0)
-                        _buildInfoRow(
+                        ..._buildInfoRow(
                           Icons.person,
                           ProText(
                             '${receivedEvent.spots} spots',
@@ -255,36 +256,55 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                         ),
                       if (receivedEvent.costPerSpot != null &&
                           receivedEvent.costPerSpot! > 0) ...[
-                        const SizedBox(height: 12),
-                        _buildInfoRow(
-                          Icons.attach_money,
+                        ..._buildInfoRow(
+                          Icons.loyalty,
                           ProText(
                             '${receivedEvent.countryCurrency!.getCurrencySymbol()}${receivedEvent.costPerSpot} per person',
                             textStyle: const TextStyle(),
                           ),
                         ),
                       ],
+                      if (receivedEvent.dressCode != null &&
+                          receivedEvent.dressCode!.isNotEmpty)
+                        ..._buildInfoRow(
+                          Icons.style,
+                          ProText(
+                            receivedEvent.dressCode!,
+                            textStyle: const TextStyle(),
+                          ),
+                        ),
+                      if (receivedEvent.foodSituation != null &&
+                          receivedEvent.foodSituation!.isNotEmpty)
+                        ..._buildInfoRow(
+                          Icons.dining,
+                          ProText(
+                            receivedEvent.foodSituation!,
+                            textStyle: const TextStyle(),
+                          ),
+                        ),
                       if (receivedEvent.description != null) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: generalAppLevelPadding),
                         ProText(
                           receivedEvent.description!,
                           textStyle: const TextStyle(
                             height: 1.5,
                           ),
+                          maxLines: null,
                         ),
                       ],
                       if (receivedEvent.attendees != null &&
+                          !receivedEvent.isGuestListHidden &&
                           (receivedEvent
                                   .getAttendeesByRsvpStatus(RSVPStatus.GOING)
                                   .isNotEmpty ||
                               receivedEvent
                                   .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
                                   .isNotEmpty)) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: generalAppLevelPadding / 2),
                         _buildGuestList(receivedEvent),
                       ],
                       ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: generalAppLevelPadding / 2),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -431,12 +451,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 shareMessage +=
                     'When: ${_formatDateTime(event.startDateTime!, event.endDateTime)}\n';
               }
-
-              if (event.location != null && event.location!.isNotEmpty) {
-                shareMessage += 'Where: ${event.location}\n';
-              }
-
-              Share.share(shareMessage);
+              Share.share(shareMessage,
+                  sharePositionOrigin:
+                      Rect.fromPoints(const Offset(2, 2), const Offset(3, 3)));
             },
             child: const Icon(Icons.share),
           ),
@@ -482,27 +499,28 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       text: 'View All'),
                 ],
               ),
-              Row(
-                children: [
-                  if (event
-                      .getAttendeesByRsvpStatus(RSVPStatus.GOING)
-                      .isNotEmpty)
-                    ProText(
-                        'Going ${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length}'),
-                  if (event
-                          .getAttendeesByRsvpStatus(RSVPStatus.GOING)
-                          .isNotEmpty &&
-                      event
-                          .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
-                          .isNotEmpty)
-                    ProText('·'),
-                  if (event
-                      .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
-                      .isNotEmpty)
-                    ProText(
-                        'Maybe ${event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE).length}'),
-                ],
-              )
+              if (!event.isGuestCountHidden)
+                Row(
+                  children: [
+                    if (event
+                        .getAttendeesByRsvpStatus(RSVPStatus.GOING)
+                        .isNotEmpty)
+                      ProText(
+                          'Going ${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length}'),
+                    if (event
+                            .getAttendeesByRsvpStatus(RSVPStatus.GOING)
+                            .isNotEmpty &&
+                        event
+                            .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
+                            .isNotEmpty)
+                      ProText('·'),
+                    if (event
+                        .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
+                        .isNotEmpty)
+                      ProText(
+                          'Maybe ${event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE).length}'),
+                  ],
+                )
             ],
           ),
         ),
@@ -566,7 +584,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   List<ProUserComment> _buildComments(Event event) {
     event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return event.comments
-            ?.map((comment) => ProUserComment(comment: comment))
+            ?.map((comment) => ProUserComment(
+                comment: comment, hideNames: event.isGuestListHidden))
             .toList() ??
         [];
   }

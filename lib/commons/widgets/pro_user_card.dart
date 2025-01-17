@@ -13,13 +13,15 @@ class ProUserCard extends StatefulWidget {
   final double? height;
   final UserService userService;
   final String sprylyService;
+  final String userHardLinkText;
   const ProUserCard(
       {super.key,
       required this.user,
       this.isDisplayCard = true,
       this.height,
       required this.userService,
-      required this.sprylyService});
+      required this.sprylyService,
+      required this.userHardLinkText});
 
   @override
   State<ProUserCard> createState() => _ProUserCardState();
@@ -70,8 +72,7 @@ class _ProUserCardState extends State<ProUserCard> {
                 opacity: widget.isDisplayCard ? 1 : 0,
                 child: IconButton(
                   onPressed: () {
-                    Share.share(
-                        'Tap this link to add me as a friend on MoneyMoney[More]: http://moneymoneymore.app/${user.userNameForDisplay}');
+                    Share.share(widget.userHardLinkText);
                   },
                   icon: Icon(Icons.ios_share, size: 20),
                 ),

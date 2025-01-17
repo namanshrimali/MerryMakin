@@ -17,8 +17,6 @@ class AllEventsScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
-  late ProGreetings proGreetings;
-
   String selectedFilter = 'upcoming';
 
   final List<String> filters = [
@@ -31,10 +29,6 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
   @override
   void initState() {
     super.initState();
-    proGreetings = ProGreetings(
-      user: CookiesService
-          .locallyAvailableUserInfo, // Replace with actual logged-in user
-    );
   }
 
   List<Event> getFilteredEvents() {
@@ -114,65 +108,73 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     final filteredEvents = getFilteredEvents();
     final eventCounts = getEventCounts();
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          proGreetings,
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: generalAppLevelPadding),
-              itemCount: filters.length,
-              itemBuilder: (context, index) {
-                final filter = filters[index];
-                final isSelected = selectedFilter == filter;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: constraints.maxHeight * 0.05),
+              ProGreetings(
+                user: CookiesService.locallyAvailableUserInfo,
+              
+              ),
+              SizedBox(
+                height: constraints.maxHeight * 0.1,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.only(
+                      right: generalAppLevelPadding),
+                  itemCount: filters.length,
+                  itemBuilder: (context, index) {
+                    final filter = filters[index];
+                    final isSelected = selectedFilter == filter;
 
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: ProFilterChip(
-                    label: filter,
-                    isSelected: isSelected,
-                    count: eventCounts[filter],
-                    onSelected: (bool selected) {
-                      setState(() {
-                        selectedFilter = filter;
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (filteredEvents.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(generalAppLevelPadding),
-              child: ProText(
-                'Create your event! Start by tapping the + button at the bottom right corner',
-                textStyle: TextStyle(
-                  color: Colors.grey,
+                    return Padding(
+                      padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
+                      child: ProFilterChip(
+                        label: filter,
+                        isSelected: isSelected,
+                        count: eventCounts[filter],
+                        onSelected: (bool selected) {
+                          setState(() {
+                            selectedFilter = filter;
+                          });
+                        },
+                      ),
+                    );
+                  },
                 ),
               ),
-            )
-          else
-            SizedBox(
-              height: 280,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: generalAppLevelPadding),
-                itemCount: filteredEvents.length,
-                itemBuilder: (context, index) {
-                  final event = filteredEvents[index];
-                  return EventCard(event: event);
-                },
-              ),
-            ),
-        ],
-      ),
+              const SizedBox(height: generalAppLevelPadding),
+              if (filteredEvents.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(generalAppLevelPadding),
+                  child: ProText(
+                    'Create your event! Start by tapping the + button at the bottom right corner',
+                    textStyle: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                )
+              else
+                SizedBox(
+                  height: constraints.maxHeight * 0.8,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    // padding: const EdgeInsets.symmetric(
+                    //     horizontal: generalAppLevelPadding),
+                    itemCount: filteredEvents.length,
+                    itemBuilder: (context, index) {
+                      final event = filteredEvents[index];
+                      return EventCard(event: event);
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

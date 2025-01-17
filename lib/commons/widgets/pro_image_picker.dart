@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:merrymakin/commons/widgets/pro_text.dart';
 import '../service/image_service.dart';
 import '../utils/constants.dart';
 
@@ -34,7 +35,7 @@ class _ProImagePickerState extends State<ProImagePicker> {
     }
 
     if (widget.imageService.error != null) {
-      return Center(child: Text('Error: ${widget.imageService.error}'));
+      return Center(child: ProText('Error: ${widget.imageService.error}'));
     }
 
     return Column(
@@ -48,7 +49,7 @@ class _ProImagePickerState extends State<ProImagePicker> {
               Padding(
                 padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
                 child: FilterChip(
-                  label: const Text('All'),
+                  label: const ProText('All'),
                   selected: _selectedCategory == null,
                   onSelected: (bool selected) {
                     setState(() {
@@ -61,7 +62,7 @@ class _ProImagePickerState extends State<ProImagePicker> {
                 return Padding(
                   padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
                   child: FilterChip(
-                    label: Text(category),
+                    label: ProText(category),
                     selected: _selectedCategory == category,
                     onSelected: (bool selected) {
                       setState(() {

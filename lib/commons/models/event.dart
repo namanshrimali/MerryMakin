@@ -30,6 +30,8 @@ class Event {
   List<Comment>? comments;
   String? dressCode;
   String? foodSituation;
+  bool isGuestListHidden;
+  bool isGuestCountHidden;
   
   Event({
     this.id,
@@ -50,6 +52,8 @@ class Event {
     this.comments = const [],
     this.dressCode,
     this.foodSituation,
+    this.isGuestListHidden = false,
+    this.isGuestCountHidden = false,
   });
 
   @override
@@ -71,7 +75,9 @@ class Event {
       updatedAt: $updatedAt,
       comments: ${comments?.map((c) => c.toString()).toList()},
       dressCode: $dressCode,
-      foodSituation: $foodSituation
+      foodSituation: $foodSituation,
+      isGuestListHidden: $isGuestListHidden,
+      shouldShowGuestCount: $isGuestCountHidden
     }''';
     //       eventToAttendees: ${eventToAttendees?.map((a) => a.toString()).toList()},
 
@@ -113,6 +119,8 @@ class Event {
               .toList()),
       dressCode: map['dressCode'],
       foodSituation: map['foodSituation'],
+      isGuestListHidden: map['isGuestListHidden'] != null && map['isGuestListHidden'],
+      isGuestCountHidden: map['isGuestCountHidden'] != null && map['isGuestCountHidden'],
       // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
       //         null
       //     ? []
@@ -140,7 +148,9 @@ class Event {
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         dressCode TEXT NULL,
-        foodSituation TEXT NULL
+        foodSituation TEXT NULL,
+        isGuestListHidden INTEGER DEFAULT 0,
+        isGuestCountHidden INTEGER DEFAULT 1
         )
     ''';
   }
@@ -162,6 +172,8 @@ class Event {
       'comments': comments?.map((c) => c.toMap()).toList(),
       'dressCode': dressCode ?? '',
       'foodSituation': foodSituation ?? '',
+      'isGuestListHidden': isGuestListHidden ? 1 : 0,
+      'isGuestCountHidden': isGuestCountHidden ? 1 : 0,
     };
   }
 

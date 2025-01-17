@@ -6,6 +6,7 @@ import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/pro_date_time_picker.dart';
+import 'package:merrymakin/commons/widgets/pro_list_item.dart';
 import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_text_field.dart';
@@ -96,8 +97,25 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return null;
   }
 
+    String? validateDressCodeField(String? dressCode) {
+    if (dressCode == null ||
+        dressCode.isEmpty ||
+        dressCode.trim().length >= 2) {
+          return null;
+    }
+    return 'Dress code must be at least 2 characters long';
+  }
+
+  String? validateFoodSituationField(String? foodSituation) {
+    if (foodSituation == null ||
+        foodSituation.isEmpty ||
+        foodSituation.trim().length >= 2) {
+      return null;
+    }
+    return 'Food situation must be at least 2 characters long';
+  }
+
   String? validateSpotsField(String? spots) {
-    // final double _enteredAmount = double.parse(_amountController.text);
     if (spots == null ||
         spots.isEmpty ||
         int.tryParse(spots) == null ||
@@ -136,6 +154,21 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return null;
   }
 
+  String? _validateField(String fieldName, String? value) {
+    switch (fieldName) {
+      case 'spots':
+        return validateSpotsField(value);
+      case 'costPerSpot':
+        return validateAmountField(value);
+      case 'dressCode':
+        return validateDressCodeField(value);
+      case 'food':
+        return validateFoodSituationField(value);
+      default:
+        return null;
+    }
+  }
+
   List<Widget> _buildEditableField(String fieldName, String hintText) {
     if (_visibleFields[fieldName]!) {
       return [
@@ -143,7 +176,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         ProTextField(
           hintText: hintText,
           initialValue: _getInitialValue(fieldName),
-          onSubmitted: (value) {
+          onValidationCallback: (String? value) => _validateField(fieldName, value),
+          onSaved: (value) {
             setState(() {
               _updateEventField(fieldName, value);
               _visibleFields[fieldName] = false;
@@ -156,16 +190,16 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return [const SizedBox.shrink()];
   }
 
-  String _getInitialValue(String fieldName) {
+  String? _getInitialValue(String fieldName,) {
     switch (fieldName) {
       case 'spots':
-        return event.spots?.toString() ?? '';
+        return event.spots == null || event.spots! > 0 ? event.spots?.toString() : null;
       case 'costPerSpot':
-        return event.costPerSpot?.toString() ?? '';
+        return event.costPerSpot == null || event.costPerSpot! > 0 ? event.costPerSpot?.toString() : null;
       case 'dressCode':
-        return event.dressCode ?? '';
+        return event.dressCode;
       case 'food':
-        return event.foodSituation ?? '';
+        return event.foodSituation;
       default:
         return '';
     }
@@ -209,23 +243,46 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return GestureDetector(
       onTap: _handleImageSelection,
       child: Container(
-          height: height, // Adjust height as needed
+        height: height,
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(generalAppLevelPadding),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(generalAppLevelPadding),
-          child: CachedNetworkImage(
-                  imageUrl: event.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                )
-              ,
+        child: Stack(
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(generalAppLevelPadding),
+              child: CachedNetworkImage(
+                imageUrl: event.imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
+              ),
+            ),
+            // Edit Icon
+            Positioned(
+              top: generalAppLevelPadding,
+              right: generalAppLevelPadding,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(generalAppLevelPadding * 2),
+                ),
+                child: const Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -243,7 +300,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         actions: [
           TextButton(
             onPressed: () => _submitData(context),
-            child: const Text("Save"),
+            child: const ProText("Save"),
           ),
         ],
       ),
@@ -270,7 +327,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                   },
                 ),
                 const SizedBox(height: generalAppLevelPadding),
-                _buildEventImage(height * 0.5),
+                _buildEventImage(400),
                 const SizedBox(height: generalAppLevelPadding),
                 ProDateTimePicker(
                     initialValue: event.startDateTime,
@@ -343,6 +400,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                     ],
                   ),
                 ),
+                if (!_visibleFields['spots']! || !_visibleFields['costPerSpot']! || !_visibleFields['dressCode']! || !_visibleFields['food']!)
                 const SizedBox(height: generalAppLevelPadding),
                 ProTextField(
                   hintText: 'Add a description of your event',
@@ -357,7 +415,36 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                   multiline: true,
                   maxLines: 5,
                 ),
-
+                const SizedBox(height: generalAppLevelPadding / 2),
+                ProListItem(
+                  key: Key('hide-guest-list'),
+                  title: const ProText('Hide Guest List'),
+                  subtitle: const ProText('Hide the guest names to RSVP\'d guests'),
+                  trailing: Switch(
+                      value: event.isGuestListHidden,
+                      onChanged: (bool selected) {
+                        setState(() {
+                          event.isGuestListHidden = selected;
+                        });
+                      },
+                    ),
+                ),
+                const SizedBox(height: generalAppLevelPadding/2),
+                ProListItem(
+                  key: Key('hide-guest-count'),
+                  title: const ProText('Hide Guest Count'),
+                  subtitle: const ProText('Hide number of guests to RSVP\'d guests'),
+                  swipeForEditAndDelete: false,
+                  trailing: Switch(
+                      value: event.isGuestCountHidden,
+                      onChanged: (bool selected) {
+                        setState(() {
+                          event.isGuestCountHidden = selected;
+                        });
+                      },
+                    ),
+                ),
+                const SizedBox(height: generalAppLevelPadding),
                 // Row(
                 //   mainAxisAlignment: MainAxisAlignment.end,
                 //   children: [
@@ -389,6 +476,19 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               snapshot.data!.isNotEmpty &&
               snapshot.data![0] != null) {
             event = snapshot.data![0];
+
+            if (event.spots != null && event.spots! > 0) {
+              _visibleFields['spots'] = true;
+            }
+            if (event.costPerSpot != null && event.costPerSpot! > 0) {
+              _visibleFields['costPerSpot'] = true;
+            }
+            if (event.dressCode != null && event.dressCode!.isNotEmpty) {
+              _visibleFields['dressCode'] = true;
+            }
+            if (event.foodSituation != null && event.foodSituation!.isNotEmpty) {
+              _visibleFields['food'] = true;
+            }
           }
 
           return buildFormWidget(context);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/widgets/pro_text.dart';
 
 import '../utils/math.dart';
 
@@ -26,7 +27,7 @@ class ProCircularProgressBarIndicator extends StatelessWidget {
             semanticsLabel: 'Circular progress indicator',
           ),
         ),
-        Text("${formatNumberWithoutDecimals(value * 100)}%"),
+        ProText("${formatNumberWithoutDecimals(value * 100)}%"),
       ],
     );
   }

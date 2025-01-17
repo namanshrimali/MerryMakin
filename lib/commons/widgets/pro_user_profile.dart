@@ -14,6 +14,7 @@ class ProUserProfile extends StatelessWidget {
   final String? jwtToken;
   final UserService userService;
   final String sprylyService;
+  final String deepLinkText;
   const ProUserProfile({
     super.key,
     required this.username,
@@ -21,6 +22,7 @@ class ProUserProfile extends StatelessWidget {
     this.jwtToken,
     required this.userService,
     required this.sprylyService,
+    required this.deepLinkText,
   });
 
   Widget getUserProfileContent(final User user) {
@@ -36,6 +38,7 @@ class ProUserProfile extends StatelessWidget {
                 isDisplayCard: false,
                 userService: userService,
                 sprylyService: sprylyService,
+                userHardLinkText: deepLinkText,
               ),
               // joinedCard,
               SizedBox(

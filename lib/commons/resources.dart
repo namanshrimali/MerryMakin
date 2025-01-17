@@ -1,3 +1,5 @@
+import 'package:merrymakin/commons/service/cookies_service.dart';
+
 String DEV_HOST = "api.moneymoneymore.app";
 int DEV_PORT = 80;
 // String DEV_HOST = "localhost";
@@ -6,3 +8,6 @@ String DEV_PATH_USERS = "user-service/api/v1/user";
 String DEV_PATH_EVENTS = "event-service/api/v1/event";
 String IMAGE_REPOSITORY_JSON =
     "https://raw.githubusercontent.com/namanshrimali/merrymakinwebsite/refs/heads/main/assets/images_repository.json";
+String DEEP_LINK_BEFRIEND_USER_TEXT =
+    "Tap this link to add me as a friend on MerryMakin: http://merrymakin.com/u/${CookiesService.locallyAvailableUserInfo?.userNameForDisplay}";
+  

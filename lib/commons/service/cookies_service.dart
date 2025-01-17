@@ -64,7 +64,13 @@ class CookiesService {
       cookie.jwt = jwtToken;
       cookiesDAO.updateCookie(cookie);
     } else {
-      print("No cookie to update");
+      Cookie newCookie = Cookie(
+          hasOnboarded: true,
+          preferences: '',
+          jwt: jwtToken,
+          defaultCountryCurrency:
+              CountryCurrency.UnitedStatesDollarUnitedStates);
+      cookiesDAO.insertCookie(newCookie);
     }
   }
 

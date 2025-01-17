@@ -87,6 +87,7 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
           )
         : AppBar(
             // title: appBarTitle,
+            actions: widget.baseScreenObjectList[ref.read(pageIndexProvider)].appBarActions,
           ) as PreferredSizeWidget;
     return Platform.isIOS && false
         // TODO update all reusable widgets to work with cupertino style
@@ -113,6 +114,7 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
 
 class ProBaseScreenObject {
   final Widget widget;
+  final List<Widget>? appBarActions;
   final IconData? icon;
   final String title;
   final List<ProStackedFabObject> fabObjects;
@@ -122,5 +124,6 @@ class ProBaseScreenObject {
     required this.widget,
     this.icon,
     required this.title,
+    this.appBarActions,
   });
 }
