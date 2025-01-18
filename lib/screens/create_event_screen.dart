@@ -50,8 +50,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             ? [CookiesService.locallyAvailableUserInfo!]
             : [],
         countryCurrency: CookiesService.locallyStoredCountryCurrency,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(), imageUrl: imageService.getRandomImage());
+        createdAt: DateTime.now().toUtc(),
+        updatedAt: DateTime.now().toUtc(), imageUrl: imageService.getRandomImage());
 
     Future eventFuture = Future<void>(() {}); // initialize with empty future
     if (widget.eventId != null) {

@@ -299,7 +299,7 @@ String getTransactionPeriodText(DateTime dateTime, Frequency frequency) {
 }
 
 String getRelativeTimePassed(DateTime dateTime) {
-  final now = DateTime.now();
+  final now = DateTime.now().toUtc();
   // if date is within 24 hours, return hours. If within 7 days, return days. If within 30 days, return weeks. If within 365 days, return months. If within 10 years, return years. 
   final differenceHours = now.difference(dateTime).inHours;
   final differenceDays = now.difference(dateTime).inDays;

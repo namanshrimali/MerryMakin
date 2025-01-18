@@ -47,7 +47,7 @@ class _ProAddCommentState extends State<ProAddComment> {
                   comment = Comment(
                     comment: value,
                     user: widget.user!,
-                    createdAt: DateTime.now());
+                    createdAt: DateTime.now().toUtc());
                 }
               },
               initialValue: comment == null ? '' : comment!.comment,
@@ -63,7 +63,7 @@ class _ProAddCommentState extends State<ProAddComment> {
                   comment = Comment(
                     comment: value,
                     user: widget.user!,
-                    createdAt: DateTime.now());
+                    createdAt: DateTime.now().toUtc());
                 }
               },
               autofocus: true,

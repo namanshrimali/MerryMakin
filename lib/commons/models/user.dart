@@ -61,8 +61,8 @@ class User {
       username: map['username'],
       email: map['email'],
       photoUrl: map['photo_url'],
-      firstRegistered: map['firstRegistered'] == null ? DateTime.now() : DateTime.parse(map['firstRegistered']),
-      timeStampWhenAuthorized: map['lastAccessed'] == null ? DateTime.now() : DateTime.parse(map['lastAccessed']),
+      firstRegistered: map['firstRegistered'] == null ? DateTime.now().toUtc() : DateTime.parse(map['firstRegistered']).toUtc(),
+      timeStampWhenAuthorized: map['lastAccessed'] == null ? DateTime.now().toUtc() : DateTime.parse(map['lastAccessed']).toUtc(),
     );
     return user;
   }

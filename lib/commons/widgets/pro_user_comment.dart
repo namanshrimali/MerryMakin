@@ -17,7 +17,7 @@ class ProUserComment extends StatelessWidget {
     return ProListItem(
       key: Key(comment.user.email.toString() + comment.createdAt.toString()),
       leading: hideNames? CircleAvatar(child: Icon(Icons.person))  : ProUserAvatar(user: comment.user),
-      title: ProText(nameOfUser + ' ' + getRelativeTimePassed(comment.createdAt)),
+      title: ProText(nameOfUser + ' ' + getRelativeTimePassed(comment.createdAt.toUtc())),
       subtitle: ProText(comment.comment, textStyle: Theme.of(context).textTheme.bodyLarge),
       swipeForEditAndDelete: false,
     );

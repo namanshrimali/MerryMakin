@@ -225,7 +225,7 @@ class Event {
   }
 
   String _formatDateTime(DateTime dateTime) {
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final difference = dateTime.difference(now).inDays;
 
     // Get 3-letter day name
