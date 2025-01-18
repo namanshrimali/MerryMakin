@@ -132,6 +132,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Widget _buildEvent(
       BuildContext context, final Event? receivedEvent, WidgetRef ref) {
     if (receivedEvent == null) {
+      showSnackBar(context, 'Event not found');
       return Scaffold(
         appBar: AppBar(),
         body: const Center(
@@ -447,10 +448,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               String shareMessage =
                   'RSVP to ${event.name}. http://merrymakin.com/${event.id}\n';
 
-              if (event.startDateTime != null) {
-                shareMessage +=
-                    'When: ${_formatDateTime(event.startDateTime!, event.endDateTime)}\n';
-              }
               Share.share(shareMessage,
                   sharePositionOrigin:
                       Rect.fromPoints(const Offset(2, 2), const Offset(3, 3)));
@@ -602,8 +599,25 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               event == null) {
             return const Center(child: CircularProgressIndicator());
           }
-          event = snapshot.data!;
-          return _buildEvent(context, snapshot.data!, ref);
+          if (snapshot.hasData) {
+            event = snapshot.data!;
+            return _buildEvent(context, event, ref);
+          }
+          return Scaffold(
+            // appBar: AppBar(),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ProText('Error loading event ${snapshot.error}',
+                      maxLines: 20),
+                  ProOutlinedButton(
+                      onPressed: () => context.go('/'), text: 'Go Home'),
+                ],
+              ),
+            ),
+          );
         });
   }
 }
