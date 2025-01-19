@@ -4,6 +4,7 @@ import 'package:merrymakin/commons/models/event_request_dto.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/cookies_service.dart';
+import 'package:merrymakin/factory/app_factory.dart';
 
 import '../commons/models/event.dart';
 
@@ -80,6 +81,9 @@ Future<Response> deleteEventFromServer(final String eventId) async {
 }
 
 Future<Response> getEventById(String eventId) async {
+  if (CookiesService.locallyAvailableJwtToken == null) {
+    await AppFactory().cookiesService.initializeCookie();
+  }
   Map<String, String> headers = {
     "access-token": CookiesService.locallyAvailableJwtToken ?? ""
   };

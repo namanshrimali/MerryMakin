@@ -317,7 +317,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                               ),
                             ),
                             ProOutlinedButton(
-                              text: 'Comment',
                               onPressed: () {
                                 openProBottomModalSheet(
                                     context,
@@ -341,6 +340,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                         user: CookiesService
                                             .locallyAvailableUserInfo));
                               },
+                              child: ProText('Comment'),
                             ),
                           ],
                         ),
@@ -493,7 +493,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                         openProBottomModalSheet(
                             context, _buildAllAttendeesWithStatus(event));
                       },
-                      text: 'View All'),
+                      child: ProText('View All')),
                 ],
               ),
               if (!event.isGuestCountHidden)
@@ -613,7 +613,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ProText('Error loading event ${snapshot.error}',
                       maxLines: 20),
                   ProOutlinedButton(
-                      onPressed: () => context.go('/'), text: 'Go Home'),
+                      onPressed: () => context.go('/'),
+                      child: ProText('Go Home')),
                 ],
               ),
             ),

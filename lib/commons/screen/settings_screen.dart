@@ -148,7 +148,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onPressed: () {
                         onLogout(context).call();
                       },
-                      text: 'Log Out'),
+                      child: ProText('Log Out')),
                 ]
               ],
             ),

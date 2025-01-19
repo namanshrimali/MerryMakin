@@ -365,7 +365,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ProOutlinedButton(
-                            text: 'Spots',
+                            child: ProText('Spots'),
                             onPressed: () =>
                                 setState(() => _visibleFields['spots'] = true),
                           ),
@@ -374,7 +374,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ProOutlinedButton(
-                            text: 'Cost per spot',
+                            child: ProText('Cost per spot'),
                             onPressed: () => setState(
                                 () => _visibleFields['costPerSpot'] = true),
                           ),
@@ -383,7 +383,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ProOutlinedButton(
-                            text: 'Dress code',
+                            child: ProText('Dress code'),
                             onPressed: () => setState(
                                 () => _visibleFields['dressCode'] = true),
                           ),
@@ -392,7 +392,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ProOutlinedButton(
-                            text: 'Food situation',
+                            child: ProText('Food situation'),
                             onPressed: () =>
                                 setState(() => _visibleFields['food'] = true),
                           ),

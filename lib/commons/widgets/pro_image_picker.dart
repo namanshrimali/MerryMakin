@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:merrymakin/commons/widgets/pro_text.dart';
+import 'package:image_picker/image_picker.dart';
+import './pro_snackbar.dart';
+import 'dart:io';
 import '../service/image_service.dart';
 import '../utils/constants.dart';
+import './buttons/pro_outlined_button.dart';
+import './pro_text.dart';
 
 class ProImagePicker extends StatefulWidget {
   final Function(String) onImageSelected;
@@ -13,8 +17,9 @@ class ProImagePicker extends StatefulWidget {
   const ProImagePicker({
     super.key,
     required this.onImageSelected,
+    required this.imageService,
     this.crossAxisCount = 3,
-    this.spacing = generalAppLevelPadding / 2, required this.imageService,
+    this.spacing = generalAppLevelPadding / 2,
   });
 
   @override
@@ -23,6 +28,27 @@ class ProImagePicker extends StatefulWidget {
 
 class _ProImagePickerState extends State<ProImagePicker> {
   String? _selectedCategory;
+  bool _isUploading = false;
+
+  Future<void> _uploadImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      setState(() => _isUploading = true);
+      
+      try {
+        final imageUrl = await widget.imageService.uploadImage(File(image.path));
+        if (imageUrl != null) {
+          widget.onImageSelected(imageUrl);
+        } else {
+          showSnackBar(context, "Failed to upload image");
+        }
+      } finally {
+        setState(() => _isUploading = false);
+      }
+    }
+  }
 
   List<String> _getFilteredImages() {
     return widget.imageService.getFilteredImages(_selectedCategory);
@@ -109,6 +135,24 @@ class _ProImagePickerState extends State<ProImagePicker> {
                 ),
               );
             },
+          ),
+        ),
+
+        // Upload button
+        Padding(
+          padding: const EdgeInsets.all(generalAppLevelPadding),
+          child: ProOutlinedButton(
+            onPressed: _isUploading ? null : _uploadImage,
+            child: _isUploading
+                ? const CircularProgressIndicator()
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.upload),
+                      SizedBox(width: 8),
+                      ProText('Upload Image'),
+                    ],
+                  ),
           ),
         ),
       ],

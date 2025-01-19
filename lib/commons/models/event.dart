@@ -220,7 +220,7 @@ class Event {
 
   String get formattedStartDateTime {
     return startDateTime != null
-        ? _formatDateTime(startDateTime!)
+        ? _formatDateTime(startDateTime!.toUtc())
         : 'To Be Decided';
   }
 
