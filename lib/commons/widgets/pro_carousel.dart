@@ -6,8 +6,9 @@ class ProCarousel extends StatefulWidget {
   final bool showIndicators;
   final double height;
   final bool padEnds;
+  final double? viewportFraction;
 
-  const ProCarousel({super.key, required this.items, required this.height, this.padEnds = false, this.showIndicators=true});
+  const ProCarousel({super.key, required this.items, required this.height, this.padEnds = false, this.showIndicators=true, this.viewportFraction});
 
   @override
   State<ProCarousel> createState() => _ProCarouselState();
@@ -25,7 +26,7 @@ class _ProCarouselState extends State<ProCarousel> {
           height: widget.height,
           child: PageView.builder(
             padEnds: widget.padEnds,
-            controller: PageController(viewportFraction: 1),
+            controller: PageController(viewportFraction: widget.viewportFraction ?? 1),
             itemCount: widget.items.length,
             onPageChanged: (index) {
               setState(() {

@@ -93,9 +93,13 @@ class _ProStackedFabState extends State<ProStackedFab> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          ProText(
-                            fabObject.title,
-                            hideOverflownDataWithEllipses: true,
+                          SizedBox(
+                            width: 200,
+                            child: ProText(
+                              fabObject.actionButtonText != null ? fabObject.actionButtonText! : fabObject.title,
+                              // hideOverflownDataWithEllipses: true,
+                              maxLines: 6,
+                            ),
                           ),
                           const SizedBox(
                             width: generalAppLevelPadding,
@@ -128,7 +132,8 @@ class ProStackedFabObject {
   IconData icon;
   Function onTap;
   String title;
+  String? actionButtonText;
 
   ProStackedFabObject(
-      {required this.icon, required this.title, required this.onTap});
+      {required this.icon, required this.title, required this.onTap, this.actionButtonText});
 }

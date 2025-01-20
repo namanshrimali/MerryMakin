@@ -9,7 +9,7 @@ import 'package:merrymakin/factory/app_factory.dart';
 import '../commons/models/event.dart';
 
 Future<Response> createEvent(
-  EventRequestDTO event,
+  EventRequestDTO eventRequestDTO,
   Uri uri,
 ) async {
   // attempt to add user to the user table
@@ -21,7 +21,7 @@ Future<Response> createEvent(
   return await sendPostRequest(
     uri,
     headers,
-    event.toMap(),
+    eventRequestDTO.toMap(),
   );
 }
 

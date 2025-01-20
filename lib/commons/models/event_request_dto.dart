@@ -20,6 +20,7 @@ class EventRequestDTO {
   String? foodSituation;
   bool isGuestListHidden;
   bool isGuestCountHidden;
+  List<EventRequestDTO> subEvents;
 
   EventRequestDTO({
     this.id,
@@ -41,6 +42,7 @@ class EventRequestDTO {
     this.foodSituation,
     this.isGuestListHidden = false,
     this.isGuestCountHidden = false,
+    this.subEvents = const [],
   });
 
   @override
@@ -64,7 +66,8 @@ class EventRequestDTO {
       dressCode: $dressCode,
       foodSituation: $foodSituation,
       isGuestListHidden: $isGuestListHidden,
-      isGuestCountHidden: $isGuestCountHidden
+      isGuestCountHidden: $isGuestCountHidden,
+      subEvents: ${subEvents.map((e) => e.toString()).toList()}
     }''';
   }
 
@@ -108,6 +111,7 @@ class EventRequestDTO {
       'foodSituation': foodSituation ?? '',
       'isGuestListHidden': isGuestListHidden ? 1 : 0,
       'isGuestCountHidden': isGuestCountHidden ? 1 : 0,
+      'subEvents': subEvents.map((e) => e.toMap()).toList(),
     };
   }
 }

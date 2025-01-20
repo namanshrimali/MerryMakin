@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/country_currency.dart';
 import 'package:merrymakin/commons/models/event.dart';
@@ -11,8 +10,10 @@ import 'package:merrymakin/commons/service/cookies_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
+import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/pro_add_comment.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
+import 'package:merrymakin/commons/widgets/pro_carousel.dart';
 import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/commons/widgets/pro_tab_view.dart';
@@ -37,20 +38,21 @@ class EventDetailsScreen extends ConsumerStatefulWidget {
 
 class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Event? event;
-  List<Widget> _buildInfoRow(IconData icon, Widget content) {
+  List<Widget> _buildInfoRow(IconData? icon, Widget content) {
     return [
       const SizedBox(height: generalAppLevelPadding),
       Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey),
-          const SizedBox(width: 8),
-          Expanded(child: content),
+          if (icon != null) ...[Icon(icon, size: 20, color: Colors.grey),
+          const SizedBox(width: 8)],
+          content,
         ],
       )
     ];
   }
 
   void _showOptionsModal(BuildContext context, Event event) {
+    final String eventType = event.subEvents != null && event.subEvents!.isNotEmpty ? "Celebration" : "Party";
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -60,21 +62,25 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: const ProText('Edit Event'),
+                title: ProText('Edit ${eventType}'),
                 onTap: () {
                   if (!event
                       .isHostedByMe(CookiesService.locallyAvailableUserInfo)) {
                     return;
                   }
                   Navigator.pop(context); // Close the bottom sheet
-                  context.push('/events/${event.id}/edit');
+                  if (event.subEvents != null && event.subEvents!.isNotEmpty) {
+                    context.push('/events/${event.id}/celebration/edit');
+                  } else {
+                    context.push('/events/${event.id}/edit');
+                  }
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const ProText(
-                  'Delete Event',
-                  textStyle: TextStyle(color: Colors.red),
+                title: ProText(
+                  'Delete ${eventType}',
+                  textStyle: const TextStyle(color: Colors.red),
                 ),
                 onTap: () async {
                   // Close the bottom sheet
@@ -85,7 +91,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: const ProText('Delete Event'),
+                        title: ProText('Delete ${eventType}'),
                         content: const ProText(
                           'Are you sure you want to delete this event?',
                           maxLines: 2,
@@ -127,6 +133,136 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         );
       },
     );
+  }
+
+  List<Widget> _buildEventTime(Event receivedEvent) {
+    if (receivedEvent.subEvents == null || receivedEvent.subEvents!.isEmpty)
+      return _buildInfoRow(
+        Icons.access_time,
+        Row(
+        children: [
+          ProText(
+              receivedEvent.formattedStartDateTime,
+            ),
+          ],
+        ),
+      );
+    return [];
+  }
+
+  List<Widget> _buildEventLocation(Event receivedEvent, double width) {
+    if (receivedEvent.location != null && receivedEvent.location!.isNotEmpty)
+      return _buildInfoRow(
+        Icons.location_on,
+        Row(
+          children: [
+            SizedBox(
+              width: width,
+              child: ProText(
+                receivedEvent.location!,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 3,
+              ),
+            ),
+          ],
+        ),
+      );
+    return [];
+  }
+
+  List<Widget> _buildEventSpots(Event receivedEvent) {
+    if (receivedEvent.spots != null && receivedEvent.spots! > 0)
+      return _buildInfoRow(
+        Icons.person,
+        ProText(
+          '${receivedEvent.spots} spots',
+          textStyle: const TextStyle(),
+        ),
+      );
+    return [];
+  }
+
+  List<Widget> _buildEventCostPerSpot(Event receivedEvent) {
+    if (receivedEvent.costPerSpot != null && receivedEvent.costPerSpot! > 0)
+      return _buildInfoRow(
+        Icons.loyalty,
+        ProText(
+          '${receivedEvent.countryCurrency!.getCurrencySymbol()}${receivedEvent.costPerSpot} per person',
+          textStyle: const TextStyle(),
+        ),
+      );
+
+    return [];
+  }
+
+  List<Widget> _buildEventDressCode(Event receivedEvent) {
+    if (receivedEvent.dressCode != null && receivedEvent.dressCode!.isNotEmpty)
+      return _buildInfoRow(
+        Icons.style,
+        Row(
+          children: [
+            ProText('Attire: '),
+            ProText(receivedEvent.dressCode!, textStyle: const TextStyle()),
+          ],
+        ),
+      );
+    return [];
+  }
+
+  List<Widget> _buildEventFoodSituation(Event receivedEvent) {
+    if (receivedEvent.foodSituation != null &&
+        receivedEvent.foodSituation!.isNotEmpty)
+      return _buildInfoRow(
+        Icons.dining,
+        ProText(receivedEvent.foodSituation!, textStyle: const TextStyle()),
+      );
+    return [];
+  }
+
+  Widget _buildEventInformation(Event receivedEvent, double width) {
+    return Column(
+      children: [
+        ..._buildEventTime(receivedEvent),
+        ..._buildEventLocation(receivedEvent, width),
+        ..._buildEventSpots(receivedEvent),
+        ..._buildEventCostPerSpot(receivedEvent),
+        ..._buildEventDressCode(receivedEvent),
+        ..._buildEventFoodSituation(receivedEvent),
+      ],
+    );
+  }
+
+    Widget _buildSubEventInformation(Event receivedEvent, double width) {
+    return Container(
+      margin: const EdgeInsets.only(right: generalAppLevelPadding),
+      child: ProCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ProText(receivedEvent.name, textScaler: TextScaler.noScaling, textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500,)),
+            // ProText(receivedEvent.name, textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            ..._buildEventTime(receivedEvent),
+            ..._buildEventLocation(receivedEvent, width * 0.7),
+            ..._buildEventSpots(receivedEvent),
+            ..._buildEventCostPerSpot(receivedEvent),
+            ..._buildEventDressCode(receivedEvent),
+            ..._buildEventFoodSituation(receivedEvent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventWithSubEventsInformation(Event receivedEvent, final double height, final double width) {
+    return ProCarousel(
+      height: height,
+      viewportFraction: 1,
+      showIndicators: true, 
+      padEnds: false, 
+      items: receivedEvent.subEvents!.map((subEvent) => _buildSubEventInformation(subEvent, width)).map((event) {
+        return event;
+      }).toList(),);
   }
 
   Widget _buildEvent(
@@ -198,91 +334,20 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
-                        maxLines: 1,
+                        maxLines: 3,
                       ),
-                      ..._buildInfoRow(
-                        Icons.access_time,
-                        Row(
-                          children: [
-                            ProText(
-                              receivedEvent.formattedStartDateTime,
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildEventInformation(receivedEvent, constraints.maxWidth),
                       ..._buildInfoRow(
                         Icons.star,
                         Row(
                           children: [
                             const ProText('Hosted by '),
-                            Expanded(
-                              child: SizedBox(
-                                height: 24,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: receivedEvent.hosts.length,
-                                  itemBuilder: (context, index) {
-                                    final host = receivedEvent.hosts[index];
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 4),
-                                      child: ProUserAvatar(
-                                        user: host,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
+                            Row(
+                              children: receivedEvent.hosts.map((host) => ProUserAvatar(user: host)).toList(),
                             ),
                           ],
                         ),
                       ),
-                      // const SizedBox(height: generalAppLevelPadding / 2),
-                      if (receivedEvent.location != null &&
-                          receivedEvent.location!.isNotEmpty)
-                        ..._buildInfoRow(
-                          Icons.location_on,
-                          ProText(
-                            receivedEvent.location!,
-                            textStyle: const TextStyle(),
-                          ),
-                        ),
-                      if (receivedEvent.spots != null &&
-                          receivedEvent.spots! > 0)
-                        ..._buildInfoRow(
-                          Icons.person,
-                          ProText(
-                            '${receivedEvent.spots} spots',
-                            textStyle: const TextStyle(),
-                          ),
-                        ),
-                      if (receivedEvent.costPerSpot != null &&
-                          receivedEvent.costPerSpot! > 0) ...[
-                        ..._buildInfoRow(
-                          Icons.loyalty,
-                          ProText(
-                            '${receivedEvent.countryCurrency!.getCurrencySymbol()}${receivedEvent.costPerSpot} per person',
-                            textStyle: const TextStyle(),
-                          ),
-                        ),
-                      ],
-                      if (receivedEvent.dressCode != null &&
-                          receivedEvent.dressCode!.isNotEmpty)
-                        ..._buildInfoRow(
-                          Icons.style,
-                          ProText(
-                            receivedEvent.dressCode!,
-                            textStyle: const TextStyle(),
-                          ),
-                        ),
-                      if (receivedEvent.foodSituation != null &&
-                          receivedEvent.foodSituation!.isNotEmpty)
-                        ..._buildInfoRow(
-                          Icons.dining,
-                          ProText(
-                            receivedEvent.foodSituation!,
-                            textStyle: const TextStyle(),
-                          ),
-                        ),
                       if (receivedEvent.description != null) ...[
                         const SizedBox(height: generalAppLevelPadding),
                         ProText(
@@ -290,8 +355,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                           textStyle: const TextStyle(
                             height: 1.5,
                           ),
-                          maxLines: null,
+                          maxLines: 5,
                         ),
+                      ],
+                      if (receivedEvent.subEvents != null && receivedEvent.subEvents!.isNotEmpty) ...[
+                        ...[
+                          const SizedBox(height: generalAppLevelPadding),
+                          _buildEventWithSubEventsInformation(receivedEvent, height * 0.3, constraints.maxWidth),
+                        ]
                       ],
                       if (receivedEvent.attendees != null &&
                           !receivedEvent.isGuestListHidden &&
@@ -457,16 +528,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         ],
       ),
     );
-  }
-
-  String _formatDateTime(DateTime start, DateTime? end) {
-    final startDate = DateFormat('EEE, MMM d').format(start);
-    final startTime = DateFormat('h:mm a').format(start);
-    if (end != null) {
-      final endTime = DateFormat('h:mm a').format(end);
-      return '$startDate · $startTime - $endTime';
-    }
-    return '$startDate · $startTime';
   }
 
   Widget _buildGuestList(Event event) {

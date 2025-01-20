@@ -32,6 +32,7 @@ class Event {
   String? foodSituation;
   bool isGuestListHidden;
   bool isGuestCountHidden;
+  List<Event>? subEvents;
   
   Event({
     this.id,
@@ -54,6 +55,7 @@ class Event {
     this.foodSituation,
     this.isGuestListHidden = false,
     this.isGuestCountHidden = false,
+    this.subEvents = const [],
   });
 
   @override
@@ -77,7 +79,8 @@ class Event {
       dressCode: $dressCode,
       foodSituation: $foodSituation,
       isGuestListHidden: $isGuestListHidden,
-      shouldShowGuestCount: $isGuestCountHidden
+      shouldShowGuestCount: $isGuestCountHidden,
+      subEvents: ${subEvents?.map((e) => e.toString()).toList()}
     }''';
     //       eventToAttendees: ${eventToAttendees?.map((a) => a.toString()).toList()},
 
@@ -121,6 +124,11 @@ class Event {
       foodSituation: map['foodSituation'],
       isGuestListHidden: map['isGuestListHidden'] != null && map['isGuestListHidden'],
       isGuestCountHidden: map['isGuestCountHidden'] != null && map['isGuestCountHidden'],
+      subEvents: List<Event>.from(map['subEvents'] == null
+          ? []
+          : map['subEvents']
+              .map((subEvent) => Event.fromMap(subEvent))
+              .toList()),
       // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
       //         null
       //     ? []
@@ -174,6 +182,7 @@ class Event {
       'foodSituation': foodSituation ?? '',
       'isGuestListHidden': isGuestListHidden ? 1 : 0,
       'isGuestCountHidden': isGuestCountHidden ? 1 : 0,
+      'subEvents': subEvents?.map((e) => e.toMap()).toList(),
     };
   }
 
@@ -215,12 +224,13 @@ class Event {
       comments: comments,
       dressCode: dressCode,
       foodSituation: foodSituation,
+      subEvents: subEvents?.map((e) => e.toEventRequestDTO()).toList() ?? [],
     );
   }
 
   String get formattedStartDateTime {
     return startDateTime != null
-        ? _formatDateTime(startDateTime!.toUtc())
+        ? _formatDateTime(startDateTime!.toLocal())
         : 'To Be Decided';
   }
 

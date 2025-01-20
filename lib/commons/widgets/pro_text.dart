@@ -12,6 +12,7 @@ class ProText extends StatelessWidget {
   final int? maxLines;
   final TextAlign? textAlign;
   final TextScaler? textScaler;
+  final int overflowCharacterLimit;
 
   const ProText(
     this.data, {
@@ -26,6 +27,7 @@ class ProText extends StatelessWidget {
     this.maxLines,
     this.textAlign,
     this.textScaler,
+    this.overflowCharacterLimit = 30,
   });
 
   TextStyle get textStyleForProText {
@@ -54,8 +56,8 @@ class ProText extends StatelessWidget {
   }
 
   String addEllipsisIfTooLong(String word) {
-    if (word.length > 30) {
-      return word.substring(0, 30 - 3) + "...";
+    if (word.length > overflowCharacterLimit) {
+      return word.substring(0, overflowCharacterLimit - 3) + "...";
     } else {
       return word;
     }

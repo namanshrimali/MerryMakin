@@ -27,10 +27,20 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
   @override
   Widget build(BuildContext context) {
     ProStackedFabObject addEvent = ProStackedFabObject(
-        icon: Icons.add,
-        title: "New Event",
+        icon: Icons.cake,
+        title: "New Party",
+        actionButtonText: "New Party\nOne epic event of fun, music, and good vibes all in one go.",
         onTap: () {
           context.push('/events/new');
+        });
+    ProStackedFabObject addCelebration = ProStackedFabObject(
+        icon: Icons.celebration,
+        title: "New Celebration",
+        actionButtonText:
+        "New Celebration\nMultiple events, packed with parties, rituals, and gatherings—all for one big reason to celebrate 🥳",
+            // "New Celebration\nSeries of events and moments spread out to keep the fun going! 🎉✨",
+        onTap: () {
+          context.push('/events/celebration/new');
         });
     ref.watch(eventProvider);
     ref.watch(userProvider);
@@ -65,7 +75,7 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                 // widget: AddOrEditAccount(routeArgs: null,),
                 icon: Icons.home,
                 title: "Home",
-                [addEvent]),
+                [addCelebration, addEvent]),
             ProBaseScreenObject(
                 appBarActions: [
                   IconButton(

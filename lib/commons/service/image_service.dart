@@ -89,6 +89,9 @@ class ImageService {
   }
 
   String getRandomImage() {
+    if (_imageData.isEmpty) {
+      return '';
+    }
     final randomCategory =
         _imageData.keys.elementAt(Random().nextInt(_imageData.keys.length));
     final randomImage = _imageData[randomCategory]!

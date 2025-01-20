@@ -20,6 +20,10 @@ const double displaySmallHeight = 44;
 const RoundedRectangleBorder roundedRectangleBorder = RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(32.0)));
 
+const RoundedRectangleBorder flatRoundedRectangleBorder =
+    RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(0.0)));
+
 const RoundedRectangleBorder bottomRoundedRectangleBorder =
     RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
