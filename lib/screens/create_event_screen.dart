@@ -51,7 +51,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             : [],
         countryCurrency: CookiesService.locallyStoredCountryCurrency,
         createdAt: DateTime.now().toUtc(),
-        updatedAt: DateTime.now().toUtc(), imageUrl: imageService.getRandomImage());
+        updatedAt: DateTime.now().toUtc(),
+        imageUrl: imageService.getRandomImage());
 
     Future eventFuture = Future<void>(() {}); // initialize with empty future
     if (widget.eventId != null) {
@@ -97,11 +98,11 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return null;
   }
 
-    String? validateDressCodeField(String? dressCode) {
+  String? validateDressCodeField(String? dressCode) {
     if (dressCode == null ||
         dressCode.isEmpty ||
         dressCode.trim().length >= 2) {
-          return null;
+      return null;
     }
     return 'Dress code must be at least 2 characters long';
   }
@@ -176,7 +177,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         ProTextField(
           hintText: hintText,
           initialValue: _getInitialValue(fieldName),
-          onValidationCallback: (String? value) => _validateField(fieldName, value),
+          onValidationCallback: (String? value) =>
+              _validateField(fieldName, value),
           onSaved: (value) {
             setState(() {
               _updateEventField(fieldName, value);
@@ -190,12 +192,18 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return [const SizedBox.shrink()];
   }
 
-  String? _getInitialValue(String fieldName,) {
+  String? _getInitialValue(
+    String fieldName,
+  ) {
     switch (fieldName) {
       case 'spots':
-        return event.spots == null || event.spots! > 0 ? event.spots?.toString() : null;
+        return event.spots == null || event.spots! > 0
+            ? event.spots?.toString()
+            : null;
       case 'costPerSpot':
-        return event.costPerSpot == null || event.costPerSpot! > 0 ? event.costPerSpot?.toString() : null;
+        return event.costPerSpot == null || event.costPerSpot! > 0
+            ? event.costPerSpot?.toString()
+            : null;
       case 'dressCode':
         return event.dressCode;
       case 'food':
@@ -233,7 +241,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               event.imageUrl = imageUrl;
             });
             Navigator.pop(context); // Close bottom sheet
-          }, imageService: imageService,
+          },
+          imageService: imageService,
         ),
       ),
     );
@@ -273,7 +282,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.black54,
-                  borderRadius: BorderRadius.circular(generalAppLevelPadding * 2),
+                  borderRadius:
+                      BorderRadius.circular(generalAppLevelPadding * 2),
                 ),
                 child: const Icon(
                   Icons.edit,
@@ -286,6 +296,89 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildEventOptions() {
+    return [
+      ProDateTimePicker(
+          initialValue: event.startDateTime,
+          firstDate: DateTime(2024),
+          lastDate: DateTime(2100),
+          hintText: 'Set date and time',
+          onDateTimeSelected: onSelectDate),
+      const SizedBox(
+        height: generalAppLevelPadding,
+      ),
+      ProTextField(
+        hintText: 'Place name, address or link',
+        initialValue: event.location,
+        onValidationCallback: validateLocationField,
+        onChanged: (value) {
+          event.location = value;
+        },
+        onSaved: (value) {
+          event.location = value.toString().trim();
+        },
+      ),
+      ..._buildEditableField('spots', 'Enter number of spots'),
+      ..._buildEditableField('costPerSpot', 'Enter cost per spot'),
+      ..._buildEditableField(
+          'dressCode', 'Enter dress code. Casual, black tie, etc.'),
+      ..._buildEditableField(
+          'food', 'Enter food situation. BYOB, potluck, etc.'),
+      const SizedBox(
+        height: generalAppLevelPadding,
+      ),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            if (!_visibleFields['dressCode']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Dress code'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['dressCode'] = true),
+                ),
+              ),
+            if (!_visibleFields['food']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Food situation'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['food'] = true),
+                ),
+              ),
+            if (!_visibleFields['spots']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Spots'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['spots'] = true),
+                ),
+              ),
+            if (!_visibleFields['costPerSpot']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Cost per spot'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['costPerSpot'] = true),
+                ),
+              ),
+          ],
+        ),
+      ),
+      if (!_visibleFields['spots']! ||
+          !_visibleFields['costPerSpot']! ||
+          !_visibleFields['dressCode']! ||
+          !_visibleFields['food']!)
+        const SizedBox(height: generalAppLevelPadding),
+      // const SizedBox(height: generalAppLevelPadding / 2),
+    ];
   }
 
   Widget buildFormWidget(
@@ -343,110 +436,37 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                   maxLines: 5,
                 ),
                 const SizedBox(height: generalAppLevelPadding),
-                ProDateTimePicker(
-                    initialValue: event.startDateTime,
-                    firstDate: DateTime(2024),
-                    lastDate: DateTime(2100),
-                    hintText: 'Set date and time',
-                    onDateTimeSelected: onSelectDate),
-                const SizedBox(
-                  height: generalAppLevelPadding,
-                ),
-                ProTextField(
-                  hintText: 'Place name, address or link',
-                  initialValue: event.location,
-                  onValidationCallback: validateLocationField,
-                  onChanged: (value) {
-                    event.location = value;
-                  },
-                  onSaved: (value) {
-                    event.location = value.toString().trim();
-                  },
-                ),
-
-                ..._buildEditableField('spots', 'Enter number of spots'),
-                ..._buildEditableField('costPerSpot', 'Enter cost per spot'),
-                ..._buildEditableField('dressCode', 'Enter dress code. Casual, black tie, etc.'),
-                ..._buildEditableField('food', 'Enter food situation. BYOB, potluck, etc.'),
-                const SizedBox(
-                  height: generalAppLevelPadding,
-                ),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      if (!_visibleFields['dressCode']!)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ProOutlinedButton(
-                            child: ProText('Dress code'),
-                            onPressed: () => setState(
-                                () => _visibleFields['dressCode'] = true),
-                          ),
-                        ),
-                        if (!_visibleFields['food']!)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ProOutlinedButton(
-                            child: ProText('Food situation'),
-                            onPressed: () =>
-                                setState(() => _visibleFields['food'] = true),
-                          ),
-                        ),
-                      if (!_visibleFields['spots']!)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ProOutlinedButton(
-                            child: ProText('Spots'),
-                            onPressed: () =>
-                                setState(() => _visibleFields['spots'] = true),
-                          ),
-                        ),
-                      if (!_visibleFields['costPerSpot']!)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: ProOutlinedButton(
-                            child: ProText('Cost per spot'),
-                            onPressed: () => setState(
-                                () => _visibleFields['costPerSpot'] = true),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (!_visibleFields['spots']! || !_visibleFields['costPerSpot']! || !_visibleFields['dressCode']! || !_visibleFields['food']!)
-                const SizedBox(height: generalAppLevelPadding),
-                
-                const SizedBox(height: generalAppLevelPadding / 2),
+                ..._buildEventOptions(),
                 ProListItem(
-                  key: Key('hide-guest-list'),
-                  title: const ProText('Hide Guest List'),
-                  subtitle: const ProText('Hide the guest names to RSVP\'d guests', maxLines: 2),
-                  trailing: Switch(
-                      value: event.isGuestListHidden,
-                      onChanged: (bool selected) {
-                        setState(() {
-                          event.isGuestListHidden = selected;
-                        });
-                      },
-                    ),
-                ),
-                const SizedBox(height: generalAppLevelPadding/2),
-                ProListItem(
-                  key: Key('hide-guest-count'),
-                  title: const ProText('Hide Guest Count'),
-                  subtitle: const ProText('Hide number of guests to RSVP\'d guests'),
-                  swipeForEditAndDelete: false,
-                  trailing: Switch(
-                      value: event.isGuestCountHidden,
-                      onChanged: (bool selected) {
-                        setState(() {
-                          event.isGuestCountHidden = selected;
-                        });
-                      },
-                    ),
-                ),
-                const SizedBox(height: generalAppLevelPadding),
+        key: Key('hide-guest-list'),
+        title: const ProText('Hide Guest List'),
+        subtitle: const ProText('Hide the guest names to RSVP\'d guests',
+            maxLines: 2),
+        trailing: Switch(
+          value: event.isGuestListHidden,
+          onChanged: (bool selected) {
+            setState(() {
+              event.isGuestListHidden = selected;
+            });
+          },
+        ),
+      ),
+      const SizedBox(height: generalAppLevelPadding / 2),
+      ProListItem(
+        key: Key('hide-guest-count'),
+        title: const ProText('Hide Guest Count'),
+        subtitle: const ProText('Hide number of guests to RSVP\'d guests'),
+        swipeForEditAndDelete: false,
+        trailing: Switch(
+          value: event.isGuestCountHidden,
+          onChanged: (bool selected) {
+            setState(() {
+              event.isGuestCountHidden = selected;
+            });
+          },
+        ),
+      ),
+      const SizedBox(height: generalAppLevelPadding),
                 // Row(
                 //   mainAxisAlignment: MainAxisAlignment.end,
                 //   children: [
@@ -488,7 +508,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             if (event.dressCode != null && event.dressCode!.isNotEmpty) {
               _visibleFields['dressCode'] = true;
             }
-            if (event.foodSituation != null && event.foodSituation!.isNotEmpty) {
+            if (event.foodSituation != null &&
+                event.foodSituation!.isNotEmpty) {
               _visibleFields['food'] = true;
             }
           }

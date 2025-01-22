@@ -223,7 +223,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     return Column(
       children: [
         ..._buildEventTime(receivedEvent),
-        ..._buildEventLocation(receivedEvent, width),
+        ..._buildEventLocation(receivedEvent, width * 0.7),
         ..._buildEventSpots(receivedEvent),
         ..._buildEventCostPerSpot(receivedEvent),
         ..._buildEventDressCode(receivedEvent),

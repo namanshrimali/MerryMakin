@@ -33,6 +33,7 @@ class AddOrEditCelebration extends ConsumerStatefulWidget {
 class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
   late Event event;
   List<Event> subEvents = [];
+  bool hasSubEvents = false;
 
   late Future<List<dynamic>> _future;
   final ImageService imageService = AppFactory().imageService;
@@ -491,6 +492,21 @@ class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
             multiline: true,
             maxLines: 5,
           ),
+          const SizedBox(height: generalAppLevelPadding),
+          ProListItem(
+            key: Key('have-subevents'),
+            title: const ProText('Has Sub-Events'),
+            subtitle: const ProText('Add multiple events to your celebration, each with their own details (hello, weddings! 🥳).',
+                maxLines: 3),
+            trailing: Switch(
+              value: hasSubEvents,
+              onChanged: (bool selected) {
+                setState(() {
+                  hasSubEvents = selected;
+                });
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -558,8 +574,9 @@ class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
           child: ProListView(height: height, listItems: [
             buildEventDetailSelection(),
             const SizedBox(height: generalAppLevelPadding),
-            Column(
-              children: [
+            if (hasSubEvents)
+              Column(
+                children: [
                 ...subEvents.asMap().entries.map(
                       (entry) => _buildSubEventCard(entry.value, entry.key),
                     ),
@@ -589,24 +606,26 @@ class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
               snapshot.data![0] != null) {
             event = snapshot.data![0];
             if (event.subEvents != null && event.subEvents!.isNotEmpty) {
+              hasSubEvents = true;
+              subEvents = [];
               // initialize subevents only when the event update is loaded
               // to avoid re-initializing subevents when the event update is loaded
               // and the subevents are already initialized
               for (Event subEvent in event.subEvents!) {
                 _visibleFieldsPerSubEvent[subEvent] = {
-                  'spots': event.spots != null && event.spots! > 0,
+                  'spots': subEvent.spots != null && subEvent.spots! > 0,
                   'costPerSpot':
-                      event.costPerSpot != null && event.costPerSpot! > 0,
+                      subEvent.costPerSpot != null && subEvent.costPerSpot! > 0,
                   'dressCode':
-                      event.dressCode != null && event.dressCode!.isNotEmpty,
-                  'food': event.foodSituation != null &&
-                      event.foodSituation!.isNotEmpty,
+                      subEvent.dressCode != null && subEvent.dressCode!.isNotEmpty,
+                  'food': subEvent.foodSituation != null &&
+                      subEvent.foodSituation!.isNotEmpty,
                 };
                 _addSubEventWithoutStateUpdate(subEvent);
               }
             }
           }
-          if (subEvents.isEmpty) {
+          if (subEvents.isEmpty && hasSubEvents) {
             final Event subEvent = Event(
               name: 'Untitled Sub-Event ${subEvents.length + 1}',
               hosts: CookiesService.locallyAvailableUserInfo != null
