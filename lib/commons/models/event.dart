@@ -33,6 +33,8 @@ class Event {
   bool isGuestListHidden;
   bool isGuestCountHidden;
   List<Event>? subEvents;
+  String? theme;
+  String? effect;
   
   Event({
     this.id,
@@ -56,6 +58,8 @@ class Event {
     this.isGuestListHidden = false,
     this.isGuestCountHidden = false,
     this.subEvents = const [],
+    this.theme,
+    this.effect,
   });
 
   @override
@@ -80,7 +84,9 @@ class Event {
       foodSituation: $foodSituation,
       isGuestListHidden: $isGuestListHidden,
       shouldShowGuestCount: $isGuestCountHidden,
-      subEvents: ${subEvents?.map((e) => e.toString()).toList()}
+      subEvents: ${subEvents?.map((e) => e.toString()).toList()},
+      theme: $theme,
+      effect: $effect,
     }''';
     //       eventToAttendees: ${eventToAttendees?.map((a) => a.toString()).toList()},
 
@@ -129,6 +135,8 @@ class Event {
           : map['subEvents']
               .map((subEvent) => Event.fromMap(subEvent))
               .toList()),
+      theme: map['theme'],
+      effect: map['effect'],
       // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
       //         null
       //     ? []
@@ -158,7 +166,9 @@ class Event {
         dressCode TEXT NULL,
         foodSituation TEXT NULL,
         isGuestListHidden INTEGER DEFAULT 0,
-        isGuestCountHidden INTEGER DEFAULT 1
+        isGuestCountHidden INTEGER DEFAULT 1,
+        theme TEXT NULL,
+        effect TEXT NULL
         )
     ''';
   }
@@ -183,6 +193,8 @@ class Event {
       'isGuestListHidden': isGuestListHidden ? 1 : 0,
       'isGuestCountHidden': isGuestCountHidden ? 1 : 0,
       'subEvents': subEvents?.map((e) => e.toMap()).toList(),
+      'theme': theme,
+      'effect': effect,
     };
   }
 
@@ -261,7 +273,8 @@ class Event {
     if (attendees == null || attendees!.isEmpty || user == null || user.id == null) {
       return RSVPStatus.UNDECIDED;
     }
-    return attendees!.firstWhere((attendee) => attendee.user.id == user.id).rsvpStatus;
+
+    return attendees!.where((attendee) => attendee.user.id == user.id).firstOrNull?.rsvpStatus ?? RSVPStatus.UNDECIDED;
   }
 
   List<Attendee> getAttendeesByRsvpStatus(RSVPStatus rsvpStatus) {

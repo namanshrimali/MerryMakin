@@ -457,6 +457,7 @@ class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
     );
   }
 
+
   Widget buildEventDetailSelection() {
     return Padding(
       padding: const EdgeInsets.only(
