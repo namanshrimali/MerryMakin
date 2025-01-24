@@ -304,6 +304,12 @@ String getRelativeTimePassed(DateTime dateTime) {
   final differenceHours = now.difference(dateTime).inHours;
   final differenceDays = now.difference(dateTime).inDays;
 
+  final differenceMinutes = now.difference(dateTime).inMinutes;
+
+  if (differenceMinutes >= 0 && differenceMinutes <= 60) {
+    return '${differenceMinutes}m';
+  }
+
   if (differenceHours >= 0 && differenceHours <= 24) {
     return '${differenceHours}h';
   }

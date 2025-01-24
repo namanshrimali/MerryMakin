@@ -18,6 +18,7 @@ import 'package:merrymakin/commons/widgets/pro_image_picker.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart';
+import '../commons/widgets/pro_font_selector.dart';
 
 class AddOrEditEvent extends ConsumerStatefulWidget {
   final String? eventId;
@@ -37,6 +38,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   final _formKey = GlobalKey<FormState>();
   ProThemeType? selectedTheme;
   ProEffectType? selectedEffect;
+  ProFontType? selectedFont;
 
 
   final Map<String, bool> _visibleFields = {
@@ -727,6 +729,54 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     }
   }
 
+  Widget _buildEventNameSection() {
+    // Get the current theme data based on selection
+    final currentTheme = selectedTheme != null 
+        ? ProThemes.themes[selectedTheme]!.theme 
+        : ProThemes.themes[ProThemeType.classic]!.theme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ProTextField(
+          initialValue: event.name,
+          onValidationCallback: validateTitleField,
+          onChanged: (value) {
+            event.name = value;
+          },
+          onSaved: (value) {
+            event.name = value.toString().trim();
+          },
+          style: TextStyle(
+            fontFamily: selectedFont?.fontFamily,
+            fontSize: 24,
+            color: currentTheme.primaryColor,
+          ),
+          textAlign: TextAlign.center,
+          hintText: 'Enter Event Name',
+          hintStyle: TextStyle(
+            fontFamily: selectedFont?.fontFamily,
+            fontSize: 24,
+            color: currentTheme.primaryColor.withOpacity(0.5),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ProFontSelector(
+            selectedFont: selectedFont?? ProFontType.system,
+            onSelected: (font) {
+              setState(() {
+                selectedFont = font;
+                event.font = font.toString();
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget buildFormWidget(
     BuildContext context,
   ) {
@@ -940,16 +990,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                     const SizedBox(
                       height: generalAppLevelPadding / 2,
                     ),
-                    ProTextField(
-                      initialValue: event.name,
-                      onValidationCallback: validateTitleField,
-                      onChanged: (value) {
-                        event.name = value;
-                      },
-                      onSaved: (value) {
-                        event.name = value.toString().trim();
-                      },
-                    ),
+                    _buildEventNameSection(),
                     const SizedBox(height: generalAppLevelPadding),
                     _buildEventImage(400),
                     const SizedBox(height: generalAppLevelPadding),
@@ -1060,6 +1101,12 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               selectedEffect = ProEffectType.values.firstWhere(
                 (type) => type.toString() == event.effect,
                 orElse: () => ProEffectType.none,
+              );
+            }
+            if (selectedFont == null && event.font != null) {
+              selectedFont = ProFontType.values.firstWhere(
+                (type) => type.toString() == event.font,
+                orElse: () => ProFontType.system,
               );
             }
           }

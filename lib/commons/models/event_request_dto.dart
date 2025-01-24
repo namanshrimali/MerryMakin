@@ -23,6 +23,7 @@ class EventRequestDTO {
   List<EventRequestDTO> subEvents;
   String? theme;
   String? effect;
+  String? font;
 
   EventRequestDTO({
     this.id,
@@ -47,6 +48,7 @@ class EventRequestDTO {
     this.subEvents = const [],
     this.theme,
     this.effect,
+    this.font,
   });
 
   @override
@@ -73,7 +75,8 @@ class EventRequestDTO {
       isGuestCountHidden: $isGuestCountHidden,
       subEvents: ${subEvents.map((e) => e.toString()).toList()},
       theme: $theme,
-      effect: $effect
+      effect: $effect,
+      font: $font
     }''';
   }
 
@@ -120,6 +123,7 @@ class EventRequestDTO {
       'subEvents': subEvents.map((e) => e.toMap()).toList(),
       'theme': theme,
       'effect': effect,
+      'font': font,
     };
   }
 }

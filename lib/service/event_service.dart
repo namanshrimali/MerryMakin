@@ -103,7 +103,12 @@ Future<void> rsvpForEvent(
 }
 
 Future<void> addCommentToEvent(final Event event, final Comment comment, BuildContext context) {
-  return _updateEvent(event, context);
+  return addCommentApi(event.id!, comment).then((response) {
+    if (response.statusCode != 200) {
+      return Future.error(
+          'Failed to Comment: ${response.body}, ${response.statusCode}');
+    } 
+  });
 }
 
 // Future<int?> _addOrUpdateRsvpForEvent(

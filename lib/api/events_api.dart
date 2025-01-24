@@ -1,5 +1,6 @@
 import 'package:http/http.dart';
 import 'package:merrymakin/commons/api/http.dart';
+import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/event_request_dto.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/resources.dart';
@@ -36,6 +37,26 @@ Future<Response> updateEvent(
 
   return await sendPatchRequest(uri, headers, event.toMap());
 }
+
+Future<Response> addCommentApi(
+  String eventId,
+  Comment comment,
+) async {
+  if (CookiesService.locallyAvailableJwtToken == null) {
+    await AppFactory().cookiesService.initializeCookie();
+  }
+  Map<String, String> headers = {
+    'Content-Type': 'application/json',
+    'access-token': CookiesService.locallyAvailableJwtToken ?? '',
+  };
+  Uri uri = Uri(
+      scheme: 'http',
+      host: DEV_HOST,
+      port: DEV_PORT,
+      path: "$DEV_PATH_EVENTS/$eventId/comment");
+  return await sendPostRequest(uri, headers, comment.toMap());
+}
+
 
 Future<Response> sendRsvpForEvent(
   String eventId,

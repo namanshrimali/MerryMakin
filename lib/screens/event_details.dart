@@ -14,6 +14,7 @@ import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/pro_add_comment.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:merrymakin/commons/widgets/pro_carousel.dart';
+import 'package:merrymakin/commons/widgets/pro_font_selector.dart';
 import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/commons/widgets/pro_tab_view.dart';
@@ -361,14 +362,23 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ProText(
-                            receivedEvent.name,
-                            textStyle: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: currentTheme.colorScheme.primary,
+                          Center(
+                            child: ProText(
+                              receivedEvent.name,
+                              textStyle: TextStyle(
+                                fontFamily: receivedEvent.font != null 
+                                    ? ProFontType.values.firstWhere(
+                                        (type) => type.toString() == receivedEvent.font,
+                                        orElse: () => ProFontType.system,
+                                      ).fontFamily
+                                    : null,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: currentTheme.colorScheme.primary,
+                              ),
+                              maxLines: 3,
+                              textAlign: TextAlign.center,
                             ),
-                            maxLines: 3,
                           ),
                           _buildEventInformation(receivedEvent, constraints.maxWidth),
                           ..._buildInfoRow(
@@ -439,8 +449,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                                     .read(eventProvider.notifier)
                                                     .updateEvent(receivedEvent);
                                               });
-        
-                                              ;
                                             },
                                             user: CookiesService
                                                 .locallyAvailableUserInfo));
@@ -652,17 +660,17 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Widget _buildAllAttendeesWithStatus(Event event) {
     return ProTabView(
       childrenTabTitle: [
-        'All (${event.attendees!.length})',
         'Going (${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length})',
         'Maybe (${event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE).length})',
         'Not Going (${event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING).length})',
+        'All (${event.attendees!.length})',
       ],
       children: [
-        _buildAttendeeList(event.attendees!),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING)),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE)),
         _buildAttendeeList(
             event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING)),
+        _buildAttendeeList(event.attendees!),
       ],
     );
   }

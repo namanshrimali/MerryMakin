@@ -43,7 +43,7 @@ class ProText extends StatelessWidget {
       textToBeShown,
       style: textStyleForProText,
       overflow: overflow,
-      maxLines: maxLines,
+      maxLines: maxLines ?? 100,
       textAlign: textAlign,
       textScaler: textScaler,
     );

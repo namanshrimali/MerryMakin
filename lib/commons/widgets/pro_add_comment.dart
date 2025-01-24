@@ -67,7 +67,10 @@ class _ProAddCommentState extends State<ProAddComment> {
                 }
               },
               autofocus: true,
-              prefixWidget: ProUserAvatar(user: widget.user!),
+              prefixWidget: Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ProUserAvatar(user: widget.user!),
+              ),
             ),
             const SizedBox(
               height: generalAppLevelPadding,

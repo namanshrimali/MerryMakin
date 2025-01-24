@@ -35,6 +35,7 @@ class Event {
   List<Event>? subEvents;
   String? theme;
   String? effect;
+  String? font;
   
   Event({
     this.id,
@@ -60,6 +61,7 @@ class Event {
     this.subEvents = const [],
     this.theme,
     this.effect,
+    this.font,
   });
 
   @override
@@ -87,6 +89,7 @@ class Event {
       subEvents: ${subEvents?.map((e) => e.toString()).toList()},
       theme: $theme,
       effect: $effect,
+      font: $font,
     }''';
     //       eventToAttendees: ${eventToAttendees?.map((a) => a.toString()).toList()},
 
@@ -137,6 +140,7 @@ class Event {
               .toList()),
       theme: map['theme'],
       effect: map['effect'],
+      font: map['font'],
       // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
       //         null
       //     ? []
@@ -168,7 +172,8 @@ class Event {
         isGuestListHidden INTEGER DEFAULT 0,
         isGuestCountHidden INTEGER DEFAULT 1,
         theme TEXT NULL,
-        effect TEXT NULL
+        effect TEXT NULL,
+        font TEXT NULL
         )
     ''';
   }
@@ -195,6 +200,7 @@ class Event {
       'subEvents': subEvents?.map((e) => e.toMap()).toList(),
       'theme': theme,
       'effect': effect,
+      'font': font,
     };
   }
 

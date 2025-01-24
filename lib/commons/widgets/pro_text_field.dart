@@ -17,7 +17,9 @@ class ProTextField extends StatelessWidget {
   final double? height;
   final bool multiline;
   final int? maxLines;
-
+  final TextStyle? style;
+  final TextAlign? textAlign;
+  final TextStyle? hintStyle;
   const ProTextField({
     super.key,
     this.label,
@@ -36,6 +38,9 @@ class ProTextField extends StatelessWidget {
     this.height,
     this.multiline = false,
     this.maxLines,
+    this.style,
+    this.textAlign,
+    this.hintStyle,
   });
 
   Widget buildNewType() {
@@ -45,6 +50,7 @@ class ProTextField extends StatelessWidget {
       child: TextFormField(
         autofocus: autofocus,
         controller: textEditingController,
+        style: style,
         decoration: InputDecoration(
           border: const OutlineInputBorder(),
           contentPadding:
@@ -73,6 +79,7 @@ class ProTextField extends StatelessWidget {
           }
           return null;
         },
+        textAlign: textAlign ?? TextAlign.start,
       ),
     );
   }
