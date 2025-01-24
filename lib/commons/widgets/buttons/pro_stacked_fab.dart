@@ -44,7 +44,7 @@ class _ProStackedFabState extends State<ProStackedFab> {
                 });
               },
               child: Container(
-                color: Colors.white.withOpacity(1),
+                color: Theme.of(context).colorScheme.surface,
               ),
             ),
           ),
@@ -93,13 +93,10 @@ class _ProStackedFabState extends State<ProStackedFab> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            width: 200,
-                            child: ProText(
-                              fabObject.actionButtonText != null ? fabObject.actionButtonText! : fabObject.title,
-                              // hideOverflownDataWithEllipses: true,
-                              maxLines: 6,
-                            ),
+                          ProText(
+                            fabObject.actionButtonText != null ? fabObject.actionButtonText! : fabObject.title,
+                            // hideOverflownDataWithEllipses: true,
+                            maxLines: 1,
                           ),
                           const SizedBox(
                             width: generalAppLevelPadding,
