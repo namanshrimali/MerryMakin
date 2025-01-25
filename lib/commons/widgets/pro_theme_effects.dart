@@ -137,11 +137,30 @@ class EffectPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final theme = ProThemes.themes[themeType]!.theme;
-    final paint = Paint()
-      ..color = theme.primaryColor.withOpacity(0.2)
-      ..style = PaintingStyle.fill;
+    
+    // Get theme-specific colors for Chinese New Year
+    List<Color> effectColors = [theme.primaryColor];
+    if (themeType == ProThemeType.chineseNewYear) {
+      effectColors = [
+        theme.primaryColor,                    // Orange
+        theme.colorScheme.secondary,           // Gold
+        theme.colorScheme.tertiary,            // Red
+        theme.colorScheme.tertiary.withRed(240), // Light red
+      ];
+    }
 
     for (var effect in effects) {
+      final paint = Paint()
+        ..style = PaintingStyle.fill;
+      
+      // Rotate through colors for Chinese New Year theme
+      if (themeType == ProThemeType.chineseNewYear) {
+        paint.color = effectColors[effects.indexOf(effect) % effectColors.length]
+            .withOpacity(0.6);
+      } else {
+        paint.color = theme.primaryColor.withOpacity(0.2);
+      }
+
       // Update position based on progress
       final yOffset = (progress * effect.speed * size.height) % size.height;
       final currentPosition = Offset(

@@ -5,6 +5,7 @@ enum ProThemeType {
   romantic,
   modern,
   rustic,
+  chineseNewYear,
 }
 
 class ProTheme {
@@ -79,6 +80,22 @@ class ProThemes {
         ),
       ),
     ),
-
+    ProThemeType.chineseNewYear: ProTheme(
+      name: 'Festive Red',
+      description: 'Traditional red and gold celebration',
+      theme: ThemeData(
+        useMaterial3: true,
+        primaryColor: const Color(0xFFE53935), // Bright red
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFE53935),
+          primary: const Color(0xFFE53935),    // Bright red
+          secondary: const Color(0xFFFFD700),   // Gold
+          tertiary: const Color(0xFFFFB74D),    // Orange
+          background: const Color(0xFFFFF8E1),  // Light cream
+          surface: Colors.white,
+          error: const Color(0xFFB71C1C),      // Dark red
+        ),
+      ),
+    ),
   };
 }
