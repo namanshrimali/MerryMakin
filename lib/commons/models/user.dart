@@ -80,6 +80,10 @@ class User {
     return familyName == null ? 'Stranger' : familyName!;
   }
 
+  List<String> getInitials() {
+    return [givenName![0], familyName![0]];
+  }
+
   String getFirstAndLastName() {
     // google gives first and last name together so have a validation
     return givenName != null && familyName == null ?  getFirstName() : '${getFirstName()} ${getLastName()}';

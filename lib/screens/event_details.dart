@@ -26,7 +26,7 @@ import 'package:merrymakin/service/event_service.dart';
 import 'package:share_plus/share_plus.dart';
 import '../commons/widgets/pro_user_comment.dart';
 import '../commons/themes/pro_themes.dart';
-
+import '../commons/widgets/pro_share_sheet.dart';
 class EventDetailsScreen extends ConsumerStatefulWidget {
   final String? eventId;
 
@@ -41,6 +41,9 @@ class EventDetailsScreen extends ConsumerStatefulWidget {
 
 class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Event? event;
+    ThemeData? eventTheme;
+    ProThemeType themeType = ProThemeType.classic;
+    ProEffectType effectType = ProEffectType.none;
   List<Widget> _buildInfoRow(IconData? icon, Widget content) {
     return [
       const SizedBox(height: generalAppLevelPadding),
@@ -281,9 +284,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     }
 
     // Get theme from event if it exists
-    ThemeData? eventTheme;
-    ProThemeType themeType = ProThemeType.classic;
-    ProEffectType effectType = ProEffectType.none;
     if (receivedEvent.theme != null) {
       try {
           // Get effect type from event
@@ -566,11 +566,16 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             backgroundColor: theme.primaryColor,
             foregroundColor: theme.colorScheme.surface,
             onPressed: () {
-              String shareMessage =
-                  'RSVP to ${event.name}. http://merrymakin.com/${event.id}\n';
-              Share.share(shareMessage,
-                  sharePositionOrigin:
-                      Rect.fromPoints(const Offset(2, 2), const Offset(3, 3)));
+              openProBottomModalSheet(context, ProShareSheet(
+                message: 'RSVP to ${event.name}.',
+                link: 'http://merrymakin.com/${event.id}',
+                userService: userService,
+                onShare: () {
+                  context.pop();
+                }, event: event,
+                themeType: themeType,
+                effectType: effectType,
+              ));
             },
             child: const Icon(Icons.share),
           ),

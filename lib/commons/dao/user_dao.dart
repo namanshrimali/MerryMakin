@@ -20,6 +20,12 @@ class UserDAO {
         0;
   }
 
+  Future<List<User>> getAllUsers() async {
+    final List<Map<String, dynamic>> maps =
+        await _database.query(userTableName);
+    return maps.map((map) => User.fromMap(map)).toList();
+  }
+
   Future<int> addUser(User user) async {
     return await _database.insert(
       userTableName,

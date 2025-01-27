@@ -88,6 +88,11 @@ String getMonthName(int monthIndex) {
   return months[monthIndex - 1];
 }
 
+String getDayName(int dayIndex) {
+  final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[dayIndex];
+}
+
 int getMonthsTillDate(DateTime selectedDate) {
   DateTime currentDate = DateTime.now();
   int totalMonths = (selectedDate.year - currentDate.year) * 12 +

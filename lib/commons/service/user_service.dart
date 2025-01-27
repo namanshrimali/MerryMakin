@@ -78,4 +78,8 @@ class UserService {
       return Future.error(e);
     }
   }
+
+  Future<List<User>> getAllUsers() async {
+    return await userDAO.getAllUsers();
+  }
 }

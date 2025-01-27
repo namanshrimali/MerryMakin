@@ -7,8 +7,9 @@ class ProCarousel extends StatefulWidget {
   final double height;
   final bool padEnds;
   final double? viewportFraction;
+  final Function(int index)? onPageChanged;
 
-  const ProCarousel({super.key, required this.items, required this.height, this.padEnds = false, this.showIndicators=true, this.viewportFraction});
+  const ProCarousel({super.key, required this.items, required this.height, this.padEnds = false, this.showIndicators=true, this.viewportFraction, this.onPageChanged});
 
   @override
   State<ProCarousel> createState() => _ProCarouselState();
@@ -32,6 +33,7 @@ class _ProCarouselState extends State<ProCarousel> {
               setState(() {
                 currentPage = index;
               });
+              widget.onPageChanged?.call(index);
             },
             itemBuilder: (context, index) {
               return widget.items[index];
