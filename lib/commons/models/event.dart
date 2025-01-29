@@ -243,6 +243,9 @@ class Event {
       dressCode: dressCode,
       foodSituation: foodSituation,
       subEvents: subEvents?.map((e) => e.toEventRequestDTO()).toList() ?? [],
+      theme: theme,
+      effect: effect,
+      font: font,
     );
   }
 

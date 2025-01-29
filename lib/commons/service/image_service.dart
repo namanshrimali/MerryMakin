@@ -46,7 +46,7 @@ class ImageService {
   Future<String?> uploadImage(File imageFile) async {
     try {
       final uri = Uri(
-        scheme: 'http',
+        scheme: SCHEME,
         host: DEV_HOST,
         port: DEV_PORT,
         path: 'image-service/api/v1/image',

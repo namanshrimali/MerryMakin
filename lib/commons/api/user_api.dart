@@ -26,7 +26,7 @@ Future<Response> postUser(
   }
 
   return await sendPostRequest(
-    Uri(scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_USERS),
+    Uri(scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_USERS),
     headers,
     userRequestDTO.toMap(),
   );
@@ -36,7 +36,7 @@ Future<User?> findByUsername(final String username, final String? jwtToken) asyn
   Map<String, String> headers = {"access-token": jwtToken ?? ""};
   Response response = await sendGetRequest(
     Uri(
-        scheme: 'http',
+        scheme: SCHEME,
         host: DEV_HOST,
         port: DEV_PORT,
         path: DEV_PATH_USERS + "/${username}"),
@@ -50,7 +50,7 @@ Future<User?> findByUsername(final String username, final String? jwtToken) asyn
 Future<Response> deleteUserByEmail(String jwtToken) async {
   Map<String, String> headers = {"access-token": jwtToken};
   return await sendDeleteRequest(
-    Uri(scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_USERS),
+    Uri(scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_USERS),
     headers,
   );
 }

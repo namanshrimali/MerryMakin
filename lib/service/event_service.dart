@@ -131,7 +131,7 @@ Future<Event?> addOrUpdateEvent(final Event event, BuildContext context) {
 
 Future<Event?> _updateEvent(final Event event, BuildContext context) {
   final Uri uri = Uri(
-      scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: '$DEV_PATH_EVENTS/${event.id!}');
+      scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: '$DEV_PATH_EVENTS/${event.id!}');
   return updateEvent(event, uri)
       .then((Response response) {
     if (response.statusCode == 200) {
@@ -153,7 +153,7 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
 
 Future<Event?> _addEvent(final Event event, BuildContext context) async {
   final Uri uri = Uri(
-      scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_EVENTS);
+      scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_EVENTS);
   return createEvent(event.toEventRequestDTO(), uri)
       .then((Response response) {
     if (response.statusCode == 200) {

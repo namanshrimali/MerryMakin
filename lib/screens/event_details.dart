@@ -567,7 +567,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             foregroundColor: theme.colorScheme.surface,
             onPressed: () {
               openProBottomModalSheet(context, ProShareSheet(
-                message: 'RSVP to ${event.name}.',
+                message: 'RSVP to ${event.name}!',
                 link: 'http://merrymakin.com/${event.id}',
                 userService: userService,
                 onShare: () {

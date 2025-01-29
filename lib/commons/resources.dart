@@ -1,7 +1,8 @@
 import 'package:merrymakin/commons/service/cookies_service.dart';
 
 String DEV_HOST = "api.moneymoneymore.app";
-int DEV_PORT = 80;
+int DEV_PORT = 443;
+String SCHEME = "https";
 // String DEV_HOST = "localhost";
 // int DEV_PORT = 8080;
 String DEV_PATH_USERS = "user-service/api/v1/user";

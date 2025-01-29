@@ -50,7 +50,7 @@ Future<Response> addCommentApi(
     'access-token': CookiesService.locallyAvailableJwtToken ?? '',
   };
   Uri uri = Uri(
-      scheme: 'http',
+      scheme: SCHEME,
       host: DEV_HOST,
       port: DEV_PORT,
       path: "$DEV_PATH_EVENTS/$eventId/comment");
@@ -67,7 +67,7 @@ Future<Response> sendRsvpForEvent(
     'access-token': CookiesService.locallyAvailableJwtToken ?? '',
   };
   Uri uri = Uri(
-      scheme: 'http',
+      scheme: SCHEME,
       host: DEV_HOST,
       port: DEV_PORT,
       path: "$DEV_PATH_EVENTS/$eventId/rsvp",
@@ -87,7 +87,7 @@ Future<Response> getAllEvents() async {
     "access-token": CookiesService.locallyAvailableJwtToken ?? ""
   };
   Response response = await sendGetRequest(
-    Uri(scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_EVENTS),
+    Uri(scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_EVENTS),
     headers,
   );
   return response;
@@ -97,7 +97,7 @@ Future<Response> deleteEventFromServer(final String eventId) async {
   Map<String, String> headers = {
     "access-token": CookiesService.locallyAvailableJwtToken ?? ""
   };
-  Uri uri = Uri(scheme: 'http', host: DEV_HOST, port: DEV_PORT, path: "$DEV_PATH_EVENTS/$eventId");
+  Uri uri = Uri(scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: "$DEV_PATH_EVENTS/$eventId");
   return await sendDeleteRequest(uri, headers);
 }
 
@@ -110,7 +110,7 @@ Future<Response> getEventById(String eventId) async {
   };
   Response response = await sendGetRequest(
     Uri(
-        scheme: 'http',
+        scheme: SCHEME,
         host: DEV_HOST,
         port: DEV_PORT,
         path: "$DEV_PATH_EVENTS/$eventId"),
