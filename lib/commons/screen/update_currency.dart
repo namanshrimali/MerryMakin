@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import '../service/cookie_service.dart';
 import '../utils/constants.dart';
 import '../widgets/buttons/pro_primary_button.dart';
 import '../widgets/pro_drop_down.dart';
 import '../widgets/pro_text.dart';
 import '../models/country_currency.dart';
-import '../service/cookies_service.dart';
 
 class UpdateCurrency extends StatefulWidget {
   final Function(CountryCurrency) onUpdate;
@@ -17,9 +17,10 @@ class UpdateCurrency extends StatefulWidget {
 }
 
 class _UpdateCurrencyState extends State<UpdateCurrency> {
-  CountryCurrency? countryCurrency = CookiesService.locallyStoredCountryCurrency;
+  CountryCurrency? countryCurrency;
   @override
   Widget build(BuildContext context) {
+    countryCurrency = widget.cookiesService.locallyStoredCountryCurrency;
     return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,

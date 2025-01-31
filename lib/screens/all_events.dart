@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
-import 'package:merrymakin/commons/service/cookies_service.dart';
+import 'package:merrymakin/commons/service/cookie_service.dart';
+import 'package:merrymakin/commons/service/cookies_service_mobile.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
@@ -10,7 +11,8 @@ import 'package:merrymakin/widgets/event_card.dart';
 
 class AllEventsScreen extends ConsumerStatefulWidget {
   final List<Event> events;
-  const AllEventsScreen({super.key, required this.events});
+  final CookiesService cookiesService;
+  const AllEventsScreen({super.key, required this.events, required this.cookiesService});
 
   @override
   ConsumerState<AllEventsScreen> createState() => _DashboardScreenState();
@@ -50,7 +52,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             .toList();
 
       case 'hosting':
-        String? currentUserId = CookiesService.locallyAvailableUserInfo?.id;
+        String? currentUserId = widget.cookiesService.currentUser?.id;
         return widget.events
             .where((event) => event.hosts.any((host) =>
                 host.id == currentUserId &&
@@ -64,7 +66,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
                 event.attendees != null &&
                 event.attendees!.any((attendee) =>
                     attendee.user.id ==
-                    CookiesService.locallyAvailableUserInfo?.id) &&
+                    widget.cookiesService.currentUser?.id) &&
                 event.startDateTime != null &&
                 event.startDateTime!.isBefore(now))
             .toList();
@@ -76,7 +78,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
 
   Map<String, int> getEventCounts() {
     final now = DateTime.now();
-    String? currentUserId = CookiesService.locallyAvailableUserInfo?.id;
+    String? currentUserId = widget.cookiesService.currentUser?.id;
 
     return {
       'upcoming': widget.events
@@ -116,7 +118,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             children: [
               SizedBox(height: constraints.maxHeight * 0.05),
               ProGreetings(
-                user: CookiesService.locallyAvailableUserInfo,
+                user: widget.cookiesService.currentUser,
               
               ),
               SizedBox(

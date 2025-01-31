@@ -3,21 +3,22 @@ import '../models/user.dart';
 import '../dao/cookies_dao.dart';
 import '../models/cookies.dart';
 import '../models/country_currency.dart';
+import 'cookie_service.dart';
 
-class CookiesService {
+class CookiesServiceMobile implements CookiesService {
   final CookiesDAO cookiesDAO;
   final UserDAO userDAO;
   
-  static String? locallyAvailableJwtToken;
-  static User? locallyAvailableUserInfo;
-  static CountryCurrency locallyStoredCountryCurrency = CountryCurrency.UnitedStatesDollarUnitedStates;
+  String? internalLocallyAvailableJwtToken;
+  User? internalLocallyAvailableUserInfo;
+  CountryCurrency internalLocallyStoredCountryCurrency = CountryCurrency.UnitedStatesDollarUnitedStates;
 
-  CookiesService(this.cookiesDAO, this.userDAO,) {
+  CookiesServiceMobile(this.cookiesDAO, this.userDAO,) {
     initializeCookie();
   }
 
   Future<void> setAppCountryCurrency(CountryCurrency countryCurrency) async {
-    locallyStoredCountryCurrency = countryCurrency;
+    internalLocallyStoredCountryCurrency = countryCurrency;
         Cookie? cookie = await cookiesDAO.getCookie();
     if (cookie != null) {
       cookie.defaultCountryCurrency = countryCurrency;
@@ -29,7 +30,7 @@ class CookiesService {
     if (appUser == null || appUser.id == null) {
       return;
     }
-    locallyAvailableUserInfo = appUser;
+    internalLocallyAvailableUserInfo = appUser;
     
     Cookie? cookie = await cookiesDAO.getCookie();
     if (cookie != null) {
@@ -44,7 +45,7 @@ class CookiesService {
 
   void setDefaultCountryCurrency(CountryCurrency currentCountryCurrency) async {
     Cookie? cookie = await cookiesDAO.getCookie();
-    locallyStoredCountryCurrency = currentCountryCurrency;
+    internalLocallyStoredCountryCurrency = currentCountryCurrency;
     if (cookie != null) {
       cookie.defaultCountryCurrency = currentCountryCurrency;
       cookiesDAO.updateCookie(cookie);
@@ -56,7 +57,7 @@ class CookiesService {
       print("No JWT token to set");
       return;
     }
-    locallyAvailableJwtToken = jwtToken;
+    internalLocallyAvailableJwtToken = jwtToken;
 
     Cookie? cookie = await cookiesDAO.getCookie();
 
@@ -88,15 +89,15 @@ class CookiesService {
           defaultCountryCurrency:
               CountryCurrency.UnitedStatesDollarUnitedStates));
     } else {
-      locallyStoredCountryCurrency = cookie.defaultCountryCurrency;
+      internalLocallyStoredCountryCurrency = cookie.defaultCountryCurrency;
       if (cookie.userId != null) {
-        locallyAvailableUserInfo = await userDAO.getUserById(cookie.userId!);
+        internalLocallyAvailableUserInfo = await userDAO.getUserById(cookie.userId!);
       }
-      locallyAvailableJwtToken = cookie.jwt;
+      internalLocallyAvailableJwtToken = cookie.jwt;
     }
   }
 
-  void finishOnboarding() async {
+  Future<void> finishOnboarding() async {
     Cookie? cookie = await cookiesDAO.getCookie();
     if (cookie != null) {
       cookie.hasOnboarded = true;
@@ -104,10 +105,37 @@ class CookiesService {
     }
   }
 
-  void clearCookies() {
-    locallyAvailableJwtToken = null;
-    locallyAvailableUserInfo = null;
-    locallyStoredCountryCurrency = CountryCurrency.UnitedStatesDollarUnitedStates;
+  Future<void> clearCookies() async {
+    internalLocallyAvailableJwtToken = null;
+    internalLocallyAvailableUserInfo = null;
+    internalLocallyStoredCountryCurrency = CountryCurrency.UnitedStatesDollarUnitedStates;
     cookiesDAO.deleteCookie();
   }
+
+  String? get currentJwtToken => internalLocallyAvailableJwtToken;
+  User? get currentUser => internalLocallyAvailableUserInfo;
+  
+  CountryCurrency get currentCountryCurrency => internalLocallyStoredCountryCurrency;
+  Future<bool> get hasOnboarded => cookiesDAO.isTableEmpty();
+  Future<void> setPreference(String key, String value) => throw UnimplementedError();
+  Future<String?> getPreference(String key) => throw UnimplementedError();
+  
+  @override
+  // TODO: implement locallyStoredUser
+  User get locallyAvailableUserInfo => internalLocallyAvailableUserInfo!;
+  
+  @override
+  Future<void> setLocallyStoredCountryCurrency(CountryCurrency countryCurrency) async {
+    internalLocallyStoredCountryCurrency = countryCurrency;
+  }
+  
+  @override
+  Future<void> setLocallyStoredUser(User user) async {
+    internalLocallyAvailableUserInfo = user;
+  }
+  
+  @override
+  // TODO: implement locallyStoredCountryCurrency
+  CountryCurrency get locallyStoredCountryCurrency => throw UnimplementedError();
 }
+

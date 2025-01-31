@@ -6,7 +6,6 @@ import 'package:merrymakin/commons/models/country_currency.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
-import 'package:merrymakin/commons/service/cookies_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
@@ -24,9 +23,11 @@ import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/service/event_service.dart';
 import 'package:share_plus/share_plus.dart';
+import '../commons/service/cookie_service.dart';
 import '../commons/widgets/pro_user_comment.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/pro_share_sheet.dart';
+import '../factory/app_factory.dart';
 class EventDetailsScreen extends ConsumerStatefulWidget {
   final String? eventId;
 
@@ -44,6 +45,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     ThemeData? eventTheme;
     ProThemeType themeType = ProThemeType.classic;
     ProEffectType effectType = ProEffectType.none;
+    final CookiesService cookiesService = AppFactory().cookiesService;
   List<Widget> _buildInfoRow(IconData? icon, Widget content) {
     return [
       const SizedBox(height: generalAppLevelPadding),
@@ -71,7 +73,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 title: ProText('Edit ${eventType}'),
                 onTap: () {
                   if (!event
-                      .isHostedByMe(CookiesService.locallyAvailableUserInfo)) {
+                      .isHostedByMe(cookiesService.currentUser)) {
                     return;
                   }
                   Navigator.pop(context); // Close the bottom sheet
@@ -336,7 +338,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       ),
                     ),
                     actions: [
-                      if (receivedEvent.isHostedByMe(CookiesService.locallyAvailableUserInfo))
+                      if (receivedEvent.isHostedByMe(cookiesService.currentUser))
                         Container(
                           margin: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -450,8 +452,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                                     .updateEvent(receivedEvent);
                                               });
                                             },
-                                            user: CookiesService
-                                                .locallyAvailableUserInfo));
+                                            user: cookiesService.currentUser));
                                   },
                                   child: ProText('Comment'),
                                 ),
@@ -467,7 +468,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 ],
               );
             }),
-            floatingActionButton: receivedEvent.isHostedByMe(CookiesService.locallyAvailableUserInfo)
+            floatingActionButton: receivedEvent.isHostedByMe(cookiesService.currentUser)
                 ? buildActionButtonForHosts(context, receivedEvent)
                 : buildActionButtonForGuests(context, receivedEvent, ref),
           ),
@@ -479,7 +480,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Widget buildActionButtonForGuests(
       final BuildContext buildContext, final Event event, WidgetRef ref) {
     final RSVPStatus rsvpStatus =
-        event.getRsvpStatusForUser(CookiesService.locallyAvailableUserInfo);
+        event.getRsvpStatusForUser(cookiesService.currentUser);
     final List<ProStackedFabObject> stackedFabs = [
       if (rsvpStatus != RSVPStatus.GOING)
         ProStackedFabObject(
@@ -487,7 +488,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             title: RSVPStatus.GOING.getDisplayInfo().$2,
             onTap: () {
               rsvpForEvent(event, RSVPStatus.GOING,
-                      CookiesService.locallyAvailableUserInfo)
+                      cookiesService.currentUser)
                   .then((value) {
                 ref.read(eventProvider.notifier).updateEvent(event);
               }).onError((error, stackTrace) =>
@@ -499,7 +500,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             title: RSVPStatus.MAYBE.getDisplayInfo().$2,
             onTap: () {
               rsvpForEvent(event, RSVPStatus.MAYBE,
-                  CookiesService.locallyAvailableUserInfo);
+                  cookiesService.currentUser);
               ref.read(eventProvider.notifier).updateEvent(event);
             }),
       if (rsvpStatus != RSVPStatus.NOT_GOING)
@@ -508,7 +509,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             title: RSVPStatus.NOT_GOING.getDisplayInfo().$2,
             onTap: () {
               rsvpForEvent(event, RSVPStatus.NOT_GOING,
-                  CookiesService.locallyAvailableUserInfo);
+                  cookiesService.currentUser);
               ref.read(eventProvider.notifier).updateEvent(event);
             })
     ];

@@ -14,21 +14,21 @@ import 'package:merrymakin/commons/service/user_service.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 // import 'package:merrymakin/dao/event_to_attendee_dao.dart';
 // import 'package:merrymakin/dao/event_to_host_dao.dart';
-import 'package:merrymakin/dao/events_dao.dart';
+// import 'package:merrymakin/dao/events_dao.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 
 // final EventToHostDao eventToHostDao = AppFactory().eventToHostDao;
 final UserService userService = AppFactory().userService;
-final EventsDao eventsDao = AppFactory().eventDao;
+// final EventsDao eventsDao = AppFactory().eventDao;
 // final EventToAttendeeDao eventToAttendeeDao = AppFactory().eventToAttendeeDao;
-
+final EventsApi eventsApi = AppFactory().eventsApi;
 Future<List<Event>> get allEvents async {
-  return getAllEvents().then((Response response) {
+  return eventsApi.getAllEvents().then((Response response) {
     if (response.statusCode == 200) {
       try {
         final List<Event> eventsFromCloud = List<Event>.from(
             jsonDecode(response.body).map((map) => Event.fromMap(map)));
-        deleteAllEvents();
+        // deleteAllEvents();
         for (Event event in eventsFromCloud) {
           _saveUsersToDatabase(event);
         }
@@ -46,7 +46,7 @@ Future<List<Event>> get allEvents async {
 
 Future<Event?> findEventWithId(final String eventId) async {
   // Get event from database
-    final Response response = await getEventById(eventId);
+    final Response response = await eventsApi.getEventById(eventId);
       if (response.statusCode == 200) {
         Event event = Event.fromMap(jsonDecode(response.body));
         _saveUsersToDatabase(event);
@@ -91,7 +91,7 @@ Future<void> rsvpForEvent(
   }
 
 
-  return sendRsvpForEvent(event.id!, rsvpStatus).then((response) {
+  return eventsApi.sendRsvpForEvent(event.id!, rsvpStatus).then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to RSVP: ${response.body}, ${response.statusCode}');
@@ -103,7 +103,7 @@ Future<void> rsvpForEvent(
 }
 
 Future<void> addCommentToEvent(final Event event, final Comment comment, BuildContext context) {
-  return addCommentApi(event.id!, comment).then((response) {
+  return eventsApi.addCommentApi(event.id!, comment).then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to Comment: ${response.body}, ${response.statusCode}');
@@ -132,7 +132,7 @@ Future<Event?> addOrUpdateEvent(final Event event, BuildContext context) {
 Future<Event?> _updateEvent(final Event event, BuildContext context) {
   final Uri uri = Uri(
       scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: '$DEV_PATH_EVENTS/${event.id!}');
-  return updateEvent(event, uri)
+  return eventsApi.updateEvent(event, uri)
       .then((Response response) {
     if (response.statusCode == 200) {
       final Event savedEvent = Event.fromMap(jsonDecode(response.body));
@@ -154,7 +154,7 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
 Future<Event?> _addEvent(final Event event, BuildContext context) async {
   final Uri uri = Uri(
       scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_EVENTS);
-  return createEvent(event.toEventRequestDTO(), uri)
+  return eventsApi.createEvent(event.toEventRequestDTO(), uri)
       .then((Response response) {
     if (response.statusCode == 200) {
       final Event savedEvent = Event.fromMap(jsonDecode(response.body));
@@ -252,7 +252,7 @@ Future<Event> _saveUsersToDatabase(final Event event) async {
 }
 
 Future<void> deleteEvent(String eventId) async {
-  await deleteEventFromServer(eventId);
+  await eventsApi.deleteEventFromServer(eventId);
   // await eventsDao.delete(eventId.toString());
 }
 
@@ -296,8 +296,8 @@ Future<void> deleteEvent(String eventId) async {
 //   }
 // }
 
-void deleteAllEvents() {
-  eventsDao.deleteAll();
-  // eventToAttendeeDao.deleteAll();
-  // eventToHostDao.deleteAll();
-}
+// void deleteAllEvents() {
+//   eventsDao.deleteAll();
+//   // eventToAttendeeDao.deleteAll();
+//   // eventToHostDao.deleteAll();
+// }

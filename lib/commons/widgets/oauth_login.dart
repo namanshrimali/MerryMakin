@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,6 +13,8 @@ import '../utils/string_utils.dart';
 import 'pro_snackbar.dart';
 import '../models/user_request_dto.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../api/google_sign_in_web.dart';
+import '../api/apple_sign_in_web.dart';
 
 class OAuthLogin extends ConsumerStatefulWidget {
   final VoidCallback? onPressedCallback;
@@ -35,105 +38,186 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
   // bool isLoading = false;
   Future _signInWithApple() async {
     try {
-      final AuthorizationCredentialAppleID credential =
-          await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
+      if (kIsWeb) {
+        final result = await AppleSignInWeb.signIn();
+        if (result != null) {
+          UserRequestDTO userRequestDTO = UserRequestDTO(
+            givenName: result.displayName,
+            email: result.email,
+            sprylyServices: SprylyServices.MerryMakin,
+          );
 
-      UserRequestDTO userRequestDTO = UserRequestDTO(
-          givenName: credential.givenName,
-          familyName: credential.familyName,
-          email: credential.email,
-          sprylyServices: SprylyServices.MerryMakin);
+          final user = await widget.userService.addOrUpdateUser(
+            userRequestDTO,
+            result.accessToken,
+            widget.sprylyService,
+            isApple: true,
+          );
 
-      widget.userService
-          .addOrUpdateUser(userRequestDTO, credential.authorizationCode,
-              widget.sprylyService,
-              isApple: true)
-          .then((user) {
-        if (user != null) {
-          ref.read(userProvider.notifier).login(user);
+          if (user != null) {
+            ref.read(userProvider.notifier).login(user);
+          }
+
+          showSnackBar(
+            context,
+            user == null
+                ? couldNotReachToOurServers
+                : 'Welcome ${user.userNameForDisplay}',
+          );
+
+          if (widget.onPressedCallback != null) {
+            widget.onPressedCallback!();
+          }
         }
-        showSnackBar(
-          context,
-          user == null
-              ? couldNotReachToOurServers
-              : 'Welcome ${user.userNameForDisplay}',
+      } else {
+        final AuthorizationCredentialAppleID credential =
+            await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
         );
-        if (widget.onPressedCallback != null) {
-          widget.onPressedCallback!();
-        }
-      }).onError((error, stackTrace) {
-        showSnackBar(context, error.toString());
-        if (widget.onPressedCallback != null) {
-          widget.onPressedCallback!();
-        }
-      });
+
+        UserRequestDTO userRequestDTO = UserRequestDTO(
+            givenName: credential.givenName,
+            familyName: credential.familyName,
+            email: credential.email,
+            sprylyServices: SprylyServices.MerryMakin);
+
+        widget.userService
+            .addOrUpdateUser(userRequestDTO, credential.authorizationCode,
+                widget.sprylyService,
+                isApple: true)
+            .then((user) {
+          if (user != null) {
+            ref.read(userProvider.notifier).login(user);
+          }
+          showSnackBar(
+            context,
+            user == null
+                ? couldNotReachToOurServers
+                : 'Welcome ${user.userNameForDisplay}',
+          );
+          if (widget.onPressedCallback != null) {
+            widget.onPressedCallback!();
+          }
+        }).onError((error, stackTrace) {
+          showSnackBar(context, error.toString());
+          if (widget.onPressedCallback != null) {
+            widget.onPressedCallback!();
+          }
+        });
+      }
     } catch (e) {
       showSnackBar(context, e.toString());
     }
   }
-
+  
   Future _signInWithGoogle() async {
-    GoogleSignInApi.signIn().then((result) {
+    if (kIsWeb) {
+      final result = await GoogleSignInWeb.signIn();
       if (result != null) {
-        result.authentication.then((googleSignInAuthentication) {
-          if (googleSignInAuthentication.accessToken == null) {
-            showSnackBar(context, "No access token received from google");
-            return;
+        UserRequestDTO userRequestDTO = UserRequestDTO(
+          givenName: result.displayName,
+          username: getEmailWithoutDomain(result.email),
+          email: result.email,
+          photoUrl: result.photoUrl,
+          sprylyServices: SprylyServices.MerryMakin,
+        );
+
+        try {
+          final user = await widget.userService.addOrUpdateUser(
+            userRequestDTO,
+            result.accessToken,
+            widget.sprylyService,
+          );
+
+          if (user != null) {
+            ref.read(userProvider.notifier).login(user);
           }
-          UserRequestDTO userRequestDTO = UserRequestDTO(
-              givenName: result.displayName,
-              username: getEmailWithoutDomain(result.email),
-              email: result.email,
-              photoUrl: result.photoUrl,
-              sprylyServices: SprylyServices.MerryMakin);
-          widget.userService
-              .addOrUpdateUser(userRequestDTO,
-                  googleSignInAuthentication.accessToken!, widget.sprylyService)
-              .then((user) {
-            if (user != null) {
-              ref.read(userProvider.notifier).login(user);
+          
+          showSnackBar(
+            context,
+            user == null
+                ? couldNotReachToOurServers
+                : 'Welcome ${user.userNameForDisplay}',
+          );
+        } catch (error) {
+          showSnackBar(context, error.toString());
+        }
+      }
+    } else {
+      GoogleSignInApi.signIn().then((result) {
+        if (result != null) {
+          result.authentication.then((googleSignInAuthentication) {
+            if (googleSignInAuthentication.accessToken == null) {
+              showSnackBar(context, "No access token received from google");
+              return;
             }
-            showSnackBar(
-                context,
-                user == null
-                    ? couldNotReachToOurServers
-                    : 'Welcome ${user.userNameForDisplay}');
-            if (widget.onPressedCallback != null) {
-              widget.onPressedCallback!();
-            }
-          }).onError((error, stackTrace) {
-            showSnackBar(context, error.toString());
-            if (widget.onPressedCallback != null) {
-              widget.onPressedCallback!();
-            }
+            UserRequestDTO userRequestDTO = UserRequestDTO(
+                givenName: result.displayName,
+                username: getEmailWithoutDomain(result.email),
+                email: result.email,
+                photoUrl: result.photoUrl,
+                sprylyServices: SprylyServices.MerryMakin);
+            widget.userService
+                .addOrUpdateUser(userRequestDTO,
+                    googleSignInAuthentication.accessToken!, widget.sprylyService)
+                .then((user) {
+              if (user != null) {
+                ref.read(userProvider.notifier).login(user);
+              }
+              showSnackBar(
+                  context,
+                  user == null
+                      ? couldNotReachToOurServers
+                      : 'Welcome ${user.userNameForDisplay}');
+              if (widget.onPressedCallback != null) {
+                widget.onPressedCallback!();
+              }
+            }).onError((error, stackTrace) {
+              showSnackBar(context, error.toString());
+              if (widget.onPressedCallback != null) {
+                widget.onPressedCallback!();
+              }
+            });
           });
-        });
-      }
-    }).onError((error, stackTrace) {
-      showSnackBar(
-        context,
-        error.toString(),
-      );
-      if (widget.onPressedCallback != null) {
-        widget.onPressedCallback!();
-      }
-    });
+        }
+      }).onError((error, stackTrace) {
+        showSnackBar(
+          context,
+          error.toString(),
+        );
+        if (widget.onPressedCallback != null) {
+          widget.onPressedCallback!();
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Platform.isAndroid
-        ? IconButton(
+    
+      return Column(
+        children: [
+          IconButton(
             onPressed: _signInWithGoogle,
             icon: SvgPicture.asset(
               'lib/commons/assets/google_sign_in_button.svg',
             ),
-          )
-        : ProSignInWithAppleButton(onPressed: _signInWithApple);
+          ),
+          if (!kIsWeb && Platform.isIOS)
+          ProSignInWithAppleButton(onPressed: _signInWithApple),
+        ],
+      );
+
+    // return Platform.isAndroid
+    //     ? IconButton(
+    //         onPressed: _signInWithGoogle,
+    //         icon: SvgPicture.asset(
+    //           'lib/commons/assets/google_sign_in_button.svg',
+    //         ),
+    //       )
+    //     : ProSignInWithAppleButton(onPressed: _signInWithApple);
   }
 }

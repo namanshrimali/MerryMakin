@@ -171,7 +171,16 @@ enum CountryCurrency {
   ZimbabweanDollar,
 }
 
+
+  CountryCurrency fromJson(Map<String, dynamic> json) {
+    return CountryCurrency.values.byName(json['name']);
+  }
+
 extension CountryCurrencyExtensions on CountryCurrency {
+
+  toJson() {
+    return {'name': name};
+  }
 
   String getCurrencyCode() {
   switch (this) {

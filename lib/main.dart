@@ -1,27 +1,22 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/db/sql_lite.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:sqflite/sqflite.dart';
-import 'dart:io';
-
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-  }
-}
 
 Future<void> main() async {
   // Initialize the Database
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    AppFactory.forFirstTimeWeb();
+  } else {
+    SQLiteDBHelper dbHelper = SQLiteDBHelper.instance;
+    Database database = await dbHelper.database;
+    AppFactory.forFirstTimeMobile(database);
+  }
 
-  SQLiteDBHelper dbHelper = SQLiteDBHelper.instance;
-  Database database = await dbHelper.database;
-  AppFactory.forFirstTime(database);
-  HttpOverrides.global = MyHttpOverrides();
   runApp(const ProviderScope(child: MyApp()));
 }
 

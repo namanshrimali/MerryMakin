@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
-import 'package:merrymakin/commons/service/cookies_service.dart';
+import 'package:merrymakin/commons/service/cookies_service_mobile.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
@@ -18,6 +18,7 @@ import 'package:merrymakin/commons/widgets/pro_image_picker.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart';
+import '../commons/service/cookie_service.dart';
 import '../commons/widgets/pro_font_selector.dart';
 
 class AddOrEditEvent extends ConsumerStatefulWidget {
@@ -39,7 +40,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ProThemeType? selectedTheme;
   ProEffectType? selectedEffect;
   ProFontType? selectedFont;
-
+  final CookiesService cookiesService = AppFactory().cookiesService;
 
   final Map<String, bool> _visibleFields = {
     'spots': false,
@@ -53,10 +54,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     super.initState();
     event = Event(
         name: 'Untitled Event',
-        hosts: CookiesService.locallyAvailableUserInfo != null
-            ? [CookiesService.locallyAvailableUserInfo!]
+        hosts: cookiesService.currentUser != null
+            ? [cookiesService.currentUser!]
             : [],
-        countryCurrency: CookiesService.locallyStoredCountryCurrency,
+        countryCurrency: cookiesService.locallyStoredCountryCurrency,
         createdAt: DateTime.now().toUtc(),
         updatedAt: DateTime.now().toUtc(),
         imageUrl: imageService.getRandomImage());

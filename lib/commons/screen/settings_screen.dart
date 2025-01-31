@@ -15,9 +15,8 @@ import '../widgets/pro_list_view.dart';
 import '../widgets/pro_list_item.dart';
 import '../widgets/pro_text.dart';
 import '../widgets/pro_contact_us.dart';
-import '../service/cookies_service.dart';
 import '../utils/constants.dart';
-
+import '../service/cookie_service.dart';
 class SettingsScreen extends ConsumerStatefulWidget {
   final CookiesService cookiesService;
   final UserService userService;
@@ -40,7 +39,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       key: const Key("0"),
       title: const ProText("Transactions Currency"),
       trailing: ProText(
-          CookiesService.locallyStoredCountryCurrency.getCurrencySymbol()),
+          widget.cookiesService.locallyStoredCountryCurrency.getCurrencySymbol()),
       swipeForEditAndDelete: false,
       onTap: () {
         openProBottomModalSheet(
@@ -140,9 +139,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: generalAppLevelPadding),
                 ...feedback,
                 const SizedBox(height: generalAppLevelPadding),
-                if (CookiesService.locallyAvailableUserInfo != null)
+                if (widget.cookiesService.locallyAvailableUserInfo != null)
                   ...accountSettings,
-                if (CookiesService.locallyAvailableUserInfo != null) ...[
+                if (widget.cookiesService.locallyAvailableUserInfo != null) ...[
                   const SizedBox(height: generalAppLevelPadding),
                   ProOutlinedButton(
                       onPressed: () {

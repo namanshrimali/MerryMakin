@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:http/http.dart' as http;
-import 'package:merrymakin/commons/service/cookies_service.dart';
 
 import '../resources.dart';
+import 'cookie_service.dart';
 
 class ImageService {
-  ImageService(final String jsonUrl) {
+  final CookiesService cookiesService;
+  ImageService(final String jsonUrl, this.cookiesService) {
     initialize(jsonUrl);
   }
   Map<String, List<String>> _imageData = {};
@@ -55,7 +56,7 @@ class ImageService {
 
 
       // add jwt token in header
-      final jwtToken = CookiesService.locallyAvailableJwtToken;
+      final jwtToken = cookiesService.currentJwtToken;
       request.headers['access-token'] = '$jwtToken';
       request.files.add(await http.MultipartFile.fromPath(
         'file',

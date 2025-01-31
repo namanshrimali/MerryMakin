@@ -5,7 +5,6 @@ import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/providers/user_provider.dart';
 import 'package:merrymakin/commons/screen/profile_screen.dart';
-import 'package:merrymakin/commons/service/cookies_service.dart';
 import 'package:merrymakin/commons/widgets/pro_base_screen.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
 import 'package:merrymakin/factory/app_factory.dart';
@@ -15,6 +14,7 @@ import 'package:merrymakin/screens/welcome.dart';
 import 'package:merrymakin/service/event_service.dart';
 
 import '../commons/resources.dart';
+import '../commons/service/cookie_service.dart';
 
 class BaseScreen extends ConsumerStatefulWidget {
   const BaseScreen({super.key});
@@ -24,6 +24,7 @@ class BaseScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<BaseScreen> {
+  final CookiesService cookiesService = AppFactory().cookiesService;
   @override
   Widget build(BuildContext context) {
     ProStackedFabObject addEvent = ProStackedFabObject(
@@ -71,7 +72,7 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
 
           List<ProBaseScreenObject> baseScreenObjectList = [
             ProBaseScreenObject(
-                widget: AllEventsScreen(events: events),
+                widget: AllEventsScreen(events: events, cookiesService: cookiesService),
                 // widget: AddOrEditAccount(routeArgs: null,),
                 icon: Icons.home,
                 title: "Home",
@@ -95,8 +96,9 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                 title: "Profile",
                 []),
           ];
-          if (CookiesService.locallyAvailableUserInfo == null) {
+          if (cookiesService.currentUser == null) {
             return const MerryMakinWelcomeScreen();
+            // return AddOrEditEvent();
           }
           return ProBaseScreen(
             baseScreenObjectList: baseScreenObjectList,

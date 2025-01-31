@@ -2,16 +2,17 @@ import 'dart:convert';
 
 import 'package:http/src/response.dart';
 import '../api/user_api.dart';
-import '../dao/user_dao.dart';
+// import '../dao/user_dao.dart';
 import '../models/user.dart';
 import '../models/user_request_dto.dart';
-import '../service/cookies_service.dart';
+import 'cookie_service.dart';
 
 class UserService {
-  UserDAO userDAO;
+  // UserDAO userDAO;
   CookiesService cookiesService;
 
-  UserService(this.userDAO, this.cookiesService);
+  // UserService(this.userDAO, this.cookiesService);
+  UserService(this.cookiesService);
 
   Future<User?> addOrUpdateUser(
       UserRequestDTO userRequestDTO, String accessToken, String sprylyService,
@@ -43,26 +44,28 @@ class UserService {
     }
     User? internalUserInfo = await getUserById(user.id!);
     if (internalUserInfo == null) {
-      await userDAO.addUser(user);
+      // await userDAO.addUser(user);
     } else {
       // update user info
-      await userDAO.updateUser(user);
+      // await userDAO.updateUser(user);
     }
   }
 
   Future<User?> getUserById(String userId) async {
-    return await userDAO.getUserById(userId);
+    // return await userDAO.getUserById(userId);
+    return null;
   }
 
 
   Future<void> deleteAllUsers() {
-    return userDAO.deleteAllUsers();
+    // return userDAO.deleteAllUsers();
+    return Future.value();
   }
 
   Future<void> deleteUser() async {
     try {
-      final User? user = CookiesService.locallyAvailableUserInfo;
-      final String? jwtToken = CookiesService.locallyAvailableJwtToken;
+      final User? user = cookiesService.locallyAvailableUserInfo;
+      final String? jwtToken = cookiesService.currentJwtToken;
       if (user == null || jwtToken == null) {
         return Future.error('Login to delete user');
       }
@@ -80,6 +83,7 @@ class UserService {
   }
 
   Future<List<User>> getAllUsers() async {
-    return await userDAO.getAllUsers();
+    // return await userDAO.getAllUsers();
+    return [];
   }
 }

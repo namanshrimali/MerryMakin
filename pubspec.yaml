@@ -50,6 +50,7 @@ dependencies:
   flutter_launcher_icons:
   cached_network_image:
   image_picker:
+  universal_html: ^2.2.4
 
 
 dev_dependencies:
@@ -60,6 +61,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/merrymakinlogo4.png"  # Path to your favicon image
   remove_alpha_ios: true
   image_path: "assets/icon/merrymakinlogo4.png"
   

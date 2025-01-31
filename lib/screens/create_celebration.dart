@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
-import 'package:merrymakin/commons/service/cookies_service.dart';
+import 'package:merrymakin/commons/service/cookies_service_mobile.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
@@ -18,6 +18,8 @@ import 'package:merrymakin/commons/widgets/pro_image_picker.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../commons/service/cookie_service.dart';
+
 class AddOrEditCelebration extends ConsumerStatefulWidget {
   final String? eventId;
   AddOrEditCelebration({
@@ -32,6 +34,7 @@ class AddOrEditCelebration extends ConsumerStatefulWidget {
 
 class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
   late Event event;
+  final CookiesService cookiesService = AppFactory().cookiesService;
   List<Event> subEvents = [];
   bool hasSubEvents = false;
 
@@ -46,10 +49,10 @@ class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
     super.initState();
     event = Event(
         name: 'Untitled Celebration',
-        hosts: CookiesService.locallyAvailableUserInfo != null
-            ? [CookiesService.locallyAvailableUserInfo!]
+        hosts: cookiesService.currentUser != null
+            ? [cookiesService.currentUser!]
             : [],
-        countryCurrency: CookiesService.locallyStoredCountryCurrency,
+        countryCurrency: cookiesService.locallyStoredCountryCurrency,
         createdAt: DateTime.now().toUtc(),
         updatedAt: DateTime.now().toUtc(),
         imageUrl: imageService.getRandomImage());
@@ -75,10 +78,10 @@ class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
     setState(() {
       _addSubEventWithoutStateUpdate(Event(
         name: 'Untitled Sub-Event ${subEvents.length + 1}',
-        hosts: CookiesService.locallyAvailableUserInfo != null
-            ? [CookiesService.locallyAvailableUserInfo!]
+        hosts: cookiesService.currentUser != null
+            ? [cookiesService.currentUser!]
             : [],
-        countryCurrency: CookiesService.locallyStoredCountryCurrency,
+        countryCurrency: cookiesService.locallyStoredCountryCurrency,
         createdAt: DateTime.now().toUtc(),
         updatedAt: DateTime.now().toUtc(),
       ));
@@ -629,10 +632,10 @@ class _AddOrEditCelebrationState extends ConsumerState<AddOrEditCelebration> {
           if (subEvents.isEmpty && hasSubEvents) {
             final Event subEvent = Event(
               name: 'Untitled Sub-Event ${subEvents.length + 1}',
-              hosts: CookiesService.locallyAvailableUserInfo != null
-                  ? [CookiesService.locallyAvailableUserInfo!]
+              hosts: cookiesService.currentUser != null
+                  ? [cookiesService.currentUser!]
                   : [],
-              countryCurrency: CookiesService.locallyStoredCountryCurrency,
+              countryCurrency: cookiesService.locallyStoredCountryCurrency,
               createdAt: DateTime.now().toUtc(),
               updatedAt: DateTime.now().toUtc(),
             );

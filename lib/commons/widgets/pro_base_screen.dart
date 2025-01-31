@@ -80,7 +80,7 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
     ref.watch(pageIndexProvider);
     final Widget appBarTitle =
         ProText(widget.baseScreenObjectList[ref.read(pageIndexProvider)].title);
-    final PreferredSizeWidget appBarWidget = Platform.isIOS && false
+    final PreferredSizeWidget appBarWidget = false && Platform.isIOS
         // ignore: dead_code
         ? CupertinoNavigationBar(
             middle: appBarTitle,
@@ -89,7 +89,7 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
             // title: appBarTitle,
             actions: widget.baseScreenObjectList[ref.read(pageIndexProvider)].appBarActions,
           ) as PreferredSizeWidget;
-    return Platform.isIOS && false
+    return false && Platform.isIOS
         // TODO update all reusable widgets to work with cupertino style
         // ignore: dead_code
         ? CupertinoPageScaffold(

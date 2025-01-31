@@ -3,7 +3,6 @@ import 'package:merrymakin/commons/models/comment.dart';
 import '../models/event_attendee.dart';
 import '../models/event_request_dto.dart';
 import '../models/rsvp.dart';
-import '../service/cookies_service.dart';
 
 // import '../models/event_to_attendee.dart';
 import '../utils/constants.dart';
@@ -234,7 +233,7 @@ class Event {
       location: location,
       spots: spots,
       costPerSpot: costPerSpot,
-      countryCurrency: CookiesService.locallyStoredCountryCurrency.name,
+      countryCurrency: countryCurrency?.name ?? '',
       hostEmails: hosts.map((host) => host.email).toList(),
       attendeeEmails: attendees?.map((attendee) => attendee.user.email).toList(),
       createdAt: createdAt,
