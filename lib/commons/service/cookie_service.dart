@@ -35,7 +35,7 @@ abstract class CookiesService {
   CountryCurrency get locallyStoredCountryCurrency;
 
   Future<void> setLocallyStoredUser(User user);
-  User get locallyAvailableUserInfo;
+  User? get locallyAvailableUserInfo;
 }
 
 // Optional: Add common exceptions

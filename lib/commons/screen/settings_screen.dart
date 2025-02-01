@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:merrymakin/commons/api/google_sign_in_web.dart';
+import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
+import 'package:merrymakin/config/router.dart';
 import '../providers/navigation_provider.dart';
 import '../models/country_currency.dart';
 import '../providers/user_provider.dart';
@@ -114,19 +117,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Function onLogout(BuildContext context) {
     return () {
       widget.onLogout?.call();
-      Platform.isAndroid ? GoogleSignInApi.signOut() : () {};
+      if (kIsWeb) {
+        // TODO: sign out from web
+        GoogleSignInWeb.signOut();
+      } else {
+        Platform.isAndroid ? GoogleSignInApi.signOut() : () {};
+      }
       ref.read(userProvider.notifier).logout();
       ref.read(pageIndexProvider.notifier).gotoNewPage(0);
       widget.onLogout?.call();
-      context.go("/");
+      AppRouter.goHome(context);
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ProScaffold(
       appBar: AppBar(
         title: const ProText('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            AppRouter.goHome(context);
+          },
+        ),
       ),
       body: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {

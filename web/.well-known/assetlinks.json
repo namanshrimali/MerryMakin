@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.namanshrimali.merrymakin",
+      "sha256_cert_fingerprints": [
+        "C9:33:AA:83:2D:06:EA:A6:11:34:67:89:A4:B0:63:AD:CA:AA:B5:DC:54:38:68:2F:71:9B:EF:45:25:77:1D:43",
+        "DF:C1:6A:1C:FC:7A:F9:1D:0D:C6:D5:3D:76:17:12:D5:65:F3:53:59:86:C1:B7:42:19:00:F6:E3:30:E9:FC:7C"
+      ]
+    }
+  }
+]

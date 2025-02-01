@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../config/router.dart';
 import '../api/user_api.dart';
 import '../service/user_service.dart';
 import '../utils/constants.dart';
@@ -62,7 +63,7 @@ class ProUserProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     if (user == null || username == user!.userNameForDisplay) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.go('/');
+        AppRouter.goHome(context);
       });
     }
 
@@ -83,7 +84,7 @@ class ProUserProfile extends StatelessWidget {
               appBar: AppBar(
                 leading: IconButton(
                     onPressed: () {
-                      context.go("/");
+                      AppRouter.goHome(context);
                     },
                     icon: Icon(Icons.close)),
               ),

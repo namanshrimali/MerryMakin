@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
-import 'package:merrymakin/commons/service/cookies_service_mobile.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';

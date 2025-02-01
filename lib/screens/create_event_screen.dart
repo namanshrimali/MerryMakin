@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
-import 'package:merrymakin/commons/service/cookies_service_mobile.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
@@ -9,8 +8,10 @@ import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/pro_date_time_picker.dart';
 import 'package:merrymakin/commons/widgets/pro_list_item.dart';
 import 'package:merrymakin/commons/widgets/pro_list_view.dart';
+import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_text_field.dart';
+import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/service/event_service.dart';
@@ -790,13 +791,20 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return Theme(
       data: currentTheme,
       child: ProThemeEffects(
+        size: MediaQuery.sizeOf(context),
         themeType: selectedTheme?? ProThemeType.classic,
         effectType: selectedEffect?? ProEffectType.none,
-        child: Scaffold(
+        child: ProScaffold(
           appBar: AppBar(
             title: ProText(titleText),
             backgroundColor: currentTheme.primaryColor,
             foregroundColor: Colors.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                AppRouter.goHome(context);
+              },
+            ),
             actions: [
               TextButton(
                 onPressed: () => _submitData(context),

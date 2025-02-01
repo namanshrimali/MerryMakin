@@ -4,6 +4,7 @@ import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/widgets/pro_image_card.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
+import 'package:merrymakin/config/router.dart';
 
 import '../commons/utils/constants.dart';
 
@@ -36,7 +37,7 @@ class EventCard extends StatelessWidget {
         ),
         thirdRow: _buildThirdRow(event),
         onTap: () {
-            context.push('/${event.id}');
+            AppRouter.goToEventDetails(context, event.id!);
           },
         ),
         const Spacer(),

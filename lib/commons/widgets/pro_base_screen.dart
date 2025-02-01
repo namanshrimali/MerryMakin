@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
 import '../providers/navigation_provider.dart';
 import '../utils/constants.dart';
 import 'buttons/pro_stacked_fab.dart';
@@ -97,8 +98,8 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
             child:
                 widget.baseScreenObjectList[ref.read(pageIndexProvider)].widget,
           )
-        : Scaffold(
-            appBar: appBarWidget,
+        : ProScaffold(
+            appBar: appBarWidget as AppBar?,
             body: Padding(
                 padding: const EdgeInsets.only(
                     left: generalAppLevelPadding,

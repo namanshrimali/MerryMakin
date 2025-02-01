@@ -1,5 +1,5 @@
 import 'package:merrymakin/factory/app_factory.dart';
-String DEV_HOST = "api.moneymoneymore.app";
+String DEV_HOST = "merrymakin.com";
 int DEV_PORT = 443;
 String SCHEME = "https";
 // String DEV_HOST = "localhost";

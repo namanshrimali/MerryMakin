@@ -5,11 +5,13 @@ import 'package:merrymakin/commons/db/sql_lite.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 Future<void> main() async {
   // Initialize the Database
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
+    setUrlStrategy(PathUrlStrategy());
     AppFactory.forFirstTimeWeb();
   } else {
     SQLiteDBHelper dbHelper = SQLiteDBHelper.instance;
@@ -29,7 +31,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'MerryMakin',
-      routerConfig: router,
       theme: ThemeData(
           // This is the theme of your application.
           //
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
           // Notice that the counter didn't reset back to zero; the application
           // is not restarted.
           ),
+      routerConfig: AppRouter.router,
     );
   }
 }

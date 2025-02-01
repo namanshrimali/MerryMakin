@@ -7,6 +7,8 @@ import 'package:merrymakin/commons/providers/user_provider.dart';
 import 'package:merrymakin/commons/screen/profile_screen.dart';
 import 'package:merrymakin/commons/widgets/pro_base_screen.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
+import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
+import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/screens/all_events.dart';
@@ -32,7 +34,7 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
         title: "New Event",
         actionButtonText: "New Party\nOne epic event of fun, music, and good vibes all in one go.",
         onTap: () {
-          context.push('/events/new');
+          AppRouter.goToNewEvent(context);
         });
     // ProStackedFabObject addCelebration = ProStackedFabObject(
     //     icon: Icons.celebration,
@@ -52,7 +54,12 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
         ]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Scaffold();
+            return ProScaffold(
+              appBar: AppBar(),
+              body: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
           }
           final List<Event> events =
               snapshot.data == null ? [] : snapshot.data![0]
@@ -82,7 +89,7 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                   IconButton(
                     icon: const Icon(Icons.settings),
                     onPressed: () {
-                      context.push('/settings');
+                      AppRouter.goToSettings(context);
                     },
                   ),
                 ],

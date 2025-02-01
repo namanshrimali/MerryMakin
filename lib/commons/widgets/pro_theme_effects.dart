@@ -37,12 +37,14 @@ class ProThemeEffects extends StatefulWidget {
   final ProThemeType themeType;
   final ProEffectType effectType;
   final Widget child;
+  final Size size;
 
   const ProThemeEffects({
     Key? key,
     required this.themeType,
     required this.effectType,
     required this.child,
+    required this.size,
   }) : super(key: key);
 
   @override
@@ -56,6 +58,7 @@ class _ProThemeEffectsState extends State<ProThemeEffects> with TickerProviderSt
 
   @override
   void initState() {
+    // get size of screen, height and width
     super.initState();
     _controller = AnimationController(
       duration: const Duration(seconds: 100),
@@ -68,8 +71,8 @@ class _ProThemeEffectsState extends State<ProThemeEffects> with TickerProviderSt
   EffectItem _createEffect() {
     return EffectItem(
       position: Offset(
-        random.nextDouble() * 400,
-        random.nextDouble() * 800,
+        random.nextDouble() * widget.size.width,
+        random.nextDouble() * widget.size.height,
       ),
       size: 10 + random.nextDouble() * 20,
       speed: 1 + random.nextDouble(),
