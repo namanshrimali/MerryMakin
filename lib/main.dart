@@ -5,13 +5,15 @@ import 'package:merrymakin/commons/db/sql_lite.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:merrymakin/commons/utils/platform_web.dart'
+    if (dart.library.io) 'package:merrymakin/commons/utils/platform_stub.dart'
+    as platform;
 
 Future<void> main() async {
   // Initialize the Database
   WidgetsFlutterBinding.ensureInitialized();
+  platform.setUrlStrategyForPlatform();
   if (kIsWeb) {
-    setUrlStrategy(PathUrlStrategy());
     AppFactory.forFirstTimeWeb();
   } else {
     SQLiteDBHelper dbHelper = SQLiteDBHelper.instance;

@@ -7,7 +7,6 @@ import '../widgets/pro_list_view.dart';
 import '../widgets/pro_madeby_sprylylabs.dart';
 import '../widgets/pro_text.dart';
 import '../widgets/pro_user_card.dart';
-import '../service/cookies_service_mobile.dart';
 import '../service/user_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {

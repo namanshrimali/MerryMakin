@@ -89,7 +89,6 @@ class EventsApi {
     if (cookiesService.currentJwtToken == null) {
       await Future.delayed(const Duration(seconds: 1));
     }
-    print("cookiesService.currentJwtToken: ${cookiesService.currentJwtToken}");
     Map<String, String> headers = {
       "access-token":
           cookiesService.currentJwtToken ?? ""

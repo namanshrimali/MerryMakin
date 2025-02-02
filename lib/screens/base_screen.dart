@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/providers/user_provider.dart';
