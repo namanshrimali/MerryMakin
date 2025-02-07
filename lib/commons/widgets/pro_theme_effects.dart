@@ -10,6 +10,7 @@ enum ProEffectType {
   bubbles,
   confetti,
   hearts,
+  lanterns,
 }
 
 extension ProEffectTypeExtension on ProEffectType {
@@ -29,6 +30,8 @@ extension ProEffectTypeExtension on ProEffectType {
         return 'Party Confetti';
       case ProEffectType.hearts:
         return 'Floating Hearts';
+      case ProEffectType.lanterns:
+        return 'Glowing Lanterns';
     }
   }
 }
@@ -190,6 +193,11 @@ class EffectPainter extends CustomPainter {
           _drawHeart(canvas, currentPosition, effect.size, paint);
           break;
         case ProEffectType.balloons:
+          _drawBalloon(canvas, currentPosition, effect.size, paint);
+          break;
+        case ProEffectType.lanterns:
+          _drawLantern(canvas, currentPosition, effect.size, paint);
+          break;
         default:
           _drawBalloon(canvas, currentPosition, effect.size, paint);
       }
@@ -309,6 +317,82 @@ class EffectPainter extends CustomPainter {
       );
     
     canvas.drawPath(path, stringPaint);
+  }
+
+  void _drawLantern(Canvas canvas, Offset center, double size, Paint paint) {
+    // Save canvas state
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+
+    // Create glow effect
+    final glowPaint = Paint()
+      ..color = paint.color.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
+
+    // Draw glow
+    canvas.drawCircle(Offset.zero, size * 0.8, glowPaint);
+
+    // Draw lantern body
+    final lanternPath = Path();
+    
+    // Top cap
+    lanternPath.moveTo(-size * 0.2, -size * 0.5);
+    lanternPath.lineTo(size * 0.2, -size * 0.5);
+    
+    // Main body - slightly curved sides
+    lanternPath.quadraticBezierTo(
+      size * 0.3, 0,
+      size * 0.2, size * 0.4,
+    );
+    lanternPath.lineTo(-size * 0.2, size * 0.4);
+    lanternPath.quadraticBezierTo(
+      -size * 0.3, 0,
+      -size * 0.2, -size * 0.5,
+    );
+
+    // Bottom tassel
+    final tasselPath = Path()
+      ..moveTo(-size * 0.1, size * 0.4)
+      ..lineTo(0, size * 0.6)
+      ..lineTo(size * 0.1, size * 0.4);
+
+    // Draw with slight gradient for 3D effect
+    final gradient = RadialGradient(
+      center: const Alignment(0.2, -0.2),
+      radius: 0.8,
+      colors: [
+        paint.color,
+        paint.color.withOpacity(0.7),
+      ],
+    );
+
+    final lanternPaint = Paint()
+      ..shader = gradient.createShader(
+        Rect.fromCircle(center: Offset.zero, radius: size),
+      )
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(lanternPath, lanternPaint);
+    canvas.drawPath(tasselPath, paint);
+
+    // Add decorative lines
+    final linePaint = Paint()
+      ..color = paint.color.withOpacity(0.8)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    // Horizontal decorative lines
+    for (var i = 1; i < 3; i++) {
+      final y = -size * 0.3 + (i * size * 0.2);
+      canvas.drawLine(
+        Offset(-size * 0.2, y),
+        Offset(size * 0.2, y),
+        linePaint,
+      );
+    }
+
+    // Restore canvas state
+    canvas.restore();
   }
 
   @override

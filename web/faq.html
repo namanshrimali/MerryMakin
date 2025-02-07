@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MerryMakin - FAQs</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(to right, rgb(106, 106, 221), violet);
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            position: relative;
+        }
+
+        .navbar img {
+            height: 40px;
+            /* Adjust icon size */
+            margin-right: 15px;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .hamburger {
+            display: flex;
+            /* Show hamburger icon */
+            flex-direction: column;
+            cursor: pointer;
+            margin-left: auto;
+        }
+
+        .hamburger div {
+            width: 30px;
+            height: 3px;
+            background-color: white;
+            margin: 4px 0;
+            transition: 0.4s;
+        }
+
+        .menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: linear-gradient(to right, rgb(106, 106, 221), violet);
+            border-radius: 5px;
+            padding: 10px;
+            z-index: 10;
+        }
+
+        .menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            transition: background 0.3s;
+        }
+
+        .menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .header-section {
+            height: 100vh;
+            /* Full height for header */
+            display: flex;
+            justify-content: center;
+            /* Center content vertically */
+            align-items: center;
+            /* Center content horizontally */
+            background: linear-gradient(to right, rgb(106, 106, 221), violet);
+            /* Same gradient as navbar */
+            color: white;
+            text-align: center;
+        }
+
+        .header-section h2 {
+            font-size: 3em;
+            /* Increase font size */
+            margin: 0;
+            /* Remove default margin */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+        }
+
+        .toc {
+            margin-bottom: 20px;
+            height: 100vh;
+            /* Full height for TOC */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Center content vertically */
+            background: linear-gradient(to right, rgba(106, 106, 221, 0.1), rgba(255, 255, 255, 0.5));
+            /* Light gradient */
+            padding: 20px;
+            /* Add padding for spacing */
+        }
+
+        .toc h3 {
+            font-size: 2em;
+            /* Increase font size */
+        }
+
+        .toc a {
+            display: block;
+            margin: 5px 0;
+            color: rgb(106, 106, 221);
+            text-decoration: none;
+            font-size: 1.2em;
+            /* Increase font size for TOC */
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .faq {
+            margin-bottom: 20px;
+            height: 100vh;
+            /* Full height for each FAQ */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Center content vertically */
+            padding: 20px;
+            /* Add padding for spacing */
+        }
+
+        .faq h3 {
+            margin: 10px 0;
+            font-size: 2em;
+            /* Increase font size */
+        }
+
+        .faq p {
+            margin: 5px 0 15px 0;
+            font-size: 1.2em;
+            /* Increase font size */
+        }
+
+        .contact-button {
+            display: inline-block;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .email-section {
+            height: 100vh;
+            /* Full height for email section */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Center content vertically */
+            align-items: center;
+            /* Center content horizontally */
+            background: linear-gradient(to right, rgb(106, 106, 221), violet);
+            /* Same gradient as navbar */
+            padding: 20px;
+            /* Add padding for spacing */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="navbar">
+        <img src="assets/website/merrymakinlogo4.png" alt="App Icon"> <!-- Update the path as necessary -->
+        <h1>MerryMakin</h1>
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="menu" id="menu">
+            <a href="index.html">Home</a>
+            <a href="faq.html">FAQs</a>
+            <a href="privacy_policy.html">Privacy Policy</a>
+            <!-- <a href="path/to/android-app.apk" class="button">Download App</a> -->
+        </div>
+    </div>
+
+    <div class="header-section">
+        <h2>Frequently Asked Questions (FAQs)</h2>
+    </div>
+
+    <div class="container">
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <a href="#sign-in">How do I sign in to my app?</a>
+            <a href="#create-event">How do I create an event?</a>
+            <a href="#edit-event">How do I edit an event?</a>
+            <a href="#share-event">How do I share an event with my friends?</a>
+            <a href="#delete-event">How do I delete an event?</a>
+            <a href="#delete-account">How do I delete my account?</a>
+        </div>
+
+        <div class="faq" id="sign-in">
+            <h3>How do I sign in to MerryMakin?</h3>
+            <p> If you're an iOS user, you can sign in with your Apple account. If you're an Android user, you can sign
+                in with your Google account. If you're a first time user, you can sign up with your Google account.</p>
+        </div>
+
+        <div class="faq" id="create-event">
+            <h3>How do I create an event?</h3>
+            <p>To create an event, tap on the "+" button on the home page. Fill in the required details such as event
+                name, date, time, and location, then tap "Save" to create your event.</p>
+        </div>
+
+        <div class="faq" id="edit-event">
+            <h3>How do I edit an event?</h3>
+            <p>To edit an event, go to your event list, select the event you want to edit, and tap on the "..." button
+                on the top right corner. Make your changes and save them to update the event.</p>
+        </div>
+
+        <div class="faq" id="share-event">
+            <h3>How do I share an event with my friends?</h3>
+            <p>You can share your event by selecting the event from from dashboard and tapping on the "Share" button at
+                the bottom right corner of the event. You can then choose to share via messaging apps, social media, or
+                email.</p>
+        </div>
+
+        <div class="faq" id="delete-event">
+            <h3>How do I delete an event?</h3>
+            <p>To delete an event, select the event you want to delete, and tap on the "Delete" button, tap on the "..."
+                button on the top right corner and select "Delete Event". Confirm your action to remove the event. You
+                can only delete an event if you are the creator of the event.</p>
+        </div>
+
+        <div class="faq" id="delete-account">
+            <h3>How do I delete my account?</h3>
+            <p>You can delete your account by going to the Profile tab and then tapping on the settings button on the
+                top right corner. You can then select to "Delete Account" option. Follow the prompts to confirm your
+                decision.</p>
+        </div>
+
+
+    </div>
+    <div class="email-section">
+        <h3>If you still have questions, feel free to reach out!</h3>
+        <a href="mailto:summonnaman@gmail.com" class="contact-button">Email Us for More Information</a>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+    </script>
+</body>
+
+</html>

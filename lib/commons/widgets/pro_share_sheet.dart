@@ -20,8 +20,8 @@ class ProShareSheet extends StatefulWidget {
   final UserService userService;
   final Function onShare;
   final Event event;
-  final ProThemeType themeType;
-  final ProEffectType effectType;
+  final ProThemeType? themeType;
+  final ProEffectType? effectType;
 
   String get sanitizedMessage => message.replaceAllMapped(
     RegExp(r'[_*\[\]()~`>#+=|{}-]'),
@@ -35,8 +35,8 @@ class ProShareSheet extends StatefulWidget {
     required this.userService,
     required this.onShare,
     required this.event,
-    required this.themeType,
-    required this.effectType,
+    this.themeType,
+    this.effectType,
   }) : super(key: key);
 
   @override
@@ -74,8 +74,8 @@ class _ProShareSheetState extends State<ProShareSheet> {
     // Generate surface color background image
     final surfaceImage = await ShareImageGenerator.generateEventShareImage(
       event: widget.event,
-      themeType: widget.themeType,
-      effectType: widget.effectType,
+      themeType: widget.themeType ?? ProThemeType.classic,
+      effectType: widget.effectType ?? ProEffectType.none,
       size: const Size(1080, 1920),
       usePrimaryBackground: false,
     );
@@ -83,8 +83,8 @@ class _ProShareSheetState extends State<ProShareSheet> {
     // Generate primary color background image
     final primaryImage = await ShareImageGenerator.generateEventShareImage(
       event: widget.event,
-      themeType: widget.themeType,
-      effectType: widget.effectType,
+      themeType: widget.themeType ?? ProThemeType.classic,
+      effectType: widget.effectType ?? ProEffectType.none,
       size: const Size(1080, 1920),
       usePrimaryBackground: true,
     );

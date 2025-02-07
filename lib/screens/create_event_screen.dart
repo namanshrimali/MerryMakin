@@ -728,6 +728,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         return Icons.celebration;
       case ProEffectType.hearts:
         return Icons.favorite;
+      case ProEffectType.lanterns:
+        return Icons.lightbulb;
+        // TODO: Handle this case.
     }
   }
 

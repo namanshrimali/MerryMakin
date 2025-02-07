@@ -109,6 +109,9 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
                 ? couldNotReachToOurServers
                 : 'Welcome ${user.userNameForDisplay}',
           );
+          if (widget.onPressedCallback != null) {
+            widget.onPressedCallback!();
+          }
         } catch (error) {
           showSnackBar(context, error.toString());
         }
@@ -121,8 +124,12 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
               showSnackBar(context, "No access token received from google");
               return;
             }
+            // family name is extracted from display name
+            final familyName = result.displayName?.split(' ').last ?? '';
+            final givenName = result.displayName?.split(' ').first ?? '';
             UserRequestDTO userRequestDTO = UserRequestDTO(
-                givenName: result.displayName,
+                givenName: givenName,
+                familyName: familyName,
                 username: getEmailWithoutDomain(result.email),
                 email: result.email,
                 photoUrl: result.photoUrl,

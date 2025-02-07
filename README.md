@@ -1,6 +1,6 @@
 # merrymakin
 
-A new Flutter project.
+Plan. Invite. Celebrate!
 
 ## Getting Started
 

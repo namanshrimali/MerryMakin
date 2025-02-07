@@ -10,4 +10,4 @@ String IMAGE_REPOSITORY_JSON =
     "https://raw.githubusercontent.com/namanshrimali/merrymakinwebsite/refs/heads/main/assets/images_repository.json";
 String DEEP_LINK_BEFRIEND_USER_TEXT =
     "Tap this link to add me as a friend on MerryMakin: http://merrymakin.com/u/${AppFactory().cookiesService.currentUser?.userNameForDisplay}";
-String IOS_APP_LINK = "https://apps.apple.com/us/app/merrymakin/id6739860301";
+String IOS_APP_STORE_LINK = "https://apps.apple.com/us/app/merrymakin/id6739860301";

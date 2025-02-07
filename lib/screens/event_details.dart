@@ -8,11 +8,14 @@ import 'package:merrymakin/commons/models/country_currency.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
+import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/resources.dart';
+import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
 import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
+import 'package:merrymakin/commons/widgets/oauth_login.dart';
 import 'package:merrymakin/commons/widgets/pro_add_comment.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:merrymakin/commons/widgets/pro_carousel.dart';
@@ -23,15 +26,16 @@ import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/commons/widgets/pro_tab_view.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart';
 import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
+import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/service/event_service.dart';
-import '../commons/service/cookie_service.dart';
+import 'package:merrymakin/commons/utils/platform_web.dart'
+    if (dart.library.io) 'package:merrymakin/commons/utils/platform_stub.dart'
+    as platform;
 import '../commons/widgets/pro_user_comment.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/pro_share_sheet.dart';
-import '../config/router.dart';
-import '../factory/app_factory.dart';
 
 class EventDetailsScreen extends ConsumerStatefulWidget {
   final String? eventId;
@@ -50,7 +54,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   ThemeData? eventTheme;
   ProThemeType themeType = ProThemeType.classic;
   ProEffectType effectType = ProEffectType.none;
-  final CookiesService cookiesService = AppFactory().cookiesService;
+  CookiesService cookiesService = AppFactory().cookiesService;
   List<Widget> _buildInfoRow(IconData? icon, Widget content) {
     return [
       const SizedBox(height: generalAppLevelPadding),
@@ -82,14 +86,15 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 leading: const Icon(Icons.edit),
                 title: ProText('Edit ${eventType}'),
                 onTap: () {
-                  if (!event.isHostedByMe(cookiesService.currentUser)) {
+                  if (!event
+                      .isHostedByMe(cookiesService.locallyAvailableUserInfo)) {
                     return;
                   }
                   Navigator.pop(context); // Close the bottom sheet
                   if (event.subEvents != null && event.subEvents!.isNotEmpty) {
-                    AppRouter.goToEditCelebration(context, event.id!);
+                    context.push('/events/${event.id}/celebration/edit');
                   } else {
-                    AppRouter.goToEditEvent(context, event.id!);
+                    context.push('/events/${event.id}/edit');
                   }
                 },
               ),
@@ -128,7 +133,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                 ref
                                     .read(eventProvider.notifier)
                                     .updateEvent(event);
-                                AppRouter.goHome(context);
+                                context.go("/");
                               });
                             },
                           ),
@@ -307,13 +312,11 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     if (receivedEvent.theme != null) {
       try {
         // Get effect type from event
-        effectType = kIsWeb
-            ? ProEffectType.none
-            : receivedEvent.effect != null
-                ? ProEffectType.values.firstWhere(
-                    (type) => type.toString() == receivedEvent.effect,
-                    orElse: () => ProEffectType.none,
-                  )
+        effectType = receivedEvent.effect != null
+            ? ProEffectType.values.firstWhere(
+                (type) => type.toString() == receivedEvent.effect,
+                orElse: () => ProEffectType.none,
+              )
             : ProEffectType.none;
         themeType = ProThemeType.values.firstWhere(
           (type) => type.toString() == receivedEvent.theme,
@@ -332,194 +335,228 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
 
     return Theme(
       data: currentTheme,
-      child: ProThemeEffects(
-        size: MediaQuery.sizeOf(context),
-        themeType: themeType,
-        effectType: kIsWeb ? ProEffectType.none : effectType,
-        child: Builder(
-          builder: (context) => Scaffold(
-            body: LayoutBuilder(builder: (context, constraints) {
-              final double height = constraints.maxHeight;
-              return ProScaffold(
-                  iosAppLink: IOS_APP_LINK,
-                  appBar: AppBar(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double height = constraints.maxHeight;
+          final double width = constraints.maxWidth;
+          return ProThemeEffects(
+            themeType: themeType,
+            effectType: effectType,
+            size: Size(width, height),
+            child: ProScaffold(
+              iosAppLink: IOS_APP_STORE_LINK,
+              body: CustomScrollView(
+                // Use mobile-optimized settings
+                cacheExtent: 0, // Reduce memory usage
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: height * 0.6,
+                    pinned: true,
                     backgroundColor: currentTheme.primaryColor,
-                    leading: IconButton(
-                      icon: Icon(Icons.arrow_back,
-                          color: currentTheme.colorScheme.surface),
-                      onPressed: () => context.canPop()
-                          ? context.pop()
-                          : AppRouter.goHome(context),
+                    leading: Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius:
+                            BorderRadius.circular(generalAppLevelPadding * 2),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () =>
+                            context.canPop() ? context.pop() : context.go('/'),
+                      ),
                     ),
                     actions: [
-                      if (receivedEvent
-                          .isHostedByMe(cookiesService.currentUser))
-                        IconButton(
-                          icon: Icon(Icons.more_horiz,
-                              color: currentTheme.colorScheme.surface),
-                          onPressed: () =>
-                              _showOptionsModal(context, receivedEvent),
+                      if (receivedEvent.isHostedByMe(
+                          cookiesService.locallyAvailableUserInfo))
+                        Container(
+                          margin: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(
+                                generalAppLevelPadding * 2),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.more_horiz,
+                                color: Colors.white),
+                            onPressed: () =>
+                                _showOptionsModal(context, receivedEvent),
+                          ),
                         ),
                     ],
-                    // flexibleSpace: FlexibleSpaceBar(
-                    //   background: Image.network(
-                    //     receivedEvent.imageUrl,
-                    //     fit: BoxFit.cover,
-                    //   ),
-                    // ),
-                  ),
-                  body: ProListView(height: height, listItems: [
-                    ClipRRect(
-                      // borderRadius:
-                      //     BorderRadius.circular(generalAppLevelPadding),
+                    flexibleSpace: FlexibleSpaceBar(
+                        background: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
                       child: CachedNetworkImage(
-                        imageUrl: receivedEvent.imageUrl,
+                        imageUrl: event?.imageUrl ?? '',
                         fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: height * 0.6,
-                        placeholder: (context, url) => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
                       ),
-                    ),
-                    const SizedBox(height: generalAppLevelPadding),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: generalAppLevelPadding),
-                      child: Column(
-                        children: [
-                          Center(
-                            child: ProText(
-                              receivedEvent.name,
-                              textStyle: TextStyle(
-                                fontFamily: receivedEvent.font != null
-                                    ? ProFontType.values
-                                        .firstWhere(
-                                          (type) =>
-                                              type.toString() ==
-                                              receivedEvent.font,
-                                          orElse: () => ProFontType.system,
-                                        )
-                                        .fontFamily
-                                    : null,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: currentTheme.colorScheme.primary,
-                              ),
-                              maxLines: 3,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          _buildEventInformation(
-                              receivedEvent, constraints.maxWidth),
-                          ..._buildInfoRow(
-                            Icons.star,
-                            Row(
-                              children: [
-                                const ProText('Hosted by '),
-                                Row(
-                                  children: receivedEvent.hosts
-                                      .map((host) => ProUserAvatar(user: host))
-                                      .toList(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (receivedEvent.description != null) ...[
-                            const SizedBox(height: generalAppLevelPadding),
-                            ProText(
-                              receivedEvent.description!,
-                              textStyle: const TextStyle(
-                                height: 1.5,
-                              ),
-                              maxLines: 5,
-                            ),
-                          ],
-                          if (receivedEvent.subEvents != null &&
-                              receivedEvent.subEvents!.isNotEmpty) ...[
-                            ...[
-                              const SizedBox(height: generalAppLevelPadding),
-                              _buildEventWithSubEventsInformation(receivedEvent,
-                                  height * 0.3, constraints.maxWidth),
-                            ]
-                          ],
-                          if (receivedEvent.attendees != null &&
-                              !receivedEvent.isGuestListHidden &&
-                              (receivedEvent
-                                      .getAttendeesByRsvpStatus(RSVPStatus.GOING)
-                                      .isNotEmpty ||
-                                  receivedEvent
-                                      .getAttendeesByRsvpStatus(RSVPStatus.MAYBE)
-                                      .isNotEmpty)) ...[
-                            const SizedBox(height: generalAppLevelPadding / 2),
-                            _buildGuestList(receivedEvent),
-                          ],
-                          ...[
-                            const SizedBox(height: generalAppLevelPadding / 2),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                ProText(
-                                  'Comments',
-                                  textStyle: const TextStyle(
-                                    fontSize: 18,
+                    )),
+                  ),
+                  SliverToBoxAdapter(
+                      child: ListView(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          children: [
+                        Padding(
+                          padding: const EdgeInsets.all(generalAppLevelPadding),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Center(
+                                child: ProText(
+                                  receivedEvent.name,
+                                  textStyle: TextStyle(
+                                    fontFamily: receivedEvent.font != null
+                                        ? ProFontType.values
+                                            .firstWhere(
+                                              (type) =>
+                                                  type.toString() ==
+                                                  receivedEvent.font,
+                                              orElse: () => ProFontType.system,
+                                            )
+                                            .fontFamily
+                                        : null,
+                                    fontSize: 32,
                                     fontWeight: FontWeight.bold,
+                                    color: currentTheme.colorScheme.primary,
                                   ),
+                                  maxLines: 3,
+                                  textAlign: TextAlign.center,
                                 ),
-                                ProOutlinedButton(
-                                  onPressed: () {
-                                    openProBottomModalSheet(
-                                        context,
-                                        ProAddComment(
-                                            onUpdate: (final Comment comment) {
-                                              if (receivedEvent.comments ==
-                                                  null) {
-                                                receivedEvent.comments = [];
-                                              }
-                                              // add comment to top of event.comments
-                                              receivedEvent.comments!
-                                                  .add(comment);
-                                              addCommentToEvent(receivedEvent,
-                                                      comment, context)
-                                                  .whenComplete(() {
-                                                ref
-                                                    .read(eventProvider.notifier)
-                                                    .updateEvent(receivedEvent);
-                                              });
-                                            },
-                                            user: cookiesService.currentUser));
-                                  },
-                                  child: ProText('Comment'),
+                              ),
+                              _buildEventInformation(
+                                  receivedEvent, constraints.maxWidth),
+                              ..._buildInfoRow(
+                                Icons.star,
+                                Row(
+                                  children: [
+                                    const ProText('Hosted by '),
+                                    Row(
+                                      children: receivedEvent.hosts
+                                          .map((host) =>
+                                              ProUserAvatar(user: host))
+                                          .toList(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (receivedEvent.description != null) ...[
+                                const SizedBox(height: generalAppLevelPadding),
+                                ProText(
+                                  receivedEvent.description!,
+                                  textStyle: const TextStyle(
+                                    height: 1.5,
+                                  ),
+                                  maxLines: 5,
                                 ),
                               ],
-                            ),
-                            if (cookiesService.currentJwtToken != null)
-                              ..._buildComments(receivedEvent,
-                                  cookiesService.currentJwtToken != null),
-                            const SizedBox(height: 200),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ]));
-            }),
-            floatingActionButton:
-                receivedEvent.isHostedByMe(cookiesService.currentUser)
-                    ? buildActionButtonForHosts(context, receivedEvent)
-                    : buildActionButtonForGuests(context, receivedEvent, ref),
-          ),
-        ),
+                              if (receivedEvent.subEvents != null &&
+                                  receivedEvent.subEvents!.isNotEmpty) ...[
+                                ...[
+                                  const SizedBox(
+                                      height: generalAppLevelPadding),
+                                  _buildEventWithSubEventsInformation(
+                                      receivedEvent,
+                                      height * 0.3,
+                                      constraints.maxWidth),
+                                ]
+                              ],
+                              if (receivedEvent.attendees != null &&
+                                  !receivedEvent.isGuestListHidden) ...[
+                                const SizedBox(
+                                    height: generalAppLevelPadding / 2),
+                                _buildGuestList(receivedEvent),
+                              ],
+                              ...[
+                                const SizedBox(
+                                    height: generalAppLevelPadding / 2),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    ProText(
+                                      'Comments',
+                                      textStyle: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    ProOutlinedButton(
+                                      onPressed: () {
+                                        openProBottomModalSheet(
+                                            context,
+                                            ProAddComment(
+                                                onUpdate:
+                                                    (final Comment comment) {
+                                                  if (receivedEvent.comments ==
+                                                      null) {
+                                                    receivedEvent.comments = [];
+                                                  }
+                                                  // add comment to top of event.comments
+                                                  receivedEvent.comments!
+                                                      .add(comment);
+                                                  addCommentToEvent(
+                                                          receivedEvent,
+                                                          comment,
+                                                          context)
+                                                      .whenComplete(() {
+                                                    ref
+                                                        .read(eventProvider
+                                                            .notifier)
+                                                        .updateEvent(
+                                                            receivedEvent);
+                                                  });
+                                                },
+                                                user: cookiesService
+                                                    .locallyAvailableUserInfo));
+                                      },
+                                      child: ProText('Comment'),
+                                    ),
+                                  ],
+                                ),
+                                ..._buildComments(receivedEvent,
+                                    cookiesService.currentJwtToken != null),
+                                const SizedBox(height: 200),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ])),
+                ],
+              ),
+              floatingActionButton: receivedEvent
+                      .isHostedByMe(cookiesService.locallyAvailableUserInfo)
+                  ? buildActionButtonForHosts(context, receivedEvent)
+                  : buildActionButtonForGuests(context, receivedEvent, ref),
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget buildActionButtonForGuests(
       final BuildContext buildContext, final Event event, WidgetRef ref) {
-    if (cookiesService.currentJwtToken == null) {
+    if (cookiesService.currentJwtToken == null ||
+        cookiesService.currentJwtToken == '') {
       return FloatingActionButton.extended(
-        onPressed: () => AppRouter.goToLogin(buildContext),
+        onPressed: () {
+          openProBottomModalSheet(
+            buildContext,
+            OAuthLogin(
+              userService: userService,
+              sprylyService: SprylyServices.MerryMakin.name,
+              onPressedCallback: () {
+                context.pop();
+                ref.read(eventProvider.notifier).updateEvent(event);
+              },
+            ),
+          );
+        },
         foregroundColor: Theme.of(buildContext).colorScheme.surface,
         backgroundColor: Theme.of(buildContext).primaryColor,
         label: const Row(
@@ -532,14 +569,15 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       );
     }
     final RSVPStatus rsvpStatus =
-        event.getRsvpStatusForUser(cookiesService.currentUser);
+        event.getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
     final List<ProStackedFabObject> stackedFabs = [
       if (rsvpStatus != RSVPStatus.GOING)
         ProStackedFabObject(
             icon: RSVPStatus.GOING.getDisplayInfo().$1,
             title: RSVPStatus.GOING.getDisplayInfo().$2,
             onTap: () {
-              rsvpForEvent(event, RSVPStatus.GOING, cookiesService.currentUser)
+              rsvpForEvent(event, RSVPStatus.GOING,
+                      cookiesService.locallyAvailableUserInfo)
                   .then((value) {
                 ref.read(eventProvider.notifier).updateEvent(event);
               }).onError((error, stackTrace) =>
@@ -550,7 +588,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             icon: RSVPStatus.MAYBE.getDisplayInfo().$1,
             title: RSVPStatus.MAYBE.getDisplayInfo().$2,
             onTap: () {
-              rsvpForEvent(event, RSVPStatus.MAYBE, cookiesService.currentUser);
+              rsvpForEvent(event, RSVPStatus.MAYBE,
+                  cookiesService.locallyAvailableUserInfo);
               ref.read(eventProvider.notifier).updateEvent(event);
             }),
       if (rsvpStatus != RSVPStatus.NOT_GOING)
@@ -558,8 +597,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             icon: RSVPStatus.NOT_GOING.getDisplayInfo().$1,
             title: RSVPStatus.NOT_GOING.getDisplayInfo().$2,
             onTap: () {
-              rsvpForEvent(
-                  event, RSVPStatus.NOT_GOING, cookiesService.currentUser);
+              rsvpForEvent(event, RSVPStatus.NOT_GOING,
+                  cookiesService.locallyAvailableUserInfo);
               ref.read(eventProvider.notifier).updateEvent(event);
             })
     ];
@@ -621,14 +660,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   context,
                   ProShareSheet(
                     message: 'RSVP to ${event.name}!',
-                    link: 'http://merrymakin.com/${event.id}',
+                    link: 'https://merrymakin.com/${event.id}',
                     userService: userService,
                     onShare: () {
                       context.pop();
                     },
                     event: event,
                     themeType: themeType,
-                    effectType: kIsWeb ? ProEffectType.none : effectType,
+                    effectType: effectType,
                   ));
             },
             child: const Icon(Icons.share),
@@ -722,6 +761,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         'Going (${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length})',
         'Maybe (${event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE).length})',
         'Not Going (${event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING).length})',
+        'Invited (${event.getAttendeesByRsvpStatus(RSVPStatus.UNDECIDED).length})',
         'All (${event.attendees!.length})',
       ],
       children: [
@@ -729,6 +769,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE)),
         _buildAttendeeList(
             event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING)),
+        _buildAttendeeList(
+            event.getAttendeesByRsvpStatus(RSVPStatus.UNDECIDED)),
         _buildAttendeeList(event.attendees!),
       ],
     );
@@ -758,6 +800,24 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      platform.updateMetaTags(
+          event?.name ?? '', event?.description ?? '', event?.imageUrl ?? '');
+    }
+  }
+
+  @override
+  void dispose() {
+    if (kIsWeb) {
+      // Clean up meta tags when leaving the page
+      platform.removeMetaTags();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(
     BuildContext context,
   ) {
@@ -783,7 +843,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ProText('Error loading event ${snapshot.error}',
                       maxLines: 20),
                   ProOutlinedButton(
-                      onPressed: () => AppRouter.goHome(context),
+                      onPressed: () => context.go('/'),
                       child: ProText('Go Home')),
                 ],
               ),

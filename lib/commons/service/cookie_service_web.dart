@@ -101,10 +101,10 @@ class CookiesServiceWeb implements CookiesService {
   }
 
   @override
-  User get locallyAvailableUserInfo {
+  User? get locallyAvailableUserInfo {
     final data = html.window.localStorage[_userKey];
     if (data == null) {
-      throw Exception('No user info available locally');
+      return null;
     }
     try {
       return User.fromMap(jsonDecode(data));

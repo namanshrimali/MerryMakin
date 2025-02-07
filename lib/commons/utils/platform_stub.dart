@@ -6,3 +6,11 @@ bool isIOS() {
 void setUrlStrategyForPlatform() {
   // do nothing
 }
+
+void updateMetaTags(String title, String description, String imageUrl) {
+  // do nothing
+}
+
+void removeMetaTags() {
+  // do nothing
+}

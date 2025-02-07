@@ -121,7 +121,7 @@ class CookiesServiceMobile implements CookiesService {
   Future<String?> getPreference(String key) => throw UnimplementedError();
   
   @override
-  User get locallyAvailableUserInfo => internalLocallyAvailableUserInfo!;
+  User? get locallyAvailableUserInfo => internalLocallyAvailableUserInfo;
   
   @override
   Future<void> setLocallyStoredCountryCurrency(CountryCurrency countryCurrency) async {

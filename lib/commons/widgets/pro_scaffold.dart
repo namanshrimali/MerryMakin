@@ -119,7 +119,7 @@ class _ProScaffoldState extends State<ProScaffold> {
                   icon: const Icon(Icons.close_rounded)),
               const SizedBox(width: 8),
               const ProText(
-                'Experience MerryMakin in our mobile app',
+                'Experience in app',
                 textStyle: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),
