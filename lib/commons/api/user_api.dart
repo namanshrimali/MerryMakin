@@ -6,6 +6,17 @@ import './http.dart';
 import '../models/user_request_dto.dart';
 import '../resources.dart';
 
+Future<Response> patchUser(
+      UserRequestDTO user, final String? jwtToken) async {
+    // attempt to add user to the user table
+    Map<String, String> headers = {"access-token": jwtToken ?? "", 'Content-Type': 'application/json',};
+    return await sendPatchRequest(
+      Uri(scheme: SCHEME, host: DEV_HOST, port: DEV_PORT, path: DEV_PATH_USERS),
+      headers,
+      user.toMap(),
+    );
+  }
+
 Future<Response> postUser(
     UserRequestDTO userRequestDTO, String accessToken, String sprylyService,
     {bool isApple = false}) async {
@@ -32,7 +43,8 @@ Future<Response> postUser(
   );
 }
 
-Future<User?> findByUsername(final String username, final String? jwtToken) async {
+Future<User?> findByUsername(
+    final String username, final String? jwtToken) async {
   Map<String, String> headers = {"access-token": jwtToken ?? ""};
   Response response = await sendGetRequest(
     Uri(

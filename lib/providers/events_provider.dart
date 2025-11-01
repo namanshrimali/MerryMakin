@@ -9,11 +9,12 @@ class EventProviderState {
   EventProviderState({this.event, required this.crudOperation});
 }
 
-class EventNotifier extends StateNotifier<EventProviderState> {
-  EventNotifier()
-      : super(EventProviderState(
+class EventNotifier extends Notifier<EventProviderState> {
+  @override
+  EventProviderState build() => EventProviderState(
           crudOperation: CrudOperation.read,
-        ));
+        );
+  
 
   void addNewEvent(Event event) {
     state = EventProviderState(
@@ -32,6 +33,4 @@ class EventNotifier extends StateNotifier<EventProviderState> {
 }
 
 final eventProvider =
-    StateNotifierProvider<EventNotifier, EventProviderState>((ref) {
-  return EventNotifier();
-});
+    NotifierProvider<EventNotifier, EventProviderState>(EventNotifier.new);

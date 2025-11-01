@@ -26,6 +26,7 @@ class AppFactory {
   late final UserService userService;
   late final CookiesService cookiesService;
   late final ImageService imageService;
+  late final ImageService userIconService;
   late final EventsApi eventsApi;
   late final Function deleteEverything;
 
@@ -53,6 +54,7 @@ class AppFactory {
     userService = UserService(cookiesService);
     // Initialize image service
     imageService = ImageService(IMAGE_REPOSITORY_JSON, cookiesService);
+    userIconService = ImageService(USER_ICON_REPOSITORY_JSON, cookiesService);
     eventsApi = EventsApi(cookiesService);
     deleteEverything = () {
       cookiesService.clearCookies();
@@ -65,6 +67,7 @@ class AppFactory {
     cookiesService = CookiesServiceWeb();
     userService = UserService(cookiesService);
     imageService = ImageService(IMAGE_REPOSITORY_JSON, cookiesService);
+    userIconService = imageService = ImageService(USER_ICON_REPOSITORY_JSON, cookiesService);
     eventsApi = EventsApi(cookiesService);
     deleteEverything = () {
       cookiesService.clearCookies();

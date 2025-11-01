@@ -82,7 +82,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           } else {
             ref.read(eventProvider.notifier).updateEvent(dbReturnedEvent);
           }
-          Navigator.pop(context, dbReturnedEvent);
+          AppRouter.goToEventDetails(context, dbReturnedEvent.id!);
         }
       });
     }

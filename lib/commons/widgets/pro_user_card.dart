@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
+import 'package:merrymakin/config/router.dart';
+import 'package:merrymakin/factory/app_factory.dart';
 import '../service/user_service.dart';
 import '../widgets/oauth_login.dart';
 import 'package:share_plus/share_plus.dart';
@@ -52,22 +55,23 @@ class _ProUserCardState extends State<ProUserCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Opacity(
-                opacity: 0.0,
+              Opacity(
+                opacity: 1.0,
                 child: IconButton(
-                  onPressed: null,
-                  icon: Icon(Icons.qr_code, size: 20),
+                  onPressed: () {AppRouter.goEditUser(context);},
+                  icon: Icon(Icons.edit, size: 20),
                 ),
               ),
-              CircleAvatar(
-                radius: 30,
-                child: Icon(
-                  Icons.account_circle,
-                  size: 50,
-                ),
-                backgroundImage:
-                    user.photoUrl == null ? null : NetworkImage(user.photoUrl!),
-              ),
+              ProUserAvatar(user: user, radius: 50, canEdit: true, imageService: AppFactory().userIconService, onTap: (updatedUser) {AppFactory().userService.updateUser(updatedUser);}),
+              // CircleAvatar(
+              //   radius: 50,
+              //   child: user.photoUrl == null ? Icon(
+              //     Icons.account_circle,
+              //     size: 90,
+              //   ) : null,
+              //   backgroundImage:
+              //       user.photoUrl == null ? null : NetworkImage(user.photoUrl!),
+              // ),
               Opacity(
                 opacity: widget.isDisplayCard ? 1 : 0,
                 child: IconButton(

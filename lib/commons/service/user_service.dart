@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:http/src/response.dart';
+import 'package:merrymakin/commons/models/spryly_services.dart';
 import '../api/user_api.dart';
-// import '../dao/user_dao.dart';
 import '../models/user.dart';
 import '../models/user_request_dto.dart';
 import 'cookie_service.dart';
@@ -30,6 +30,28 @@ class UserService {
         return user;
       } else {
         print('Failed to post user ${response.statusCode}');
+        return Future.error('Failed to post user ${response.statusCode} ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      return Future.error(e);
+    }
+  }
+
+  Future<User?> updateUser(
+      User user) async {
+    try {
+      final String? jwtToken = cookiesService.currentJwtToken;
+      Response response = await patchUser(UserRequestDTO(email: user.email, givenName: user.givenName, familyName: user.familyName, photoUrl: user.photoUrl, sprylyServices: SprylyServices.MerryMakin), jwtToken);
+
+      if (response.statusCode == 200) {
+        User user = User.fromMap(jsonDecode(response.body));
+        await internalAddOrUpdateUser(user);
+        await cookiesService.setAppUser(user);
+        // successfully created user or user already existed in the system
+        return user;
+      } else {
+        print('Failed to post user ${response.statusCode}  ${response.body}');
         return Future.error('Failed to post user ${response.statusCode} ${response.body}');
       }
     } catch (e) {

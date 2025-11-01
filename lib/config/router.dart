@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/screen/settings_screen.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/screens/create_celebration.dart';
 import 'package:merrymakin/screens/create_event_screen.dart';
 import 'package:merrymakin/screens/event_details.dart';
 import 'package:merrymakin/screens/base_screen.dart';
+
+import '../commons/screen/update_user_screen.dart' show AddOrEditUser;
 
 class AppRouter {
   static const String home = '/';
@@ -15,6 +18,7 @@ class AppRouter {
   static const String editEvent = '/events/:id/edit';
   static const String newCelebration = '/events/celebration/new';
   static const String editCelebration = '/events/:id/celebration/edit';
+  static const String editUser = "/user/edit";
   static const String login = '/login';
 
   static final router = GoRouter(
@@ -25,6 +29,15 @@ class AppRouter {
         name: 'home',
         builder: (context, state) => const BaseScreen(),
       ),
+      GoRoute(
+        path: editUser, 
+        name: 'editUser', 
+        builder: (context, state) => AddOrEditUser(
+          sprylyService: SprylyServices.MerryMakin.name,
+          userService: AppFactory().userService,
+          cookiesService: AppFactory().cookiesService,
+          imageService: AppFactory().userIconService,),
+        ),
       GoRoute(
         path: settings,
         name: 'settings',
@@ -81,6 +94,10 @@ class AppRouter {
   // Helper methods for navigation
   static void goHome(BuildContext context) {
     context.goNamed('home');
+  }
+
+  static void goEditUser(BuildContext context) {
+    context.goNamed('editUser');
   }
 
   static void goToSettings(BuildContext context) {

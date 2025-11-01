@@ -1,13 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ScaffoldNavigationNotifier extends StateNotifier<int> {
-  ScaffoldNavigationNotifier() : super(0);
+class ScaffoldNavigationNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
 
   void gotoNewPage(int newPageIndex) {
     state = newPageIndex;
   }
 }
 
-final pageIndexProvider = StateNotifierProvider<ScaffoldNavigationNotifier, int>((ref) {
-  return ScaffoldNavigationNotifier();
-});
+final pageIndexProvider = NotifierProvider<ScaffoldNavigationNotifier, int>(ScaffoldNavigationNotifier.new);

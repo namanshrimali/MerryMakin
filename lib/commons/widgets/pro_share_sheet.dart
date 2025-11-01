@@ -266,7 +266,6 @@ class _ProShareSheetState extends State<ProShareSheet> {
           ),
           const ProText(
             'Select a flyer to share with your socials',
-            textStyle: TextStyle(),
           ),
           const SizedBox(height: 16),
           ProCarousel(

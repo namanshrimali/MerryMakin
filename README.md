@@ -1,4 +1,4 @@
-# merrymakin
+# MerryMakin
 
 Plan. Invite. Celebrate!
 

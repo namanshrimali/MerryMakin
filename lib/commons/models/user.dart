@@ -60,7 +60,7 @@ class User {
       familyName: map['familyName'],
       username: map['username'],
       email: map['email'],
-      photoUrl: map['photo_url'],
+      photoUrl: map['photoUrl'],
       firstRegistered: map['firstRegistered'] == null ? DateTime.now().toUtc() : DateTime.parse(map['firstRegistered']).toUtc(),
       timeStampWhenAuthorized: map['lastAccessed'] == null ? DateTime.now().toUtc() : DateTime.parse(map['lastAccessed']).toUtc(),
     );
@@ -69,7 +69,11 @@ class User {
 
   @override
   String toString() {
-    return 'id: $id, email: $email, givenName: $givenName, familyName: $familyName username: $username, time: $timeStampWhenAuthorized';
+    return 'id: $id, email: $email, givenName: $givenName, familyName: $familyName username: $username, time: $timeStampWhenAuthorized, photoUrl: $photoUrl';
+  }
+
+  static User clone(final User user) {
+    return User(id: user.id, username: user.username, email: user.email, givenName: user.givenName, familyName: user.familyName, timeStampWhenAuthorized: user.timeStampWhenAuthorized, firstRegistered: user.firstRegistered);
   }
   
   String getFirstName() {

@@ -23,7 +23,7 @@ class UserRequestDTO {
       'familyName': familyName,
       'userName': username,
       'email': email,
-      'photo_url': photoUrl,
+      'photoUrl': photoUrl,
       'spryly_service': sprylyServices.name
     };
   }

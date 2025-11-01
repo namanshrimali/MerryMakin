@@ -469,7 +469,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                   !receivedEvent.isGuestListHidden) ...[
                                 const SizedBox(
                                     height: generalAppLevelPadding / 2),
-                                _buildGuestList(receivedEvent),
+                                _buildGuestList(receivedEvent, context),
                               ],
                               ...[
                                 const SizedBox(
@@ -677,7 +677,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  Widget _buildGuestList(Event event) {
+  Widget _buildGuestList(Event event, BuildContext buildContext) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -699,7 +699,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ProOutlinedButton(
                       onPressed: () {
                         openProBottomModalSheet(
-                            context, _buildAllAttendeesWithStatus(event));
+                            buildContext, _buildAllAttendeesWithStatus(event));
                       },
                       child: ProText('View All')),
                 ],

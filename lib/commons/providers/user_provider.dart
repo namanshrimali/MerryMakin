@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 
-
 class UserProviderState {
   User? user;
   UserProviderState({this.user});
 }
 
-class UserNotifier extends StateNotifier<UserProviderState> {
-  UserNotifier() : super(UserProviderState());
+class UserNotifier extends Notifier<UserProviderState> {
+  @override
+  UserProviderState build() => UserProviderState();
 
   void login(User? user) {
     state = UserProviderState(user: user);
@@ -19,6 +19,4 @@ class UserNotifier extends StateNotifier<UserProviderState> {
   }
 }
 
-final userProvider = StateNotifierProvider<UserNotifier, UserProviderState>((ref) {
-  return UserNotifier();
-});
+final userProvider = NotifierProvider<UserNotifier, UserProviderState>(UserNotifier.new);

@@ -72,7 +72,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen> {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Spacer(),
                   ProText(
