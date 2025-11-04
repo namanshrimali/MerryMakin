@@ -718,8 +718,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         return Icons.block;
       case ProEffectType.balloons:
         return Icons.toys;
-      case ProEffectType.flowers:
-        return Icons.local_florist;
+      case ProEffectType.snowflake:
+        return Icons.ac_unit;
       case ProEffectType.stars:
         return Icons.star;
       case ProEffectType.bubbles:
@@ -782,6 +782,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     );
   }
 
+  bool isKeyboardVisible(BuildContext context) {
+  return MediaQuery.of(context).viewInsets.bottom > 0;
+}
+
   Widget buildFormWidget(
     BuildContext context,
   ) {
@@ -818,7 +822,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               ),
             ],
           ),
-          floatingActionButton: Column(
+          floatingActionButton: isKeyboardVisible(context) ? null : Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               // Theme Selection FAB

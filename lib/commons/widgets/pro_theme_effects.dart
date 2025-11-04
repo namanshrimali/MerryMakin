@@ -4,14 +4,15 @@ import '../themes/pro_themes.dart';
 
 enum ProEffectType {
   none,
-  balloons,
-  flowers,
+  fall_leaves,
+  snowflake,
   stars,
+  balloons,
+
   bubbles,
   confetti,
   hearts,
   // lanterns,
-  fall_leaves
 }
 
 extension ProEffectTypeExtension on ProEffectType {
@@ -21,8 +22,8 @@ extension ProEffectTypeExtension on ProEffectType {
         return 'No Effects';
       case ProEffectType.balloons:
         return 'Floating Balloons';
-      case ProEffectType.flowers:
-        return 'Falling Petals';
+      case ProEffectType.snowflake:
+        return 'Snowflakes';
       case ProEffectType.stars:
         return 'Twinkling Stars';
       case ProEffectType.bubbles:
@@ -153,7 +154,8 @@ class EffectPainter extends CustomPainter {
 
     // Get theme-specific colors for Chinese New Year
     List<Color> effectColors = [theme.primaryColor];
-    if (themeType == ProThemeType.chineseNewYear || themeType == ProThemeType.autumn) {
+    if (themeType == ProThemeType.chineseNewYear ||
+        themeType == ProThemeType.christmasWinter) {
       effectColors = [
         theme.primaryColor, // Orange
         theme.colorScheme.secondary, // Gold
@@ -173,12 +175,14 @@ class EffectPainter extends CustomPainter {
       final paint = Paint()..style = PaintingStyle.fill;
 
       // Rotate through colors for Chinese New Year theme
-      if (themeType == ProThemeType.chineseNewYear || themeType == ProThemeType.autumn) {
+      if (themeType == ProThemeType.chineseNewYear ||
+          themeType == ProThemeType.autumn ||
+          themeType == ProThemeType.christmasWinter) {
         paint.color =
             effectColors[effects.indexOf(effect) % effectColors.length]
                 .withOpacity(0.6);
       } else {
-        paint.color = theme.primaryColor.withOpacity(0.2);
+        paint.color = theme.primaryColor.withOpacity(0.6);
       }
 
       // Update position based on progress
@@ -191,8 +195,9 @@ class EffectPainter extends CustomPainter {
       switch (effectType) {
         case ProEffectType.none:
           break;
-        case ProEffectType.flowers:
-          _drawFlower(canvas, currentPosition, effect.size, paint);
+        case ProEffectType.snowflake:
+          _drawSnowflake(
+              canvas, currentPosition, effect.size, effect.angle, paint);
           break;
         case ProEffectType.stars:
           _drawStar(canvas, currentPosition, effect.size, paint);
@@ -210,7 +215,8 @@ class EffectPainter extends CustomPainter {
           _drawBalloon(canvas, currentPosition, effect.size, paint);
           break;
         case ProEffectType.fall_leaves:
-          _drawMapleLeaf(canvas, currentPosition, effect.size, effect.angle , paint);
+          _drawMapleLeaf(
+              canvas, currentPosition, effect.size, effect.angle, paint);
           break;
       }
     }
@@ -417,7 +423,8 @@ class EffectPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _drawMapleLeaf(Canvas canvas, Offset center, double size, double angle, Paint paint) {
+  void _drawMapleLeaf(
+      Canvas canvas, Offset center, double size, double angle, Paint paint) {
     canvas.save();
 
     // Move canvas origin to center and rotate by given angle (in radians)
@@ -451,6 +458,50 @@ class EffectPainter extends CustomPainter {
 
     // Restore canvas state (so next leaf is not affected by rotation)
     canvas.restore();
+  }
+
+  void _drawSnowflake(
+      Canvas canvas, Offset center, double size, double angle, Paint paint,
+      {int branches = 6, int depth = 3}) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(angle);
+
+    final double angleStep = (2 * pi) / branches;
+
+    // Draw each arm with recursive branches
+    for (int i = 0; i < branches; i++) {
+      canvas.save();
+      canvas.rotate(i * angleStep);
+      _drawFlakeBranch(canvas, size / 2, paint, depth);
+      canvas.restore();
+    }
+
+    canvas.restore();
+  }
+
+// Recursive helper to draw a single arm with small side branches
+  void _drawFlakeBranch(Canvas canvas, double length, Paint paint, int depth) {
+    if (depth == 0) return;
+
+    // Draw main line
+    canvas.drawLine(Offset.zero, Offset(0, -length), paint);
+
+    // Position at intervals along the main branch to draw smaller arms
+    final int segments = 3;
+    for (int i = 1; i <= segments; i++) {
+      final double y = -length * (i / (segments + 1));
+      final double side = length * 0.4;
+
+      // Left and right side arms
+      for (final direction in [-1, 1]) {
+        canvas.save();
+        canvas.translate(0, y);
+        canvas.rotate(direction * pi / 6);
+        _drawFlakeBranch(canvas, side, paint, depth - 1);
+        canvas.restore();
+      }
+    }
   }
 
   @override

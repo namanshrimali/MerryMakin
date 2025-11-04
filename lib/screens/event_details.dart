@@ -398,132 +398,113 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ),
                   SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                            left: generalAppLevelPadding,
-                            right: generalAppLevelPadding,
-                            top: generalAppLevelPadding * 2),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Center(
-                              child: ProText(
-                                receivedEvent.name,
-                                textStyle: TextStyle(
-                                  fontFamily: receivedEvent.font != null
-                                      ? ProFontType.values
-                                          .firstWhere(
-                                            (type) =>
-                                                type.toString() ==
-                                                receivedEvent.font,
-                                            orElse: () => ProFontType.system,
-                                          )
-                                          .fontFamily
-                                      : null,
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: currentTheme.colorScheme.primary,
-                                ),
-                                maxLines: 3,
-                                textAlign: TextAlign.center,
-                              ),
+                    padding: const EdgeInsets.only(
+                        left: generalAppLevelPadding,
+                        right: generalAppLevelPadding,
+                        top: generalAppLevelPadding * 2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: ProText(
+                            receivedEvent.name,
+                            textStyle: TextStyle(
+                              fontFamily: receivedEvent.font != null
+                                  ? ProFontType.values
+                                      .firstWhere(
+                                        (type) =>
+                                            type.toString() ==
+                                            receivedEvent.font,
+                                        orElse: () => ProFontType.system,
+                                      )
+                                      .fontFamily
+                                  : null,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: currentTheme.colorScheme.primary,
                             ),
-                            _buildEventInformation(
-                                receivedEvent, constraints.maxWidth),
-                            ..._buildInfoRow(
-                              Icons.star,
-                              Row(
-                                children: [
-                                  const ProText('Hosted by '),
-                                  Row(
-                                    children: receivedEvent.hosts
-                                        .map((host) =>
-                                            ProUserAvatar(user: host))
-                                        .toList(),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (receivedEvent.description != null) ...[
-                              const SizedBox(height: generalAppLevelPadding),
-                              ProText(
-                                receivedEvent.description!,
-                                textStyle: const TextStyle(
-                                  height: 1.5,
-                                ),
-                                maxLines: 5,
-                              ),
-                            ],
-                            if (receivedEvent.subEvents != null &&
-                                receivedEvent.subEvents!.isNotEmpty) ...[
-                              ...[
-                                const SizedBox(
-                                    height: generalAppLevelPadding),
-                                _buildEventWithSubEventsInformation(
-                                    receivedEvent,
-                                    height * 0.3,
-                                    constraints.maxWidth),
-                              ]
-                            ],
-                            if (receivedEvent.attendees != null &&
-                                !receivedEvent.isGuestListHidden) ...[
-                              const SizedBox(
-                                  height: generalAppLevelPadding / 2),
-                              _buildGuestList(receivedEvent, context),
-                            ],
-                            ...[
-                              const SizedBox(
-                                  height: generalAppLevelPadding / 2),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  ProText(
-                                    'Comments',
-                                    textStyle: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  ProOutlinedButton(
-                                    onPressed: () {
-                                      openProBottomModalSheet(
-                                          context,
-                                          ProAddComment(
-                                              onUpdate:
-                                                  (final Comment comment) {
-                                                if (receivedEvent.comments ==
-                                                    null) {
-                                                  receivedEvent.comments = [];
-                                                }
-                                                // add comment to top of event.comments
-                                                receivedEvent.comments!
-                                                    .add(comment);
-                                                addCommentToEvent(
-                                                        receivedEvent,
-                                                        comment,
-                                                        context)
-                                                    .whenComplete(() {
-                                                  ref
-                                                      .read(eventProvider
-                                                          .notifier)
-                                                      .updateEvent(
-                                                          receivedEvent);
-                                                });
-                                              },
-                                              user: cookiesService
-                                                  .locallyAvailableUserInfo));
-                                    },
-                                    child: ProText('Comment'),
-                                  ),
-                                ],
-                              ),
-                              ..._buildComments(receivedEvent,
-                                  cookiesService.currentJwtToken == null),
-                              const SizedBox(height: 200),
-                            ],
-                          ],
+                            maxLines: 3,
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                      )),
+                        _buildEventInformation(
+                            receivedEvent, constraints.maxWidth),
+                        ..._buildInfoRow(
+                          Icons.star,
+                          Row(
+                            children: [
+                              const ProText('Hosted by '),
+                              Row(
+                                children: receivedEvent.hosts
+                                    .map((host) => ProUserAvatar(user: host))
+                                    .toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (receivedEvent.description != null &&
+                            receivedEvent.description != "") ...[
+                          const SizedBox(height: generalAppLevelPadding),
+                          ProText(
+                            receivedEvent.description!,
+                            textStyle: const TextStyle(
+                              height: 1.5,
+                            ),
+                            maxLines: 5,
+                          ),
+                        ],
+                        if (receivedEvent.attendees != null &&
+                            !receivedEvent.isGuestListHidden) ...[
+                          const SizedBox(height: generalAppLevelPadding * 2),
+                          _buildGuestList(receivedEvent, context),
+                        ],
+                        ...[
+                          const SizedBox(height: generalAppLevelPadding / 2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ProText(
+                                'Comments',
+                                textStyle: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              ProOutlinedButton(
+                                onPressed: () {
+                                  openProBottomModalSheet(
+                                      context,
+                                      ProAddComment(
+                                          onUpdate: (final Comment comment) {
+                                            if (receivedEvent.comments ==
+                                                null) {
+                                              receivedEvent.comments = [];
+                                            }
+                                            // add comment to top of event.comments
+                                            receivedEvent.comments!
+                                                .add(comment);
+                                            addCommentToEvent(receivedEvent,
+                                                    comment, context)
+                                                .whenComplete(() {
+                                              ref
+                                                  .read(eventProvider.notifier)
+                                                  .updateEvent(receivedEvent);
+                                            });
+                                          },
+                                          user: cookiesService
+                                              .locallyAvailableUserInfo));
+                                },
+                                child: ProText('Comment'),
+                              ),
+                            ],
+                          ),
+                          ..._buildComments(receivedEvent,
+                              cookiesService.currentJwtToken == null),
+                          const SizedBox(height: 200),
+                        ],
+                      ],
+                    ),
+                  )),
                 ],
               ),
               floatingActionButton: receivedEvent
@@ -694,17 +675,29 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  ProOutlinedButton(
-                      onPressed: () {
-                        openProBottomModalSheet(
-                            buildContext, _buildAllAttendeesWithStatus(event));
-                      },
-                      child: ProText('View All')),
+                  if (event.attendees != null && event.attendees!.length > 0)
+                    ProOutlinedButton(
+                        onPressed: () {
+                          openProBottomModalSheet(buildContext,
+                              _buildAllAttendeesWithStatus(event));
+                        },
+                        child: ProText('View All')),
                 ],
               ),
               if (!event.isGuestCountHidden)
                 Row(
                   children: [
+                    if (event.attendees == null || event.attendees!.length == 0)
+                      Row(
+                        children: [
+                          ProText("Don’t party alone! Tap "),
+                          Icon(
+                            Icons.share,
+                            size: 16,
+                          ),
+                          ProText(" to share the fun!")
+                        ],
+                      ),
                     if (event
                         .getAttendeesByRsvpStatus(RSVPStatus.GOING)
                         .isNotEmpty)

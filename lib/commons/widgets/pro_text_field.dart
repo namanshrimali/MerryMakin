@@ -25,7 +25,7 @@ class ProTextField extends StatelessWidget {
     this.label,
     this.hintText,
     this.keyboardType,
-    this.autofocus = true,
+    this.autofocus = false,
     this.textEditingController,
     this.onSubmitted,
     this.onChanged,

@@ -55,7 +55,7 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
                   .map((screenObject) => BottomNavigationBarItem(
                       icon: Icon(
                         screenObject.icon,
-                        size: 20,
+                        size: 24,
                       ),
                       tooltip: screenObject.title,
                       label: screenObject.title)),

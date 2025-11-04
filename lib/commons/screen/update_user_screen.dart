@@ -109,7 +109,7 @@ class _AddOrEditUserState extends ConsumerState<AddOrEditUser> {
         ProText("Preferred first name"),
         const SizedBox(height: 8),
         ProTextField(
-          initialValue: user.getFirstName(),
+          initialValue: user.givenName == null ? null : user.givenName,
           onValidationCallback: (value) =>
               validateNameField('Preferred first name', value),
           onChanged: (value) {
@@ -118,13 +118,13 @@ class _AddOrEditUserState extends ConsumerState<AddOrEditUser> {
           onSaved: (value) {
             user.givenName = value.toString().trim();
           },
-          hintText: 'Preferred first name',
+          hintText: user.getFirstName(),
         ),
         const SizedBox(height: 16),
         ProText("Last name"),
         const SizedBox(height: 8),
         ProTextField(
-          initialValue: user.getLastName(),
+          initialValue: user.familyName == null ? null : user.familyName,
           onValidationCallback: (value) =>
               validateNameField('Last name', value),
           onChanged: (value) {
