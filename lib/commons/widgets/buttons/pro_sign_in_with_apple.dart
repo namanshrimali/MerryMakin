@@ -12,10 +12,10 @@ class ProSignInWithAppleButton extends StatelessWidget {
   const ProSignInWithAppleButton({
     super.key,
     required this.onPressed,
-    this.text = 'Sign in with Apple',
+    this.text = 'Continue with Apple',
     this.height = 44,
-    this.style = SignInWithAppleButtonStyle.black,
-    this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
+    this.style = SignInWithAppleButtonStyle.whiteOutlined,
+    this.borderRadius = const BorderRadius.all(Radius.circular(24.0)),
     this.iconAlignment = IconAlignment.center,
   });
 
@@ -100,7 +100,7 @@ class ProSignInWithAppleButton extends StatelessWidget {
       textAlign: TextAlign.center,
       style: TextStyle(
         inherit: false,
-        fontSize: fontSize,
+        fontSize: fontSize * 0.85,
         color: _contrastColor,
         // defaults styles aligned with https://github.com/flutter/flutter/blob/master/packages/flutter/lib/src/cupertino/text_theme.dart#L16
         fontFamily: '.SF Pro Text',
