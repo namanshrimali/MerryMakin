@@ -23,7 +23,6 @@ class UserService {
 
       if (response.statusCode == 200) {
         User user = User.fromMap(jsonDecode(response.body));
-        await internalAddOrUpdateUser(user);
         await cookiesService.setAppUser(user);
         // successfully created user or user already existed in the system
         await cookiesService.setJWT(response.headers['access-token']);
@@ -46,7 +45,6 @@ class UserService {
 
       if (response.statusCode == 200) {
         User user = User.fromMap(jsonDecode(response.body));
-        await internalAddOrUpdateUser(user);
         await cookiesService.setAppUser(user);
         // successfully created user or user already existed in the system
         return user;
@@ -57,19 +55,6 @@ class UserService {
     } catch (e) {
       print('Error: $e');
       return Future.error(e);
-    }
-  }
-
-  Future<void> internalAddOrUpdateUser(User user) async {
-    if (user.id == null) {
-      return;
-    }
-    User? internalUserInfo = await getUserById(user.id!);
-    if (internalUserInfo == null) {
-      // await userDAO.addUser(user);
-    } else {
-      // update user info
-      // await userDAO.updateUser(user);
     }
   }
 

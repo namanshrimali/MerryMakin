@@ -6,6 +6,8 @@ enum ProThemeType {
   modern,
   rustic,
   chineseNewYear,
+  autumn,
+  christmasWinter,
 }
 
 class ProTheme {
@@ -52,6 +54,37 @@ class ProThemes {
         ),
       ),
     ),
+    ProThemeType.christmasWinter: ProTheme(
+      name: 'Christmas Winter',
+      description:
+          'A festive and cozy atmosphere with wintery whites, greens, and reds.',
+      theme: ThemeData(
+        primaryColor: const Color(0xFF9B1D20), // Classic Christmas Red
+        colorScheme: ColorScheme.light(
+          primary: const Color(0xFF9B1D20), // Christmas Red
+          secondary: const Color(0xFF006747), // Evergreen/Christmas Green
+          surface: const Color(0xFFFFFFFF), // Snowy White
+          background: const Color(0xFFF2F8FC), // Soft winter sky blue
+          inversePrimary:
+              const Color(0xFFFFF5E1), // Warm, festive cream (for contrast)
+        ),
+      ),
+    ),
+    ProThemeType.autumn: ProTheme(
+      name: 'Autumn Harvest',
+      description: 'A cozy, earthy vibe inspired by fall foliage.',
+      theme: ThemeData(
+        primaryColor: const Color(0xFFB85C43), // Warm, earthy orange
+        colorScheme: ColorScheme.light(
+          primary: const Color(0xFFB85C43), // Warm, earthy orange
+          secondary: const Color(0xFF7F4F24), // Deep brown
+          surface: const Color(0xFFFAEBD7), // Soft beige (like fallen leaves)
+          background: const Color(0xFFF8E4D4), // Light autumn gold
+          inversePrimary:
+              const Color(0xFFF2C8A3), // Light gold/cream for contrast
+        ),
+      ),
+    ),
     ProThemeType.modern: ProTheme(
       name: 'Modern Minimal',
       description: 'Clean lines with sage and white for contemporary style',
@@ -88,12 +121,12 @@ class ProThemes {
         primaryColor: const Color(0xFFE53935), // Bright red
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFE53935),
-          primary: const Color(0xFFE53935),    // Bright red
-          secondary: const Color(0xFFFFD700),   // Gold
-          tertiary: const Color(0xFFFFB74D),    // Orange
-          background: const Color(0xFFFFF8E1),  // Light cream
+          primary: const Color(0xFFE53935), // Bright red
+          secondary: const Color(0xFFFFD700), // Gold
+          tertiary: const Color(0xFFFFB74D), // Orange
+          background: const Color(0xFFFFF8E1), // Light cream
           surface: Colors.white,
-          error: const Color(0xFFB71C1C),      // Dark red
+          error: const Color(0xFFB71C1C), // Dark red
         ),
       ),
     ),

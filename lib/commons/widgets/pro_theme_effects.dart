@@ -10,7 +10,8 @@ enum ProEffectType {
   bubbles,
   confetti,
   hearts,
-  lanterns,
+  // lanterns,
+  fall_leaves
 }
 
 extension ProEffectTypeExtension on ProEffectType {
@@ -30,8 +31,10 @@ extension ProEffectTypeExtension on ProEffectType {
         return 'Party Confetti';
       case ProEffectType.hearts:
         return 'Floating Hearts';
-      case ProEffectType.lanterns:
-        return 'Glowing Lanterns';
+      // case ProEffectType.lanterns:
+      //   return 'Glowing Lanterns';
+      case ProEffectType.fall_leaves:
+        return 'Fall leaves';
     }
   }
 }
@@ -54,7 +57,8 @@ class ProThemeEffects extends StatefulWidget {
   State<ProThemeEffects> createState() => _ProThemeEffectsState();
 }
 
-class _ProThemeEffectsState extends State<ProThemeEffects> with TickerProviderStateMixin {
+class _ProThemeEffectsState extends State<ProThemeEffects>
+    with TickerProviderStateMixin {
   late List<EffectItem> effects;
   late AnimationController _controller;
   final Random random = Random();
@@ -64,7 +68,7 @@ class _ProThemeEffectsState extends State<ProThemeEffects> with TickerProviderSt
     // get size of screen, height and width
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 100),
+      duration: const Duration(seconds: 300),
       vsync: this,
     )..repeat();
 
@@ -79,6 +83,7 @@ class _ProThemeEffectsState extends State<ProThemeEffects> with TickerProviderSt
       ),
       size: 10 + random.nextDouble() * 20,
       speed: 1 + random.nextDouble(),
+      angle: random.nextDouble() * pi * 2,
     );
   }
 
@@ -119,11 +124,13 @@ class EffectItem {
   Offset position;
   final double size;
   final double speed;
+  final double angle;
 
   EffectItem({
     required this.position,
     required this.size,
     required this.speed,
+    this.angle = 0,
   });
 }
 
@@ -143,26 +150,33 @@ class EffectPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final theme = ProThemes.themes[themeType]!.theme;
-    
+
     // Get theme-specific colors for Chinese New Year
     List<Color> effectColors = [theme.primaryColor];
-    if (themeType == ProThemeType.chineseNewYear) {
+    if (themeType == ProThemeType.chineseNewYear || themeType == ProThemeType.autumn) {
       effectColors = [
-        theme.primaryColor,                    // Orange
-        theme.colorScheme.secondary,           // Gold
-        theme.colorScheme.tertiary,            // Red
+        theme.primaryColor, // Orange
+        theme.colorScheme.secondary, // Gold
+        theme.colorScheme.tertiary, // Red
         theme.colorScheme.tertiary.withRed(240), // Light red
+      ];
+    }
+    if (themeType == ProThemeType.autumn) {
+      effectColors = [
+        theme.primaryColor, // Orange
+        Colors.orangeAccent,
+        Colors.red
       ];
     }
 
     for (var effect in effects) {
-      final paint = Paint()
-        ..style = PaintingStyle.fill;
-      
+      final paint = Paint()..style = PaintingStyle.fill;
+
       // Rotate through colors for Chinese New Year theme
-      if (themeType == ProThemeType.chineseNewYear) {
-        paint.color = effectColors[effects.indexOf(effect) % effectColors.length]
-            .withOpacity(0.6);
+      if (themeType == ProThemeType.chineseNewYear || themeType == ProThemeType.autumn) {
+        paint.color =
+            effectColors[effects.indexOf(effect) % effectColors.length]
+                .withOpacity(0.6);
       } else {
         paint.color = theme.primaryColor.withOpacity(0.2);
       }
@@ -171,7 +185,7 @@ class EffectPainter extends CustomPainter {
       final yOffset = (progress * effect.speed * size.height) % size.height;
       final currentPosition = Offset(
         effect.position.dx % size.width,
-        (effect.position.dy - yOffset) % size.height,
+        (effect.position.dy + yOffset) % size.height,
       );
 
       switch (effectType) {
@@ -195,23 +209,21 @@ class EffectPainter extends CustomPainter {
         case ProEffectType.balloons:
           _drawBalloon(canvas, currentPosition, effect.size, paint);
           break;
-        case ProEffectType.lanterns:
-          _drawLantern(canvas, currentPosition, effect.size, paint);
+        case ProEffectType.fall_leaves:
+          _drawMapleLeaf(canvas, currentPosition, effect.size, effect.angle , paint);
           break;
-        default:
-          _drawBalloon(canvas, currentPosition, effect.size, paint);
       }
     }
   }
 
   void _drawBubble(Canvas canvas, Offset center, double size, Paint paint) {
     canvas.drawCircle(center, size / 2, paint);
-    
+
     // Add highlight to bubble
     final highlightPaint = Paint()
       ..color = Colors.white.withOpacity(0.3)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawCircle(
       Offset(center.dx - size * 0.2, center.dy - size * 0.2),
       size * 0.2,
@@ -225,7 +237,7 @@ class EffectPainter extends CustomPainter {
       width: size * 0.4,
       height: size,
     );
-    
+
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(progress * 2 * pi);
@@ -237,21 +249,27 @@ class EffectPainter extends CustomPainter {
   void _drawHeart(Canvas canvas, Offset center, double size, Paint paint) {
     final path = Path();
     path.moveTo(center.dx, center.dy + size * 0.3);
-    
+
     // Left curve
     path.cubicTo(
-      center.dx - size * 0.5, center.dy - size * 0.3,
-      center.dx - size * 0.5, center.dy - size * 0.7,
-      center.dx, center.dy - size * 0.2,
+      center.dx - size * 0.5,
+      center.dy - size * 0.3,
+      center.dx - size * 0.5,
+      center.dy - size * 0.7,
+      center.dx,
+      center.dy - size * 0.2,
     );
-    
+
     // Right curve
     path.cubicTo(
-      center.dx + size * 0.5, center.dy - size * 0.7,
-      center.dx + size * 0.5, center.dy - size * 0.3,
-      center.dx, center.dy + size * 0.3,
+      center.dx + size * 0.5,
+      center.dy - size * 0.7,
+      center.dx + size * 0.5,
+      center.dy - size * 0.3,
+      center.dx,
+      center.dy + size * 0.3,
     );
-    
+
     canvas.drawPath(path, paint);
   }
 
@@ -300,13 +318,13 @@ class EffectPainter extends CustomPainter {
       ),
       paint,
     );
-    
+
     // Balloon string
     final stringPaint = Paint()
       ..color = paint.color
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
-    
+
     final path = Path()
       ..moveTo(center.dx, center.dy + size * 0.6)
       ..quadraticBezierTo(
@@ -315,7 +333,7 @@ class EffectPainter extends CustomPainter {
         center.dx,
         center.dy + size * 1.2,
       );
-    
+
     canvas.drawPath(path, stringPaint);
   }
 
@@ -334,20 +352,24 @@ class EffectPainter extends CustomPainter {
 
     // Draw lantern body
     final lanternPath = Path();
-    
+
     // Top cap
     lanternPath.moveTo(-size * 0.2, -size * 0.5);
     lanternPath.lineTo(size * 0.2, -size * 0.5);
-    
+
     // Main body - slightly curved sides
     lanternPath.quadraticBezierTo(
-      size * 0.3, 0,
-      size * 0.2, size * 0.4,
+      size * 0.3,
+      0,
+      size * 0.2,
+      size * 0.4,
     );
     lanternPath.lineTo(-size * 0.2, size * 0.4);
     lanternPath.quadraticBezierTo(
-      -size * 0.3, 0,
-      -size * 0.2, -size * 0.5,
+      -size * 0.3,
+      0,
+      -size * 0.2,
+      -size * 0.5,
     );
 
     // Bottom tassel
@@ -395,9 +417,45 @@ class EffectPainter extends CustomPainter {
     canvas.restore();
   }
 
+  void _drawMapleLeaf(Canvas canvas, Offset center, double size, double angle, Paint paint) {
+    canvas.save();
+
+    // Move canvas origin to center and rotate by given angle (in radians)
+    canvas.translate(center.dx, center.dy);
+    // final angle = Random().nextDouble(); // Random rotation in radians
+    canvas.rotate(angle);
+
+    final Path path = Path();
+    final double s = size;
+
+    // Define the leaf shape relative to the rotated coordinate system
+    path.moveTo(0, s * 0.8);
+    path.quadraticBezierTo(-s * 0.4, s * 0.4, -s * 0.5, s * 0.1);
+    path.quadraticBezierTo(-s * 0.7, 0, -s * 0.4, -s * 0.1);
+    path.quadraticBezierTo(-s * 0.7, -s * 0.6, -s * 0.2, -s * 0.6);
+    path.quadraticBezierTo(0, -s * 1.2, s * 0.2, -s * 0.6);
+    path.quadraticBezierTo(s * 0.7, -s * 0.6, s * 0.4, -s * 0.1);
+    path.quadraticBezierTo(s * 0.7, 0, s * 0.5, s * 0.1);
+    path.quadraticBezierTo(s * 0.4, s * 0.4, 0, s * 0.8);
+    path.close();
+
+    // Draw the leaf
+    canvas.drawPath(path, paint);
+
+    // Optional: draw the stem
+    final Paint stemPaint = Paint()
+      ..color = paint.color
+      ..strokeWidth = size * 0.05
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(Offset(0, s * 0.8), Offset(0, s * 1.2), stemPaint);
+
+    // Restore canvas state (so next leaf is not affected by rotation)
+    canvas.restore();
+  }
+
   @override
   bool shouldRepaint(covariant EffectPainter oldDelegate) {
-    return oldDelegate.progress != progress || 
-           oldDelegate.effectType != effectType;
+    return oldDelegate.progress != progress ||
+        oldDelegate.effectType != effectType;
   }
-} 
+}

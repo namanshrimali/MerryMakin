@@ -8,18 +8,22 @@ import 'cookie_service.dart';
 class CookiesServiceMobile implements CookiesService {
   final CookiesDAO cookiesDAO;
   final UserDAO userDAO;
-  
+
   String? internalLocallyAvailableJwtToken;
   User? internalLocallyAvailableUserInfo;
-  CountryCurrency internalLocallyStoredCountryCurrency = CountryCurrency.UnitedStatesDollarUnitedStates;
+  CountryCurrency internalLocallyStoredCountryCurrency =
+      CountryCurrency.UnitedStatesDollarUnitedStates;
 
-  CookiesServiceMobile(this.cookiesDAO, this.userDAO,) {
+  CookiesServiceMobile(
+    this.cookiesDAO,
+    this.userDAO,
+  ) {
     initializeCookie();
   }
 
   Future<void> setAppCountryCurrency(CountryCurrency countryCurrency) async {
     internalLocallyStoredCountryCurrency = countryCurrency;
-        Cookie? cookie = await cookiesDAO.getCookie();
+    Cookie? cookie = await cookiesDAO.getCookie();
     if (cookie != null) {
       cookie.defaultCountryCurrency = countryCurrency;
       cookiesDAO.updateCookie(cookie);
@@ -31,12 +35,14 @@ class CookiesServiceMobile implements CookiesService {
       return;
     }
     internalLocallyAvailableUserInfo = appUser;
-    
+
     Cookie? cookie = await cookiesDAO.getCookie();
     if (cookie != null) {
       cookie.userId = appUser.id;
       cookiesDAO.updateCookie(cookie);
     }
+    userDAO.deleteAllUsers();
+    userDAO.addUser(appUser);
   }
 
   Future<bool> get isCookiesEmpty {
@@ -91,7 +97,8 @@ class CookiesServiceMobile implements CookiesService {
     } else {
       internalLocallyStoredCountryCurrency = cookie.defaultCountryCurrency;
       if (cookie.userId != null) {
-        internalLocallyAvailableUserInfo = await userDAO.getUserById(cookie.userId!);
+        internalLocallyAvailableUserInfo =
+            await userDAO.getUserById(cookie.userId!);
       }
       internalLocallyAvailableJwtToken = cookie.jwt;
     }
@@ -108,32 +115,36 @@ class CookiesServiceMobile implements CookiesService {
   Future<void> clearCookies() async {
     internalLocallyAvailableJwtToken = null;
     internalLocallyAvailableUserInfo = null;
-    internalLocallyStoredCountryCurrency = CountryCurrency.UnitedStatesDollarUnitedStates;
+    internalLocallyStoredCountryCurrency =
+        CountryCurrency.UnitedStatesDollarUnitedStates;
     cookiesDAO.deleteCookie();
   }
 
   String? get currentJwtToken => internalLocallyAvailableJwtToken;
   User? get currentUser => internalLocallyAvailableUserInfo;
-  
-  CountryCurrency get currentCountryCurrency => internalLocallyStoredCountryCurrency;
+
+  CountryCurrency get currentCountryCurrency =>
+      internalLocallyStoredCountryCurrency;
   Future<bool> get hasOnboarded => cookiesDAO.isTableEmpty();
-  Future<void> setPreference(String key, String value) => throw UnimplementedError();
+  Future<void> setPreference(String key, String value) =>
+      throw UnimplementedError();
   Future<String?> getPreference(String key) => throw UnimplementedError();
-  
+
   @override
   User? get locallyAvailableUserInfo => internalLocallyAvailableUserInfo;
-  
+
   @override
-  Future<void> setLocallyStoredCountryCurrency(CountryCurrency countryCurrency) async {
+  Future<void> setLocallyStoredCountryCurrency(
+      CountryCurrency countryCurrency) async {
     internalLocallyStoredCountryCurrency = countryCurrency;
   }
-  
+
   @override
   Future<void> setLocallyStoredUser(User user) async {
     internalLocallyAvailableUserInfo = user;
   }
-  
-  @override
-  CountryCurrency get locallyStoredCountryCurrency => internalLocallyStoredCountryCurrency;
-}
 
+  @override
+  CountryCurrency get locallyStoredCountryCurrency =>
+      internalLocallyStoredCountryCurrency;
+}

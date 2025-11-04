@@ -4,6 +4,7 @@ import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/providers/user_provider.dart';
 import 'package:merrymakin/commons/screen/profile_screen.dart';
+import 'package:merrymakin/commons/screen/update_user_screen.dart';
 import 'package:merrymakin/commons/widgets/pro_base_screen.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
@@ -31,7 +32,8 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
     ProStackedFabObject addEvent = ProStackedFabObject(
         icon: Icons.add,
         title: "New Event",
-        actionButtonText: "New Party\nOne epic event of fun, music, and good vibes all in one go.",
+        actionButtonText:
+            "New Party\nOne epic event of fun, music, and good vibes all in one go.",
         onTap: () {
           AppRouter.goToNewEvent(context);
         });
@@ -60,6 +62,9 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
               ),
             );
           }
+          if (snapshot.hasError) {
+            return const MerryMakinWelcomeScreen();
+          }
           final List<Event> events =
               snapshot.data == null ? [] : snapshot.data![0]
                 ..sort((a, b) {
@@ -78,8 +83,8 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
 
           List<ProBaseScreenObject> baseScreenObjectList = [
             ProBaseScreenObject(
-                widget: AllEventsScreen(events: events, cookiesService: cookiesService),
-                // widget: AddOrEditAccount(routeArgs: null,),
+                widget: AllEventsScreen(
+                    events: events, cookiesService: cookiesService),
                 icon: Icons.home,
                 title: "Home",
                 [addEvent]),
@@ -104,7 +109,15 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
           ];
           if (cookiesService.currentUser == null) {
             return const MerryMakinWelcomeScreen();
-            // return AddOrEditEvent();
+          }
+          if (cookiesService.currentUser!.givenName == null ||
+              cookiesService.currentUser!.givenName == "") {
+            return AddOrEditUser(
+                sprylyService: SprylyServices.MerryMakin.name,
+                cookiesService: cookiesService,
+                userService: userService,
+                imageService: AppFactory().userIconService,
+                title: "Drop Your Name, Let’s Get This Party Lit!");
           }
           return ProBaseScreen(
             baseScreenObjectList: baseScreenObjectList,

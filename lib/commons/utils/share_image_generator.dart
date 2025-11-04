@@ -42,6 +42,7 @@ class ShareImageGenerator {
         ),
         size: 40,
         speed: 1,
+        
       )),
     );
     

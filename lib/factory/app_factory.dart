@@ -45,9 +45,6 @@ class AppFactory {
   }
 
   AppFactory._forMobile(this._database) {
-    // eventDao = EventsDao(_database);
-    // eventToAttendeeDao = EventToAttendeeDao(_database);
-    // eventToHostDao = EventToHostDao(_database);
     userDAO = UserDAO(_database);
     cookiesDAO = CookiesDAO(_database);
     cookiesService = CookiesServiceMobile(cookiesDAO, userDAO);
@@ -67,7 +64,7 @@ class AppFactory {
     cookiesService = CookiesServiceWeb();
     userService = UserService(cookiesService);
     imageService = ImageService(IMAGE_REPOSITORY_JSON, cookiesService);
-    userIconService = imageService = ImageService(USER_ICON_REPOSITORY_JSON, cookiesService);
+    userIconService = ImageService(USER_ICON_REPOSITORY_JSON, cookiesService);
     eventsApi = EventsApi(cookiesService);
     deleteEverything = () {
       cookiesService.clearCookies();

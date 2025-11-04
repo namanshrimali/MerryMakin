@@ -10,35 +10,22 @@ class ProGreetings extends StatelessWidget {
     this.user,
   });
 
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) {
-      return 'Good morning';
-    } else if (hour < 17) {
-      return 'Good afternoon';
-    } else {
-      return 'Good evening';
-    }
-  }
-
-  String _getRandomMessage() {
-    final messages = [
-      'Ready to make some memories?',
-      'What\'s on your mind today?',
-      'Time to explore something new!',
-      // 'Let\'s make today count!',
-      // 'Adventure awaits you!',
-      // 'Discover amazing events nearby',
-      'Connect with amazing people today',
-      'Your next adventure is waiting',
+  String _getMessageForDay() {
+    final weekDayMessages = [
+      'New week, let’s do this! 💪',
+      'Getting closer to the weekend!',
+      'Hump day vibes! 🐪',
+      'Almost there! One more day! ⏳',
+      'You made it! TGIF!',
+      'Saturday’s here, let’s shine! ✨',
+      'Sundays are for recharging! ☀️',
     ];
-
-    return messages[DateTime.now().microsecond % messages.length];
+    return weekDayMessages[(DateTime.now().weekday - 1) % weekDayMessages.length];
   }
 
   @override
   Widget build(BuildContext context) {
-    final String greeting = _getRandomMessage();
+    final String greeting = _getMessageForDay();
 
     return ProText(
       greeting,

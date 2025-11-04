@@ -21,12 +21,14 @@ class AddOrEditUser extends ConsumerStatefulWidget {
   final CookiesService cookiesService;
   final UserService userService;
   final ImageService imageService;
+  final String? title;
   AddOrEditUser({
     super.key,
     required this.sprylyService,
     required this.cookiesService,
     required this.userService,
     required this.imageService,
+    this.title = null,
   });
 
   @override
@@ -134,6 +136,13 @@ class _AddOrEditUserState extends ConsumerState<AddOrEditUser> {
           hintText: 'Last name',
         ),
         const SizedBox(height: 8),
+        if (user.givenName != null &&
+            user.givenName != "" &&
+            user.familyName != null &&
+            user.familyName != "")
+          ProText(
+              "Your old RSVPs will stick with your previous name, but new invites will show the fresh you!"),
+        const SizedBox(height: 8),
       ],
     );
   }
@@ -170,9 +179,11 @@ class _AddOrEditUserState extends ConsumerState<AddOrEditUser> {
                 const SizedBox(
                   height: generalAppLevelPadding / 2,
                 ),
-                _buildUserEditSection(),
+                if (widget.title != null)
+                  ProText(widget.title!,
+                      textStyle: Theme.of(context).textTheme.headlineLarge),
                 const SizedBox(height: generalAppLevelPadding),
-                const SizedBox(height: generalAppLevelPadding * 10),
+                _buildUserEditSection(),
               ])),
         );
       }),

@@ -30,7 +30,7 @@ class User {
         familyName TEXT,
         username TEXT,
         email TEXT PRIMARY KEY,
-        photo_url TEXT,
+        photoUrl TEXT,
         firstRegistered TEXT
         lastAccessed TEXT
       )
@@ -47,7 +47,7 @@ class User {
       'givenName': givenName,
       'familyName': familyName,
       'email': email,
-      'photo_url': photoUrl,
+      'photoUrl': photoUrl,
       'firstRegistered':
           firstRegistered.toIso8601String(), // Assuming ISO8601 format
     };

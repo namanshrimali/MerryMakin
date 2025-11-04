@@ -30,14 +30,16 @@ class AppRouter {
         builder: (context, state) => const BaseScreen(),
       ),
       GoRoute(
-        path: editUser, 
-        name: 'editUser', 
+        path: editUser,
+        name: 'editUser',
         builder: (context, state) => AddOrEditUser(
           sprylyService: SprylyServices.MerryMakin.name,
           userService: AppFactory().userService,
           cookiesService: AppFactory().cookiesService,
-          imageService: AppFactory().userIconService,),
+          imageService: AppFactory().userIconService,
+          title: "New Name, Who Dis?",
         ),
+      ),
       GoRoute(
         path: settings,
         name: 'settings',

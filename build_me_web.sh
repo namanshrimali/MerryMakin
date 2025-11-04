@@ -1,3 +1,4 @@
-flutter clean && flutter build web --web-renderer canvaskit --release 
+# flutter clean && flutter build web --wasm canvaskit --release
+flutter clean && flutter build web --release 
 rm -rf /Users/namanshrimali/development/personal_projects/moneymoney-service/src/main/resources/static/*
 cp -R build/web/ /Users/namanshrimali/development/personal_projects/moneymoney-service/src/main/resources/static
