@@ -8,6 +8,7 @@ import 'package:merrymakin/commons/screen/update_user_screen.dart';
 import 'package:merrymakin/commons/widgets/pro_base_screen.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
+import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
@@ -121,7 +122,7 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
           }
           return ProBaseScreen(
             baseScreenObjectList: baseScreenObjectList,
-            withBottonNavigationBar: true,
+            withBottonNavigationBar: false,
             withFloatingActionButton: true,
           );
         });

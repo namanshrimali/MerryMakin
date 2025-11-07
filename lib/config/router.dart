@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:merrymakin/commons/models/spryly_services.dart';
+import 'package:merrymakin/commons/screen/profile_screen.dart';
 import 'package:merrymakin/commons/screen/settings_screen.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/screens/create_celebration.dart';
@@ -8,6 +9,7 @@ import 'package:merrymakin/screens/create_event_screen.dart';
 import 'package:merrymakin/screens/event_details.dart';
 import 'package:merrymakin/screens/base_screen.dart';
 
+import '../commons/resources.dart';
 import '../commons/screen/update_user_screen.dart' show AddOrEditUser;
 
 class AppRouter {
@@ -20,6 +22,7 @@ class AppRouter {
   static const String editCelebration = '/events/:id/celebration/edit';
   static const String editUser = "/user/edit";
   static const String login = '/login';
+  static const String profile = '/profile';
 
   static final router = GoRouter(
     initialLocation: home,
@@ -29,6 +32,7 @@ class AppRouter {
         name: 'home',
         builder: (context, state) => const BaseScreen(),
       ),
+      GoRoute(path: profile, name: 'profile', builder: (context, state) => ProfileScreen(userService: AppFactory().userService, cookiesService: AppFactory().cookiesService, sprylyService: SprylyServices.MerryMakin.name, deepLinkText: DEEP_LINK_BEFRIEND_USER_TEXT)),
       GoRoute(
         path: editUser,
         name: 'editUser',
@@ -104,6 +108,10 @@ class AppRouter {
 
   static void goToSettings(BuildContext context) {
     context.goNamed('settings');
+  }
+
+  static void goToProfile(BuildContext context) {
+    context.goNamed('profile');
   }
 
   static void goToEventDetails(BuildContext context, String eventId) {

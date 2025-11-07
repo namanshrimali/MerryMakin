@@ -100,7 +100,7 @@ class ProSignInWithAppleButton extends StatelessWidget {
       textAlign: TextAlign.center,
       style: TextStyle(
         inherit: false,
-        fontSize: fontSize * 0.85,
+        fontSize: fontSize,
         color: _contrastColor,
         // defaults styles aligned with https://github.com/flutter/flutter/blob/master/packages/flutter/lib/src/cupertino/text_theme.dart#L16
         fontFamily: '.SF Pro Text',

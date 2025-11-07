@@ -762,7 +762,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           hintStyle: TextStyle(
             fontFamily: selectedFont?.fontFamily,
             fontSize: 24,
-            color: currentTheme.primaryColor.withOpacity(0.5),
+            color: currentTheme.primaryColor,
           ),
         ),
         const SizedBox(height: 8),

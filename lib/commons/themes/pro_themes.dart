@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 enum ProThemeType {
   classic,
   romantic,
-  modern,
   rustic,
   chineseNewYear,
   autumn,
@@ -82,20 +81,6 @@ class ProThemes {
           background: const Color(0xFFF8E4D4), // Light autumn gold
           inversePrimary:
               const Color(0xFFF2C8A3), // Light gold/cream for contrast
-        ),
-      ),
-    ),
-    ProThemeType.modern: ProTheme(
-      name: 'Modern Minimal',
-      description: 'Clean lines with sage and white for contemporary style',
-      theme: ThemeData(
-        primaryColor: const Color(0xFF9CAF88), // Sage green
-        colorScheme: ColorScheme.light(
-          primary: const Color(0xFF9CAF88),
-          secondary: const Color(0xFF424242),
-          surface: Colors.white,
-          background: const Color(0xFFF5F5F5),
-          inversePrimary: const Color(0xFFD8E2D0),
         ),
       ),
     ),

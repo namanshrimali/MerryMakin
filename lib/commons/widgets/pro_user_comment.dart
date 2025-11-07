@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/utils/date_time.dart';
 import 'package:merrymakin/commons/widgets/pro_list_item.dart';
 import '../models/comment.dart';
@@ -17,7 +18,12 @@ class ProUserComment extends StatelessWidget {
     return ProListItem(
       key: Key(comment.user.email.toString() + comment.createdAt.toString()),
       leading: hideNames? CircleAvatar(child: Icon(Icons.person))  : ProUserAvatar(user: comment.user),
-      title: ProText(nameOfUser + ' ' + getRelativeTimePassed(comment.createdAt.toUtc()), maxLines: 1),
+      title: Row(
+        children: [
+        ProText(nameOfUser, maxLines: 1),
+        SizedBox(width: generalAppLevelPadding/2,),
+        ProText(getRelativeTimePassed(comment.createdAt.toUtc()), maxLines: 1, weight: FontWeight.w200, textStyle: Theme.of(context).textTheme.bodyMedium),
+      ],),
       subtitle: ProText(comment.comment, textStyle: Theme.of(context).textTheme.bodyLarge),
       swipeForEditAndDelete: false,
     );

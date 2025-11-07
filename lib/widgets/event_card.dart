@@ -10,7 +10,8 @@ import '../commons/utils/constants.dart';
 class EventCard extends StatelessWidget {
   final Event event;
   final double height;
-  const EventCard({super.key, required this.event, this.height = 300});
+  final double width;
+  const EventCard({super.key, required this.event, this.height = 300, this.width = 300});
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +19,10 @@ class EventCard extends StatelessWidget {
       children: [
         ProImageCard(
           imageUrl: event.imageUrl,
-          imageHeight: height * 0.6,
+          imageHeight: height * 0.65,
+          width: width,
           title: event.name,
+          radius: generalAppLevelPadding * 2,
           subtitle: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [

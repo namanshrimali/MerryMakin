@@ -5,13 +5,13 @@ import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
-import 'package:merrymakin/commons/widgets/pro_greetings.dart';
 import 'package:merrymakin/widgets/event_card.dart';
 
 class AllEventsScreen extends ConsumerStatefulWidget {
   final List<Event> events;
   final CookiesService cookiesService;
-  const AllEventsScreen({super.key, required this.events, required this.cookiesService});
+  const AllEventsScreen(
+      {super.key, required this.events, required this.cookiesService});
 
   @override
   ConsumerState<AllEventsScreen> createState() => _DashboardScreenState();
@@ -112,27 +112,23 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: constraints.maxHeight * 0.05),
-              ProGreetings(
-                user: widget.cookiesService.currentUser,
-              
-              ),
               SizedBox(
                 height: constraints.maxHeight * 0.1,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(
-                      right: generalAppLevelPadding),
+                  padding: const EdgeInsets.only(right: generalAppLevelPadding),
                   itemCount: filters.length,
                   itemBuilder: (context, index) {
                     final filter = filters[index];
                     final isSelected = selectedFilter == filter;
 
                     return Padding(
-                      padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
+                      padding: const EdgeInsets.only(
+                          right: generalAppLevelPadding / 2),
                       child: ProFilterChip(
                         label: filter,
                         isSelected: isSelected,
@@ -160,7 +156,8 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
                 )
               else
                 SizedBox(
-                  height: constraints.maxHeight * 0.8,
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight * 0.7,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     // padding: const EdgeInsets.symmetric(
@@ -168,7 +165,11 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
                     itemCount: filteredEvents.length,
                     itemBuilder: (context, index) {
                       final event = filteredEvents[index];
-                      return EventCard(event: event);
+                      return EventCard(
+                        event: event,
+                        height: constraints.maxHeight * 0.8,
+                        width: constraints.maxWidth * 0.9,
+                      );
                     },
                   ),
                 ),

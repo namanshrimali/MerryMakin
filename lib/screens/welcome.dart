@@ -79,7 +79,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen> {
                     "Merry",
                     textStyle: TextStyle(
                       fontSize: 120,
-                      fontWeight: FontWeight.w200,
+                      fontWeight: FontWeight.w300,
                       color: currentTheme.colorScheme.primary,
                     ),
                     maxLines: 1,
@@ -89,7 +89,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen> {
                     "Makin",
                     textStyle: TextStyle(
                       fontSize: 120,
-                      fontWeight: FontWeight.w200,
+                      fontWeight: FontWeight.w300,
                       color: currentTheme.colorScheme.primary,
                     ),
                     maxLines: 1,

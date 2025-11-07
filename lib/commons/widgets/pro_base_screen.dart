@@ -4,6 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
+import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
+import 'package:merrymakin/config/router.dart';
+import 'package:merrymakin/factory/app_factory.dart';
 import '../providers/navigation_provider.dart';
 import '../utils/constants.dart';
 import 'buttons/pro_stacked_fab.dart';
@@ -88,7 +91,19 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
           )
         : AppBar(
             // title: appBarTitle,
-            actions: widget.baseScreenObjectList[ref.read(pageIndexProvider)].appBarActions,
+            actions: [
+              InkWell(
+                  onTap: () {
+                    AppRouter.goToProfile(context);
+                  },
+                  child: ProUserAvatar(
+                    radius: 32,
+                    user: AppFactory().cookiesService.locallyAvailableUserInfo!,
+                  )),
+              SizedBox(
+                width: generalAppLevelPadding,
+              )
+            ],
           ) as PreferredSizeWidget;
     return false && Platform.isIOS
         // TODO update all reusable widgets to work with cupertino style
@@ -106,7 +121,7 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
                     right: generalAppLevelPadding),
                 child: widget
                     .baseScreenObjectList[ref.read(pageIndexProvider)].widget),
-            bottomNavigationBar: buildBottomNavigationBar(),
+            // bottomNavigationBar: buildBottomNavigationBar(),
             floatingActionButton: buildFloatingActionButtonForScreen(),
             // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           );

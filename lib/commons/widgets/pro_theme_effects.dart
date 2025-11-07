@@ -175,14 +175,14 @@ class EffectPainter extends CustomPainter {
       final paint = Paint()..style = PaintingStyle.fill;
 
       // Rotate through colors for Chinese New Year theme
-      if (themeType == ProThemeType.chineseNewYear ||
-          themeType == ProThemeType.autumn ||
-          themeType == ProThemeType.christmasWinter) {
+      if (effectType == ProEffectType.confetti ||
+          effectType == ProEffectType.fall_leaves ||
+          effectType == ProEffectType.snowflake) {
         paint.color =
             effectColors[effects.indexOf(effect) % effectColors.length]
                 .withOpacity(0.6);
       } else {
-        paint.color = theme.primaryColor.withOpacity(0.6);
+        paint.color = theme.primaryColor.withOpacity(0.2);
       }
 
       // Update position based on progress

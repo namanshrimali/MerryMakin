@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide IconAlignment;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_button_with_icon_and_text.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_sign_in_with_apple.dart';
@@ -182,17 +183,18 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
           onPressed: _signInWithGoogle,
           icon: SvgPicture.asset(
             'lib/commons/assets/google_sign_in_button.svg',
-            // height: 44,
+            height: 44,
             width: 210,
           ),
         ),
         if (!kIsWeb && Platform.isIOS)
+          SizedBox(height: generalAppLevelPadding / 2,),
           Container(
-            width: 210,
+            width: 250,
             padding: EdgeInsets.all(0),
-            
             child: ProSignInWithAppleButton(
               onPressed: _signInWithApple,
+              iconAlignment: IconAlignment.left,
             ),
           ),
       ],
