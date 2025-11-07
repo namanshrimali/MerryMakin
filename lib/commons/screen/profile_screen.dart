@@ -63,19 +63,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
           final double height = constraints.maxHeight;
-          return ProListView(listItems: [
-            ProUserCard(
-                height: height * 0.4,
-                user: widget.cookiesService.currentUser,
-                userService: widget.userService,
-                sprylyService: widget.sprylyService,
-                userHardLinkText: widget.deepLinkText ??
-                    '${widget.sprylyService}'), // userCard is not ready
-            const SizedBox(
-              height: generalAppLevelPadding * 2,
-            ),
-            const ProMadeBySprylyLabs()
-          ], height: height);
+          return Padding(
+            padding: const EdgeInsets.all(generalAppLevelPadding),
+            child: ProListView(listItems: [
+              ProUserCard(
+                  height: height * 0.4,
+                  user: widget.cookiesService.currentUser,
+                  userService: widget.userService,
+                  sprylyService: widget.sprylyService,
+                  userHardLinkText: widget.deepLinkText ??
+                      '${widget.sprylyService}'), // userCard is not ready
+              const SizedBox(
+                height: generalAppLevelPadding * 2,
+              ),
+              const ProMadeBySprylyLabs()
+            ], height: height),
+          );
         }),
       ),
     );

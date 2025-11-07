@@ -3,8 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_primary_button.dart';
 import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
+import 'package:merrymakin/commons/widgets/pro_image_card.dart';
+import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
+import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/widgets/event_card.dart';
 
 class AllEventsScreen extends ConsumerStatefulWidget {
@@ -24,7 +28,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     'upcoming',
     'hosting',
     'attended',
-    'past',
+    // 'past',
   ];
 
   @override
@@ -105,9 +109,111 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     };
   }
 
+  Widget buildCreateEventCard(constraints, {double? width}) {
+    String title = "";
+    String subtitle = "";
+    if (selectedFilter == "upcoming") {
+      title = "No upcoming events";
+      subtitle = "Your next event, hosted or attended, show up right here! 🎉";
+    } else if (selectedFilter == "hosting") {
+      title = "No hosted events";
+      subtitle = "Your next hosted event show up right here!";
+    } else if (selectedFilter == "attended") {
+      title = "No attended events";
+      subtitle = "Your past events, hosted or attended, show up right here! 🎉";
+    }
+    return Column(
+      children: [
+        ProImageCard(
+          textPosition: TextPosition.center,
+          radius: generalAppLevelPadding * 2,
+          width: width ?? constraints.maxWidth,
+          imageHeight: constraints.maxHeight * 0.65,
+          imageUrl: "",
+          title: title,
+          subtitle: Column(
+            children: [
+              SizedBox(
+                height: generalAppLevelPadding,
+              ),
+              ProText(
+                subtitle,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(
+                height: generalAppLevelPadding,
+              ),
+            ],
+          ),
+          thirdRow: selectedFilter == "attended"
+              ? null
+              : ProPrimaryButton(
+                  ProText("Create Event"),
+                  onPressed: () {
+                    AppRouter.goToNewEvent(context);
+                  },
+                ),
+        ),
+        Spacer(),
+      ],
+    );
+  }
+
+  List<dynamic> buildEventCards(filteredEvents, constraints,
+      {double? viewportFraction}) {
+    final itemWidth = viewportFraction != null
+        ? constraints.maxWidth * viewportFraction
+        : constraints.maxWidth;
+
+    if (filteredEvents.length == 0) {
+      return [buildCreateEventCard(constraints, width: itemWidth)];
+    }
+    return filteredEvents.map((event) {
+      return EventCard(
+        event: event,
+        height: constraints.maxHeight * 0.65,
+        width: itemWidth,
+      );
+    }).toList();
+  }
+
+  Widget buildEventFilterSelection(constraints) {
+    final eventCounts = getEventCounts();
+
+    return Padding(
+      padding: const EdgeInsets.only(
+          left: generalAppLevelPadding, right: generalAppLevelPadding),
+      child: SizedBox(
+        height: constraints.maxHeight * 0.1,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: generalAppLevelPadding),
+          itemCount: filters.length,
+          itemBuilder: (context, index) {
+            final filter = filters[index];
+            final isSelected = selectedFilter == filter;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
+              child: ProFilterChip(
+                label: filter,
+                isSelected: isSelected,
+                count: eventCounts[filter],
+                onSelected: (bool selected) {
+                  setState(() {
+                    selectedFilter = filter;
+                  });
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget buildEvents(BuildContext context) {
     final filteredEvents = getFilteredEvents();
-    final eventCounts = getEventCounts();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -116,63 +222,17 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: constraints.maxHeight * 0.1,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(right: generalAppLevelPadding),
-                  itemCount: filters.length,
-                  itemBuilder: (context, index) {
-                    final filter = filters[index];
-                    final isSelected = selectedFilter == filter;
-
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                          right: generalAppLevelPadding / 2),
-                      child: ProFilterChip(
-                        label: filter,
-                        isSelected: isSelected,
-                        count: eventCounts[filter],
-                        onSelected: (bool selected) {
-                          setState(() {
-                            selectedFilter = filter;
-                          });
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
+              buildEventFilterSelection(constraints),
               const SizedBox(height: generalAppLevelPadding),
-              if (filteredEvents.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(generalAppLevelPadding),
-                  child: ProText(
-                    'Create your event! Start by tapping the + button at the bottom right corner',
-                    textStyle: TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                )
-              else
-                SizedBox(
+              SizedBox(
                   width: constraints.maxWidth,
                   height: constraints.maxHeight * 0.7,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    // padding: const EdgeInsets.symmetric(
-                    //     horizontal: generalAppLevelPadding),
-                    itemCount: filteredEvents.length,
-                    itemBuilder: (context, index) {
-                      final event = filteredEvents[index];
-                      return EventCard(
-                        event: event,
-                        height: constraints.maxHeight * 0.8,
-                        width: constraints.maxWidth * 0.9,
-                      );
-                    },
-                  ),
-                ),
+                  child: ProListView(
+                      scrollDirection: Axis.horizontal,
+                      listItems: buildEventCards(filteredEvents, constraints,
+                          viewportFraction: 0.85),
+                      height: constraints.maxHeight * 0.7,
+                      viewportFraction: 0.9)),
             ],
           ),
         );

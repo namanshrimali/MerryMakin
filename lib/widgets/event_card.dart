@@ -11,7 +11,8 @@ class EventCard extends StatelessWidget {
   final Event event;
   final double height;
   final double width;
-  const EventCard({super.key, required this.event, this.height = 300, this.width = 300});
+  const EventCard(
+      {super.key, required this.event, this.height = 300, this.width = 300});
 
   @override
   Widget build(BuildContext context) {
@@ -19,26 +20,17 @@ class EventCard extends StatelessWidget {
       children: [
         ProImageCard(
           imageUrl: event.imageUrl,
-          imageHeight: height * 0.65,
+          imageHeight: height,
           width: width,
           title: event.name,
           radius: generalAppLevelPadding * 2,
-          subtitle: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const Icon(Icons.access_time, size: generalAppLevelPadding),
-            const SizedBox(width: generalAppLevelPadding / 2),
-            Expanded(
-              child: ProText(
-                event.formattedStartDateTime,
-                textStyle: const TextStyle(color: Colors.grey,),
-                maxLines: 2,
-              ),
-            ),
-          ],
-        ),
-        thirdRow: _buildThirdRow(event),
-        onTap: () {
+          subtitle: ProText(
+            event.formattedStartDateTime,
+            // textStyle: const TextStyle(color: Colors.grey,),
+            maxLines: 2,
+          ),
+          // thirdRow: _buildThirdRow(event),
+          onTap: () {
             AppRouter.goToEventDetails(context, event.id!);
           },
         ),
@@ -49,13 +41,14 @@ class EventCard extends StatelessWidget {
 
   Widget _buildThirdRow(Event event) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const ProText(
           'Hosts ',
           textStyle: TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
+              // fontSize: 12,
+              // color: Colors.grey,
+              ),
         ),
         const SizedBox(width: 4),
         ...[

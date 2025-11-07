@@ -19,11 +19,13 @@ class ProBaseScreen extends ConsumerStatefulWidget {
   final List<ProBaseScreenObject> baseScreenObjectList;
   final bool withBottonNavigationBar;
   final bool withFloatingActionButton;
+  final double leftPadding;
+  final double rightPadding;
   const ProBaseScreen(
       {super.key,
       required this.baseScreenObjectList,
       this.withBottonNavigationBar = false,
-      this.withFloatingActionButton = false});
+      this.withFloatingActionButton = false, this.leftPadding = generalAppLevelPadding, this.rightPadding = generalAppLevelPadding});
 
   @override
   ConsumerState<ProBaseScreen> createState() => _ProBaseScreenState();
@@ -116,9 +118,9 @@ class _ProBaseScreenState extends ConsumerState<ProBaseScreen> {
         : ProScaffold(
             appBar: appBarWidget as AppBar?,
             body: Padding(
-                padding: const EdgeInsets.only(
-                    left: generalAppLevelPadding,
-                    right: generalAppLevelPadding),
+                padding: EdgeInsets.only(
+                    left: widget.leftPadding,
+                    right: widget.rightPadding),
                 child: widget
                     .baseScreenObjectList[ref.read(pageIndexProvider)].widget),
             // bottomNavigationBar: buildBottomNavigationBar(),

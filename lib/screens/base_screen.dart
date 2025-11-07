@@ -124,6 +124,7 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
             baseScreenObjectList: baseScreenObjectList,
             withBottonNavigationBar: false,
             withFloatingActionButton: true,
+            leftPadding: 0, rightPadding: 0,
           );
         });
   }
