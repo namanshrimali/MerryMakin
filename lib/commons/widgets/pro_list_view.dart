@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class ProListView extends StatelessWidget {
   final List<dynamic> listItems;
   final double height;
+  final double? width;
   final ScrollController? scrollController;
   final Axis scrollDirection;
   final double? viewportFraction;
@@ -16,6 +17,7 @@ class ProListView extends StatelessWidget {
     this.scrollDirection = Axis.vertical,
     this.viewportFraction,
     this.pageController,
+    this.width
   });
 
   @override
@@ -29,6 +31,7 @@ class ProListView extends StatelessWidget {
 
       return SizedBox(
         height: height,
+        width: width,
         child: PageView.builder(
           controller: controller,
           itemCount: listItems.length,

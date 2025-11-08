@@ -752,6 +752,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                             0)
                       Row(
                         children: [
+                          SizedBox(height: generalAppLevelPadding),
                           ProText("Don’t party alone! Tap "),
                           Icon(
                             Icons.share,
@@ -813,9 +814,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       childrenTabTitle: [
         'Going (${event.getAttendeesByRsvpStatus(RSVPStatus.GOING).length})',
         'Maybe (${event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE).length})',
-        'Not Going (${event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING).length})',
-        'Invited (${event.getAttendeesByRsvpStatus(RSVPStatus.UNDECIDED).length})',
-        'All (${event.attendees!.length})',
+        'Can\'t Go (${event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING).length})',
+        // 'Invited (${event.getAttendeesByRsvpStatus(RSVPStatus.UNDECIDED).length})',
+        // 'All (${event.attendees!.length})',
       ],
       children: [
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING)),

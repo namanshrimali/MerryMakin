@@ -5,10 +5,11 @@ import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/providers/user_provider.dart';
 import 'package:merrymakin/commons/screen/profile_screen.dart';
 import 'package:merrymakin/commons/screen/update_user_screen.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_primary_button.dart';
 import 'package:merrymakin/commons/widgets/pro_base_screen.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
-import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
+import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
@@ -16,7 +17,6 @@ import 'package:merrymakin/screens/all_events.dart';
 import 'package:merrymakin/screens/welcome.dart';
 import 'package:merrymakin/service/event_service.dart';
 
-import '../commons/resources.dart';
 import '../commons/service/cookie_service.dart';
 
 class BaseScreen extends ConsumerStatefulWidget {
@@ -82,34 +82,8 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                   return a.createdAt.compareTo(b.createdAt);
                 });
 
-          List<ProBaseScreenObject> baseScreenObjectList = [
-            ProBaseScreenObject(
-                widget: AllEventsScreen(
-                    events: events, cookiesService: cookiesService),
-                icon: Icons.home,
-                title: "Home",
-                [addEvent]),
-            ProBaseScreenObject(
-                appBarActions: [
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: () {
-                      AppRouter.goToSettings(context);
-                    },
-                  ),
-                ],
-                widget: ProfileScreen(
-                  userService: AppFactory().userService,
-                  cookiesService: AppFactory().cookiesService,
-                  sprylyService: SprylyServices.MerryMakin.name,
-                  deepLinkText: DEEP_LINK_BEFRIEND_USER_TEXT,
-                ),
-                icon: Icons.account_circle,
-                title: "Profile",
-                []),
-          ];
           if (cookiesService.currentUser == null) {
-            return const MerryMakinWelcomeScreen();
+            AppRouter.goToLogin(context);
           }
           if (cookiesService.currentUser!.givenName == null ||
               cookiesService.currentUser!.givenName == "") {
@@ -120,12 +94,8 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                 imageService: AppFactory().userIconService,
                 title: "Drop Your Name, Let’s Get This Party Lit!");
           }
-          return ProBaseScreen(
-            baseScreenObjectList: baseScreenObjectList,
-            withBottonNavigationBar: false,
-            withFloatingActionButton: true,
-            leftPadding: 0, rightPadding: 0,
-          );
+          return AllEventsScreen(
+              events: events, cookiesService: cookiesService);
         });
   }
 }

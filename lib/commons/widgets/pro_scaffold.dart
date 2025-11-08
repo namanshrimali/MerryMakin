@@ -70,7 +70,6 @@ class _ProScaffoldState extends State<ProScaffold> {
     // Only run platform check if we're on web
     if (kIsWeb) {
       isIOSBrowser = platform.isIOS();
-      print("isIOSBrowser: $isIOSBrowser");
     }
 
     storeUrl = isIOSBrowser ? widget.iosAppLink : widget.androidAppLink;
@@ -165,19 +164,7 @@ class _ProScaffoldState extends State<ProScaffold> {
                   toolbarHeight: widget.toolbarHeight,
                 )
               : null),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: widget.maxWidth,
-          ),
-          child: Column(
-            children: [
-              _buildAppBanner(context),
-              Expanded(child: widget.body),
-            ],
-          ),
-        ),
-      ),
+      body: widget.body,
       floatingActionButton: widget.floatingActionButton,
       floatingActionButtonLocation: widget.floatingActionButtonLocation,
       bottomNavigationBar: widget.bottomNavigationBar,

@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_primary_button.dart';
+import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
 import 'package:merrymakin/commons/widgets/pro_image_card.dart';
 import 'package:merrymakin/commons/widgets/pro_list_view.dart';
+import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/widgets/event_card.dart';
+
+import '../commons/widgets/pro_list_item.dart';
+import '../commons/widgets/pro_user_avatar.dart';
+import '../factory/app_factory.dart';
 
 class AllEventsScreen extends ConsumerStatefulWidget {
   final List<Event> events;
@@ -128,10 +136,11 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
           textPosition: TextPosition.center,
           radius: generalAppLevelPadding * 2,
           width: width ?? constraints.maxWidth,
-          imageHeight: constraints.maxHeight * 0.65,
+          imageHeight: constraints.maxHeight * 0.75,
           imageUrl: "",
           title: title,
           subtitle: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
                 height: generalAppLevelPadding,
@@ -171,45 +180,10 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     return filteredEvents.map((event) {
       return EventCard(
         event: event,
-        height: constraints.maxHeight * 0.65,
+        height: constraints.maxHeight * 0.75,
         width: itemWidth,
       );
     }).toList();
-  }
-
-  Widget buildEventFilterSelection(constraints) {
-    final eventCounts = getEventCounts();
-
-    return Padding(
-      padding: const EdgeInsets.only(
-          left: generalAppLevelPadding, right: generalAppLevelPadding),
-      child: SizedBox(
-        height: constraints.maxHeight * 0.1,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.only(right: generalAppLevelPadding),
-          itemCount: filters.length,
-          itemBuilder: (context, index) {
-            final filter = filters[index];
-            final isSelected = selectedFilter == filter;
-
-            return Padding(
-              padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
-              child: ProFilterChip(
-                label: filter,
-                isSelected: isSelected,
-                count: eventCounts[filter],
-                onSelected: (bool selected) {
-                  setState(() {
-                    selectedFilter = filter;
-                  });
-                },
-              ),
-            );
-          },
-        ),
-      ),
-    );
   }
 
   Widget buildEvents(BuildContext context) {
@@ -222,17 +196,15 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              buildEventFilterSelection(constraints),
-              const SizedBox(height: generalAppLevelPadding),
-              SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight * 0.7,
-                  child: ProListView(
-                      scrollDirection: Axis.horizontal,
-                      listItems: buildEventCards(filteredEvents, constraints,
-                          viewportFraction: 0.85),
-                      height: constraints.maxHeight * 0.7,
-                      viewportFraction: 0.9)),
+              // buildEventFilterSelection(constraints),
+              const SizedBox(height: generalAppLevelPadding * 2),
+
+              ProListView(
+                  scrollDirection: Axis.horizontal,
+                  listItems: buildEventCards(filteredEvents, constraints,
+                      viewportFraction: filteredEvents.length == 0 ? 1 : 0.85),
+                  height: constraints.maxHeight * 0.8,
+                  viewportFraction: 0.9),
             ],
           ),
         );
@@ -240,8 +212,100 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     );
   }
 
+  buildFilterSelectionBottomModal() {
+    return openProBottomModalSheet(
+        context,
+        Column(
+          children: [
+            SizedBox(
+              height: generalAppLevelPadding,
+            ),
+            // Divider(),
+            ProListItem(
+              key: Key("Upcoming"),
+              title: ProText("Upcoming"),
+              swipeForEditAndDelete: false,
+              onTap: () => {
+                setState(() {
+                  selectedFilter = "upcoming";
+                  context.pop();
+                })
+              },
+            ),
+            Divider(),
+            ProListItem(
+              key: Key("Hosting"),
+              title: ProText("Hosting"),
+              swipeForEditAndDelete: false,
+              onTap: () => {
+                setState(() {
+                  selectedFilter = "hosting";
+                  context.pop();
+                })
+              },
+            ),
+            Divider(),
+            ProListItem(
+              key: Key("Attended"),
+              title: ProText("Attended"),
+              swipeForEditAndDelete: false,
+              onTap: () => {
+                setState(() {
+                  selectedFilter = "attended";
+                  context.pop();
+                })
+              },
+            ),
+          ],
+        ));
+  }
+
+  Widget buildLeadingFilterSelector() {
+    return InkWell(
+      highlightColor: Colors.transparent,
+      splashFactory: NoSplash.splashFactory,
+      onTap: () {
+        buildFilterSelectionBottomModal();
+      },
+      child: Row(children: [
+        ProText(
+          toBeginningOfSentenceCase(selectedFilter),
+          textStyle: TextStyle(fontSize: 36, fontWeight: FontWeight.w500),
+        ),
+        SizedBox(width: generalAppLevelPadding / 4),
+        Icon(Icons.arrow_drop_down)
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return buildEvents(context);
+    return ProScaffold(
+        appBar: AppBar(
+          title: buildLeadingFilterSelector(),
+          actions: [
+            InkWell(
+                onTap: () {
+                  AppRouter.goToProfile(context);
+                },
+                child: ProUserAvatar(
+                  radius: 24,
+                  user: AppFactory().cookiesService.locallyAvailableUserInfo!,
+                )),
+            SizedBox(
+              width: generalAppLevelPadding,
+            )
+          ],
+        ),
+        floatingActionButton: IconButton.filled(
+          icon: Icon(
+            Icons.add,
+            size: 42,
+          ),
+          onPressed: () {
+            AppRouter.goToNewEvent(context);
+          },
+        ),
+        body: buildEvents(context));
   }
 }

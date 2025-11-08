@@ -195,6 +195,7 @@ class _ProImageCardState extends State<ProImageCard> {
         children: [
           ProText(
             widget.title,
+            textAlign: TextAlign.center,
             textStyle: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -251,7 +252,7 @@ class _ProImageCardState extends State<ProImageCard> {
         borderRadius: BorderRadius.circular(widget.radius),
       ),
       surfaceTintColor: Colors.transparent,
-      margin: const EdgeInsets.only(right: generalAppLevelPadding),
+      margin: const EdgeInsets.only(left: generalAppLevelPadding / 2, right: generalAppLevelPadding / 2),
       child: InkWell(
         onTap: widget.onTap,
         child: ConstrainedBox(
@@ -261,7 +262,7 @@ class _ProImageCardState extends State<ProImageCard> {
           ),
           child: LayoutBuilder(builder: (context, constraints) {
             final effectiveHeight = widget.imageHeight ?? 200.0;
-            final gradientColor = _gradientColor ?? Colors.black;
+            final gradientColor = _gradientColor ?? Theme.of(context).primaryColor;
 
             return ClipRRect(
               borderRadius: BorderRadius.circular(widget.radius),
@@ -282,7 +283,7 @@ class _ProImageCardState extends State<ProImageCard> {
                             return Container(
                               height: effectiveHeight,
                               width: constraints.maxWidth,
-                              color: const ui.Color.fromARGB(224, 0, 17, 92)
+                              color: const ui.Color.fromARGB(108, 1, 26, 134)
                                   .withOpacity(1),
                               // child: const Icon(Icons.error),
                             );
