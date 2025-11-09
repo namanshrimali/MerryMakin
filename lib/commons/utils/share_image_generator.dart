@@ -35,7 +35,8 @@ class ShareImageGenerator {
       themeType: themeType,
       effectType: effectType,
       progress: 0.5,
-      effects: List.generate(30, (index) => EffectItem(
+      effects: List.generate(15, (index) => EffectItem(
+        angle: random.nextDouble(),
         position: Offset(
           random.nextDouble() * size.width,  // Random X position
           random.nextDouble() * size.height, // Random Y position
@@ -52,11 +53,12 @@ class ShareImageGenerator {
     }
 
     // Load and draw event image
+    final double targetImageSizeFactor = 0.7;
     final eventImage = await _loadNetworkImage(event.imageUrl);
     if (eventImage != null) {
       // Calculate aspect ratio
       final imageRatio = eventImage.width / eventImage.height;
-      final targetHeight = size.height * 0.6;
+      final targetHeight = size.height * targetImageSizeFactor;
       final targetWidth = targetHeight * imageRatio;
 
       final imageRect = Rect.fromCenter(
@@ -74,7 +76,7 @@ class ShareImageGenerator {
     }
 
     // Calculate available space for text
-    final imageSpace = size.height * 0.5; // Space taken by image
+    final imageSpace = size.height * targetImageSizeFactor; // Space taken by image
     final brandingSpace = size.height * 0.1; // Space for branding at bottom
     final remainingSpace = size.height - imageSpace - brandingSpace;
     
