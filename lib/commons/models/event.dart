@@ -285,6 +285,20 @@ class Event {
     return attendees!.where((attendee) => attendee.user.id == user.id).firstOrNull?.rsvpStatus ?? RSVPStatus.UNDECIDED;
   }
 
+  bool hasEventEnded() {
+    final DateTime currDateTime = DateTime.now();
+    if (this.endDateTime != null) {
+      return currDateTime.isAfter(this.endDateTime!);
+    } else {
+      if (this.startDateTime == null) {
+        return false;
+      } else {
+        return currDateTime.difference(this.startDateTime!).inHours > 3;
+      }
+    }
+
+  }
+
   List<Attendee> getAttendeesByRsvpStatus(RSVPStatus rsvpStatus) {
     return attendees!.where((attendee) => attendee.rsvpStatus == rsvpStatus).toList();
   }

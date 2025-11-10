@@ -19,6 +19,17 @@ enum RSVPStatus {
     }
   }
 
+    (IconData, String) getDisplayForPastInfo() {
+    switch (this) {
+      case RSVPStatus.GOING:
+        return (Icons.thumb_up, 'Went');
+      case RSVPStatus.NOT_GOING:
+        return (Icons.thumb_down, 'Didn\'t Go');
+      default:
+        return (Icons.person, 'Undecided');
+    }
+  }
+
   static RSVPStatus? fromString(String? status) {
     if (status == null) {
       return null;

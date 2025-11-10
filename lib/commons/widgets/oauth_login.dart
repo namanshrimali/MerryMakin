@@ -3,16 +3,13 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide IconAlignment;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
-import 'package:merrymakin/commons/widgets/buttons/pro_button_with_icon_and_text.dart';
-import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
-import 'package:merrymakin/commons/widgets/buttons/pro_sign_in_with_apple.dart';
 import '../providers/user_provider.dart';
 import '../models/spryly_services.dart';
 import '../api/google_sign_in.dart';
 import '../service/user_service.dart';
 import '../utils/string_utils.dart';
+import 'buttons/pro_sign_in_social.dart';
 import 'pro_snackbar.dart';
 import '../models/user_request_dto.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart' hide IconAlignment;
@@ -38,8 +35,11 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
       "Could not reach to our servers. You can sign in later in the app.";
   String couldNotReachAppleServer =
       "Could not reach to Apple servers. You can sign in later in the app.";
-  // bool isLoading = false;
+  bool _loadingApple = false;
+  bool _loadingGoogle = false;
+  
   Future _signInWithApple() async {
+    setState(() => _loadingApple = true);
     try {
       final AuthorizationCredentialAppleID credential =
           await SignInWithApple.getAppleIDCredential(
@@ -80,6 +80,8 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
       });
     } catch (e) {
       showSnackBar(context, e.toString());
+    } finally {
+      setState(() => _loadingApple = false);
     }
   }
 
@@ -176,37 +178,27 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        IconButton(
-          onPressed: _signInWithGoogle,
-          icon: SvgPicture.asset(
-            'lib/commons/assets/google_sign_in_button.svg',
-            height: 44,
-            width: 210,
+    return SizedBox(
+      width: 250,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SocialSignInButton.google(
+            label: 'Continue with Google',
+            onPressed: _signInWithGoogle,
+            loading: _loadingGoogle,
+            // optional: override asset path if you added it
+            googleAssetPath: 'lib/commons/assets/ios_neutral_rd_na.svg',
           ),
-        ),
-        if (!kIsWeb && Platform.isIOS)
-          SizedBox(height: generalAppLevelPadding / 2,),
-          Container(
-            width: 250,
-            padding: EdgeInsets.all(0),
-            child: ProSignInWithAppleButton(
-              onPressed: _signInWithApple,
-              iconAlignment: IconAlignment.left,
-            ),
+          if (!kIsWeb && Platform.isIOS)
+            SizedBox(height: generalAppLevelPadding,),
+            SocialSignInButton.apple(
+            label: 'Continue with Apple',
+            onPressed: _signInWithApple,
+            loading: _loadingApple,
           ),
-      ],
+        ],
+      ),
     );
-
-    // return Platform.isAndroid
-    //     ? IconButton(
-    //         onPressed: _signInWithGoogle,
-    //         icon: SvgPicture.asset(
-    //           'lib/commons/assets/google_sign_in_button.svg',
-    //         ),
-    //       )
-    //     : ProSignInWithAppleButton(onPressed: _signInWithApple);
   }
 }

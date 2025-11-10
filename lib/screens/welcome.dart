@@ -70,37 +70,40 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen> {
                 left: generalAppLevelPadding / 2,
                 right: generalAppLevelPadding / 2,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Spacer(),
-                  ProText(
-                    "Merry",
-                    textStyle: TextStyle(
-                      fontSize: 120,
-                      fontWeight: FontWeight.w300,
-                      color: currentTheme.colorScheme.primary,
+              child: SizedBox(
+                width: double.infinity,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Spacer(),
+                    ProText(
+                      "Merry",
+                      textStyle: TextStyle(
+                        fontSize: 120,
+                        fontWeight: FontWeight.w300,
+                        color: currentTheme.colorScheme.primary,
+                      ),
+                      maxLines: 1,
+                      textScaler: TextScaler.noScaling,
                     ),
-                    maxLines: 1,
-                    textScaler: TextScaler.noScaling,
-                  ),
-                  ProText(
-                    "Makin",
-                    textStyle: TextStyle(
-                      fontSize: 120,
-                      fontWeight: FontWeight.w300,
-                      color: currentTheme.colorScheme.primary,
+                    ProText(
+                      "Makin",
+                      textStyle: TextStyle(
+                        fontSize: 120,
+                        fontWeight: FontWeight.w300,
+                        color: currentTheme.colorScheme.primary,
+                      ),
+                      maxLines: 1,
+                      textScaler: TextScaler.noScaling,
                     ),
-                    maxLines: 1,
-                    textScaler: TextScaler.noScaling,
-                  ),
-                  const Spacer(),
-                  OAuthLogin(
-                    userService: AppFactory().userService,
-                    sprylyService: SprylyServices.MerryMakin.name,
-                  ),
-                ],
+                    const Spacer(),
+                    OAuthLogin(
+                      userService: AppFactory().userService,
+                      sprylyService: SprylyServices.MerryMakin.name,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
