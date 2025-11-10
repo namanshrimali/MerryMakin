@@ -13,6 +13,7 @@ import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
+import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
@@ -58,90 +59,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Color? _gradientColor;
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0.0;
-
-  Future<void> _extractColorFromImage(String imageUrl) async {
-    if (imageUrl.isEmpty) {
-      setState(() {
-        _gradientColor = Colors.black;
-      });
-      return;
-    }
-
-    try {
-      final imageProvider = NetworkImage(imageUrl);
-      final imageStream = imageProvider.resolve(ImageConfiguration.empty);
-
-      final completer = Completer<ui.Image?>();
-      late ImageStreamListener listener;
-
-      listener = ImageStreamListener(
-        (ImageInfo info, bool synchronousCall) {
-          completer.complete(info.image);
-          imageStream.removeListener(listener);
-        },
-        onError: (exception, stackTrace) {
-          completer.complete(null);
-          imageStream.removeListener(listener);
-        },
-      );
-
-      imageStream.addListener(listener);
-      final image = await completer.future;
-
-      if (image != null && mounted) {
-        final pixelData =
-            await image.toByteData(format: ui.ImageByteFormat.rawRgba);
-        if (pixelData != null) {
-          final bytes = pixelData.buffer.asUint8List();
-          final width = image.width;
-          final height = image.height;
-
-          // Sample from bottom 30% of the image where text will be positioned
-          final sampleStartY = (height * 0.7).toInt();
-          final sampleEndY = height;
-
-          int totalR = 0, totalG = 0, totalB = 0;
-          int sampleCount = 0;
-
-          // Sample pixels in the bottom portion
-          for (int y = sampleStartY; y < sampleEndY; y += 2) {
-            for (int x = 0; x < width; x += 2) {
-              final index = (y * width + x) * 4;
-              if (index + 3 < bytes.length) {
-                totalR += bytes[index];
-                totalG += bytes[index + 1];
-                totalB += bytes[index + 2];
-                sampleCount++;
-              }
-            }
-          }
-
-          if (sampleCount > 0 && mounted) {
-            // Darken the color slightly to ensure text readability
-            final avgR = (totalR / sampleCount).round();
-            final avgG = (totalG / sampleCount).round();
-            final avgB = (totalB / sampleCount).round();
-
-            setState(() {
-              _gradientColor = Color.fromRGBO(
-                (avgR * 0.7).round().clamp(0, 255),
-                (avgG * 0.7).round().clamp(0, 255),
-                (avgB * 0.7).round().clamp(0, 255),
-                1.0,
-              );
-            });
-          }
-        }
-      }
-    } catch (e) {
-      // If extraction fails, use default dark color
-      if (mounted) {
-        setState(() {
-          _gradientColor = Colors.black;
-        });
-      }
-    }
-  }
 
   LinearGradient _buildBottomGradient(Color gradientColor) {
     return LinearGradient(
@@ -1059,7 +976,11 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
 
   void _initializeGradient(Event? eventData) {
     if (eventData != null && eventData.imageUrl.isNotEmpty) {
-      _extractColorFromImage(eventData.imageUrl);
+      extractGradientFromImage(eventData.imageUrl, mounted).then((value) {
+        setState(() {
+          _gradientColor = value;
+        });
+      });
     } else {
       setState(() {
         _gradientColor = Colors.black;
