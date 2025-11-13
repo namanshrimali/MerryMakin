@@ -27,6 +27,7 @@ class ProTextField extends StatelessWidget {
   final InputBorder? focusedBorder;
   final InputBorder? enabledBorder;
   final EdgeInsetsGeometry? contentPadding;
+  final Function? onTap;
   const ProTextField({
     super.key,
     this.label,
@@ -55,6 +56,7 @@ class ProTextField extends StatelessWidget {
     this.focusedBorder,
     this.enabledBorder,
     this.contentPadding,
+    this.onTap,
   });
 
   Widget buildNewType(context) {
@@ -74,6 +76,7 @@ class ProTextField extends StatelessWidget {
       width: width,
       height: height,
       child: TextFormField(
+        onTap: onTap != null ? () => onTap!() : null,
         focusNode: focusNode,
         autofocus: autofocus,
         controller: textEditingController,

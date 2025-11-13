@@ -4,6 +4,7 @@ import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
+import 'package:merrymakin/commons/utils/date_time.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/pro_list_item.dart';
@@ -19,6 +20,7 @@ import 'package:merrymakin/commons/widgets/pro_image_picker.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart';
+import 'package:merrymakin/widgets/ai_enabled_description.dart';
 import '../commons/service/cookie_service.dart';
 import '../commons/widgets/pro_font_selector.dart';
 
@@ -43,6 +45,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ProFontType? selectedFont;
   final CookiesService cookiesService = AppFactory().cookiesService;
   late final FocusNode _eventNameFocusNode;
+  late final TextEditingController _descriptionController;
+  bool _hasSyncedDescription = false;
 
   final Map<String, bool> _visibleFields = {
     'spots': false,
@@ -69,6 +73,12 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         setState(() {});
       }
     });
+    _descriptionController =
+        TextEditingController(text: event.description ?? '');
+    _descriptionController.addListener(() {
+      event.description = _descriptionController.text;
+    });
+    _hasSyncedDescription = widget.eventId == null;
 
     Future eventFuture = Future<void>(() {}); // initialize with empty future
     if (widget.eventId != null) {
@@ -257,14 +267,14 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   }
 
   LinearGradient _buildHeroGradient() {
-    final themeColor = selectedTheme != null ? ProThemes.themes[selectedTheme]!.theme.colorScheme.surface : Theme.of(context).colorScheme.surface;
+    final themeColor = selectedTheme != null ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background : Theme.of(context).colorScheme.background;
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
         themeColor.withOpacity(0.0),
         themeColor.withOpacity(0.1),
-        themeColor.withOpacity(0.7),
+        themeColor.withOpacity(0.9),
         themeColor.withOpacity(0.9),
         themeColor.withOpacity(1),
       ],
@@ -274,7 +284,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
 
   Widget _buildHeroSection(BuildContext context) {
     final Size size = MediaQuery.sizeOf(context);
-    final double heroHeight = size.height * 0.9;
+    final double heroHeight = size.height * 0.8;
 
     return SizedBox(
       height: heroHeight,
@@ -396,77 +406,72 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
       left: generalAppLevelPadding,
       right: generalAppLevelPadding,
       bottom: generalAppLevelPadding,
-      child: ProCard(
-        applyPadding: true,
-        // radius: 28,
-        // surfaceTintColor: Colors.white.withOpacity(0.1),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ProTextField(
-              key: ValueKey('event-name-${event.id ?? 'new'}'),
-              initialValue: event.name,
-              onValidationCallback: validateTitleField,
-              focusNode: _eventNameFocusNode,
-              onChanged: (value) {
-                setState(() {
-                  event.name = (value as String);
-                });
-              },
-              onSaved: (value) {
-                event.name = ((value as String?) ?? '').trim();
-              },
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, fontFamily: selectedFont?.fontFamily),
-              hintText: 'Enter Event Name',
-              hintStyle: TextStyle(fontWeight: FontWeight.w500, fontFamily: selectedFont?.fontFamily),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 18,
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ProTextField(
+            key: ValueKey('event-name-${event.id ?? 'new'}'),
+            initialValue: event.name,
+            onValidationCallback: validateTitleField,
+            focusNode: _eventNameFocusNode,
+            onChanged: (value) {
+              setState(() {
+                event.name = (value as String);
+              });
+            },
+            onSaved: (value) {
+              event.name = ((value as String?) ?? '').trim();
+            },
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, fontFamily: selectedFont?.fontFamily),
+            hintText: 'Enter Event Name',
+            hintStyle: TextStyle(fontWeight: FontWeight.w500, fontFamily: selectedFont?.fontFamily),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 18,
             ),
-            const SizedBox(height: generalAppLevelPadding),
-            ProDateTimePicker(
-              initialValue: event.startDateTime,
-              firstDate: DateTime(2024),
-              lastDate: DateTime(2100),
-              hintText: 'Set date and time',
-              onDateTimeSelected: (selectedDate) {
-                setState(() {
-                  event.startDateTime = selectedDate;
-                });
-              },
-              // style: whiteTextStyle,
-              // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
-              // filled: true,
-              // fillColor: Colors.white.withOpacity(0.08),
-        
-              suffixIcon:
-                  const Icon(Icons.access_time),
-            ),
-            const SizedBox(height: generalAppLevelPadding),
-            ProTextField(
-              key: ValueKey('event-location-${event.id ?? 'new'}'),
-              initialValue: event.location,
-              onValidationCallback: validateLocationField,
-              onChanged: (value) {
-                setState(() {
-                  event.location = (value as String);
-                });
-              },
-              onSaved: (value) {
-                event.location = (value as String?)?.trim();
-              },
-              // style: whiteTextStyle,
-              hintText: 'Add location or link',
-              // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
-              suffixWidget:
-                  const Icon(Icons.location_on),
-              // filled: true,
-              // fillColor: Colors.white.withOpacity(0.08),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: generalAppLevelPadding),
+          ProDateTimePicker(
+            initialValue: event.startDateTime ?? getNextSaturdayAt7pmUtc(),
+            firstDate: DateTime(2024),
+            lastDate: DateTime(2100),
+            hintText: 'Set date and time',
+            onDateTimeSelected: (selectedDate) {
+              setState(() {
+                event.startDateTime = selectedDate;
+              });
+            },
+            // style: whiteTextStyle,
+            // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
+            // filled: true,
+            // fillColor: Colors.white.withOpacity(0.08),
+      
+            suffixIcon:
+                const Icon(Icons.access_time),
+          ),
+          const SizedBox(height: generalAppLevelPadding),
+          ProTextField(
+            key: ValueKey('event-location-${event.id ?? 'new'}'),
+            initialValue: event.location,
+            onValidationCallback: validateLocationField,
+            onChanged: (value) {
+              setState(() {
+                event.location = (value as String);
+              });
+            },
+            onSaved: (value) {
+              event.location = (value as String?)?.trim();
+            },
+            // style: whiteTextStyle,
+            hintText: 'Add location or link',
+            // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
+            suffixWidget:
+                const Icon(Icons.location_on),
+            // filled: true,
+            // fillColor: Colors.white.withOpacity(0.08),
+          ),
+        ],
       ),
     );
   }
@@ -489,7 +494,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             ],
           ),
           child: Material(
-            color: Colors.white,
+            color: currentTheme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               onTap: _openThemeSelector,
@@ -602,7 +607,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             ],
           ),
           child: Material(
-            color: Colors.white,
+            color: currentTheme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               onTap: _openEffectSelector,
@@ -1138,10 +1143,37 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: generalAppLevelPadding),
                             ProTextField(
-                              hintText: 'Add a description of your event',
-                              initialValue: event.description,
+                              multiline: true,
+                              maxLines: 5,
+                              onTap: () async {
+                                FocusScope.of(context).unfocus();
+                                final dynamic result = await openProBottomModalSheet(
+                                  context,
+                                  AIEnabledDescription(
+                                    event: event,
+                                    controller: _descriptionController,
+                                  ),
+                                );
+                                if (!mounted) {
+                                  return;
+                                }
+                                if (result is String) {
+                                  final String trimmed = result.trim();
+                                  setState(() {
+                                    _descriptionController.value =
+                                        _descriptionController.value.copyWith(
+                                      text: trimmed,
+                                      selection: TextSelection.collapsed(
+                                        offset: trimmed.length,
+                                      ),
+                                    );
+                                    event.description = trimmed;
+                                  });
+                                }
+                              },
+                              hintText: 'Tap to let AI do the talking 🤖✨',
+                              textEditingController: _descriptionController,
                               onValidationCallback: validateDescriptionField,
                               onChanged: (value) {
                                 event.description = value;
@@ -1149,11 +1181,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                               onSaved: (value) {
                                 event.description = value.toString().trim();
                               },
-                              multiline: true,
-                              maxLines: 5,
                             ),
                             const SizedBox(height: generalAppLevelPadding),
-                            ..._buildEventOptions(),
+                            // ..._buildEventOptions(),
                             ProListItem(
                               swipeForEditAndDelete: false,
                               key: const Key('hide-guest-list'),
@@ -1191,6 +1221,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                           ],
                         ),
                       ),
+                      SizedBox(height: generalAppLevelPadding * 10),
                     ],
                   ),
                 ),
@@ -1207,6 +1238,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   @override
   void dispose() {
     _eventNameFocusNode.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -1257,6 +1289,17 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                 (type) => type.toString() == event.font,
                 orElse: () => ProFontType.system,
               );
+            }
+            if (!_hasSyncedDescription) {
+              final String descriptionText = event.description ?? '';
+              _descriptionController.value =
+                  _descriptionController.value.copyWith(
+                text: descriptionText,
+                selection: TextSelection.collapsed(
+                  offset: descriptionText.length,
+                ),
+              );
+              _hasSyncedDescription = true;
             }
           }
 

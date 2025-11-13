@@ -52,7 +52,7 @@ class _ProDateTimePickerState extends State<ProDateTimePicker> {
     _controller = TextEditingController(
       text: widget.initialValue == null
           ? ''
-          : prettifyDateWithTime(widget.initialValue!),
+          : fullDateWithTimeString(widget.initialValue!),
     );
   }
 

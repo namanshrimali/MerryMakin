@@ -52,6 +52,13 @@ String prettifyDateWithTime(DateTime dateTime) {
   return '${prettifyDate(dateTime)} $hour:$minute$period';
 }
 
+String fullDateWithTimeString(DateTime dateTime) {
+  final hour = dateTime.hour == 12 || dateTime.hour == 0 ? 12 : dateTime.hour % 12;
+  final minute = dateTime.minute.toString().padLeft(2, '0');
+  final period = dateTime.hour >= 12 ? 'pm' : 'am';
+  return '${getSmallDayName(dateTime.weekday)}, ${getShortMonthName(dateTime.month)} ${dateTime.day} at $hour:$minute$period';
+}
+
 String getPrettyRangeForWeekDate(DateTime weekDate) {
   DateTime startOfWeek =
       weekDate.subtract(Duration(days: weekDate.weekday - 1));
@@ -90,6 +97,11 @@ String getMonthName(int monthIndex) {
 
 String getDayName(int dayIndex) {
   final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return days[dayIndex];
+}
+
+String getSmallDayName(int dayIndex) {
+  final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return days[dayIndex];
 }
 
@@ -328,4 +340,28 @@ String getRelativeTimePassed(DateTime dateTime) {
     return '${(differenceDays / 30).ceil()}m';
   }
   return '${(differenceDays / 365).ceil()}y';
+}
+
+DateTime getNextSaturdayAt7pmUtc() {
+  // Get the current date and time
+  DateTime now = DateTime.now();
+
+  // Find the number of days to the next Saturday
+  int daysToSaturday = DateTime.saturday - now.weekday;
+  if (daysToSaturday <= 0) {
+    daysToSaturday += 7; // If today is Saturday, we want the next Saturday
+  }
+
+  // Calculate the next Saturday date and set the time to 7:00 PM
+  DateTime nextSaturday = now.add(Duration(days: daysToSaturday));
+  DateTime nextSaturdayAt7pm = DateTime(
+    nextSaturday.year,
+    nextSaturday.month,
+    nextSaturday.day,
+    19, // 7:00 PM
+    0,  // minutes
+    0,  // seconds
+  );
+
+  return nextSaturdayAt7pm;
 }

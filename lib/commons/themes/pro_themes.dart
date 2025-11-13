@@ -7,6 +7,7 @@ enum ProThemeType {
   chineseNewYear,
   autumn,
   christmasWinter,
+  midnight,
 }
 
 class ProTheme {
@@ -115,5 +116,160 @@ class ProThemes {
         ),
       ),
     ),
+    ProThemeType.midnight: ProTheme(
+      name: 'Midnight Glow',
+      description: 'A sleek dark theme with luminous highlights.',
+      theme: _buildMidnightTheme(),
+    ),
   };
+
+  static ThemeData _buildMidnightTheme() {
+    const background = Color(0xFF121212);
+    const surface = Color(0xFF1E1E1E);
+    const canvas = Color(0xFF0F0F0F);
+    const secondary = Color(0xFF64B5F6);
+    const tertiary = Color(0xFFBB86FC);
+    const inversePrimary = Color(0xFF1E88E5);
+
+    const colorScheme = ColorScheme.dark(
+      primary: Colors.white,
+      onPrimary: Color(0xFF121212),
+      secondary: secondary,
+      onSecondary: Color(0xFF0D1015),
+      surface: surface,
+      onSurface: Colors.white,
+      background: background,
+      onBackground: Colors.white,
+      tertiary: tertiary,
+      onTertiary: Color(0xFF0D1015),
+      inversePrimary: inversePrimary,
+      error: Color(0xFFCF6679),
+      onError: Colors.black,
+    );
+
+    final baseDark = ThemeData(
+      useMaterial3: true,
+      // brightness: Brightness.dark,
+      primaryColor: colorScheme.primary,
+      focusColor: Colors.white,
+      scaffoldBackgroundColor: background,
+      canvasColor: canvas,
+      colorScheme: colorScheme,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1A1A1A),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      textTheme: ThemeData(
+        useMaterial3: true,
+        // brightness: Brightness.dark,
+      ).textTheme.apply(
+            bodyColor: colorScheme.onBackground,
+            displayColor: colorScheme.onBackground,
+          ),
+      cardTheme: CardThemeData(
+        color: surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        elevation: 6,
+        shadowColor: Colors.black.withOpacity(0.45),
+        margin: const EdgeInsets.all(16),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: canvas,
+        foregroundColor: colorScheme.surface,
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: colorScheme.primary,
+          textStyle: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: surface,
+        labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+        hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.onSurface.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.primary),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.error),
+        ),
+      ),
+      chipTheme: ChipThemeData.fromDefaults(
+        // brightness: Brightness.dark,
+        primaryColor: colorScheme.primary,
+        secondaryColor: secondary,
+        labelStyle: TextStyle(color: colorScheme.onSurface),
+      ).copyWith(
+        selectedColor: colorScheme.primary,
+        secondarySelectedColor: secondary,
+        labelStyle: TextStyle(color: colorScheme.onSurface),
+        secondaryLabelStyle: TextStyle(color: colorScheme.onSecondary),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colorScheme.onSurface.withOpacity(0.3)),
+        ),
+      ),
+      dividerColor: colorScheme.onSurface.withOpacity(0.12),
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: secondary),
+      iconTheme: IconThemeData(color: colorScheme.primary),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        titleTextStyle: TextStyle(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w600,
+          fontSize: 20,
+        ),
+        contentTextStyle: TextStyle(
+          color: colorScheme.onSurface.withOpacity(0.87),
+          fontSize: 16,
+        ),
+      ),
+    );
+
+    return baseDark.copyWith(
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: surface,
+        contentTextStyle: TextStyle(color: colorScheme.onSurface),
+        actionTextColor: colorScheme.secondary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
 }
