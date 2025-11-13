@@ -43,6 +43,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ProThemeType? selectedTheme;
   ProEffectType? selectedEffect;
   ProFontType? selectedFont;
+  ThemeData defaultTheme = ProThemes.themes[ProThemeType.autumn]!.theme;
+  ProThemeType defaultThemeType = ProThemeType.autumn;
+  ProEffectType defaultEffect = ProEffectType.fall_leaves;
   final CookiesService cookiesService = AppFactory().cookiesService;
   late final FocusNode _eventNameFocusNode;
   late final TextEditingController _descriptionController;
@@ -60,6 +63,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     super.initState();
     event = Event(
         name: 'Untitled Event',
+        startDateTime: getNextSaturdayAt7pmUtc(),
         hosts: cookiesService.currentUser != null
             ? [cookiesService.currentUser!]
             : [],
@@ -267,7 +271,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   }
 
   LinearGradient _buildHeroGradient() {
-    final themeColor = selectedTheme != null ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background : Theme.of(context).colorScheme.background;
+    final themeColor = selectedTheme != null ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background : defaultTheme.colorScheme.background;
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
@@ -425,7 +429,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, fontFamily: selectedFont?.fontFamily),
             hintText: 'Enter Event Name',
-            hintStyle: TextStyle(fontWeight: FontWeight.w500, fontFamily: selectedFont?.fontFamily),
+            hintStyle: TextStyle(fontWeight: FontWeight.w500, fontFamily: selectedFont?.fontFamily, color: event.theme != null && ProThemes.themes[event.theme!] != null ? ProThemes.themes[event.theme!]!.theme.colorScheme.onSurface : Colors.grey[600]),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 18,
@@ -433,7 +437,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           ),
           const SizedBox(height: generalAppLevelPadding),
           ProDateTimePicker(
-            initialValue: event.startDateTime ?? getNextSaturdayAt7pmUtc(),
+            initialValue: event.startDateTime,
             firstDate: DateTime(2024),
             lastDate: DateTime(2100),
             hintText: 'Set date and time',
@@ -621,7 +625,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      _getEffectIcon(selectedEffect),
+                      _getEffectIcon(selectedEffect ?? defaultEffect),
                       size: 32,
                       color: currentTheme.primaryColor,
                     ),
@@ -1107,9 +1111,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ) {
     final ThemeData currentTheme = selectedTheme != null
         ? ProThemes.themes[selectedTheme]!.theme
-        : Theme.of(context);
-    final ProThemeType themeType = selectedTheme ?? ProThemeType.classic;
-    final ProEffectType effectType = selectedEffect ?? ProEffectType.none;
+        : defaultTheme;
+
+    final ProThemeType themeType = selectedTheme ?? defaultThemeType;
+    final ProEffectType effectType = selectedEffect ?? defaultEffect;
 
     return Theme(
       data: currentTheme,

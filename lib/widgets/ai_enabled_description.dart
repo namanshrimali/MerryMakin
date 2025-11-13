@@ -508,13 +508,11 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
         ],
         const SizedBox(height: generalAppLevelPadding),
         Center(
-          child: SizedBox(
-            width: double.infinity,
-            height: generalAppLevelPadding * 3,
-            child: ProPrimaryButton(
-              const ProText('Use this description'),
-              onPressed: _handleConfirm,
-            ),
+          child: ProPrimaryButton(
+            isBig: true,
+            disabled: _isTyping,
+            const ProText('Use this description'),
+            onPressed: _handleConfirm,
           ),
         ),
       ],
@@ -633,10 +631,14 @@ String inferEventType(String eventName) {
     return 'holiday:boxing_day';
   } else if (eventName.contains('international women\'s day')) {
     return 'holiday:international_womens_day';
+  } else if (eventName.contains('birthday') || eventName.contains('bday')) {
+    return 'birthday';
   } else if (eventName.contains('party') ||
       eventName.contains('bash') ||
       eventName.contains('celebration')) {
     return 'party';
+  } else if (eventName.contains('anniversary') || eventName.contains('anniv')) {
+    return 'anniversary';
   }
 
   return 'general';
@@ -714,6 +716,10 @@ String generateDescription(String eventType, String eventName) {
       return 'Celebrate women around the world! [Event Name] is on [Date] at [Time], at [Location]. Join us for a day of empowerment and appreciation!';
     case 'party':
       return 'Hey! I’m hosting a little get-together on [Date] at [Time] at [Location]. Come by for some fun, good vibes, and maybe a drink or two!';
+    case 'birthday':
+      return 'Hey! I’m hosting a birthday party on [Date] at [Time] at [Location]. Come by for some fun, good vibes, and maybe a drink or two!';
+    case 'anniversary':
+      return 'Hey! I’m hosting an anniversary party on [Date] at [Time] at [Location]. Come by for some fun, good vibes, and maybe a drink or two!';
     default:
       return 'Come join us for a fun time at [Location] on [Date] at [Time]. Looking forward to seeing you!';
   }

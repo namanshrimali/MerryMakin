@@ -11,12 +11,14 @@ import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/models/spryly_services.dart';
+import 'package:merrymakin/commons/models/user.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
+import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/oauth_login.dart';
 import 'package:merrymakin/commons/widgets/pro_add_comment.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
@@ -176,31 +178,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  List<Widget> _buildEventTime(Event receivedEvent) {
-    // Time is now displayed on the image overlay, so don't show it here
-    return [];
-  }
-
-  List<Widget> _buildEventLocation(Event receivedEvent, double width) {
-    if (receivedEvent.location != null && receivedEvent.location!.isNotEmpty)
-      return _buildInfoRow(
-        Icons.location_on,
-        Row(
-          children: [
-            SizedBox(
-              width: width,
-              child: ProText(
-                receivedEvent.location!,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 3,
-              ),
-            ),
-          ],
-        ),
-      );
-    return [];
-  }
-
   List<Widget> _buildEventSpots(Event receivedEvent) {
     if (receivedEvent.spots != null && receivedEvent.spots! > 0)
       return _buildInfoRow(
@@ -248,19 +225,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         ProText(receivedEvent.foodSituation!, textStyle: const TextStyle()),
       );
     return [];
-  }
-
-  Widget _buildEventInformation(Event receivedEvent, double width) {
-    return Column(
-      children: [
-        ..._buildEventTime(receivedEvent),
-        ..._buildEventLocation(receivedEvent, width * 0.7),
-        ..._buildEventSpots(receivedEvent),
-        ..._buildEventCostPerSpot(receivedEvent),
-        ..._buildEventDressCode(receivedEvent),
-        ..._buildEventFoodSituation(receivedEvent),
-      ],
-    );
   }
 
   Widget buildNavigationButtons(receivedEvent) {
@@ -314,13 +278,16 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     return Positioned(
       left: generalAppLevelPadding,
       right: generalAppLevelPadding,
-      bottom: generalAppLevelPadding * 2,
+      bottom: generalAppLevelPadding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ProText(
             receivedEvent.name,
+            color: eventTheme != null
+                ? eventTheme!.colorScheme.primary
+                : Theme.of(context).colorScheme.primary,
             textStyle: TextStyle(
               fontFamily: receivedEvent.font != null
                   ? ProFontType.values
@@ -332,44 +299,36 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   : null,
               fontSize: 32,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  offset: const Offset(0, 1),
-                  blurRadius: 3,
-                  color: Colors.black.withOpacity(0.5),
-                ),
-              ],
             ),
             maxLines: 3,
             textAlign: TextAlign.center,
           ),
-          if (receivedEvent.subEvents == null ||
-              receivedEvent.subEvents!.isEmpty) ...[
-            // const SizedBox(height: generalAppLevelPadding / 2),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.access_time, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                ProText(
-                  receivedEvent.formattedStartDateTime,
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(0, 1),
-                        blurRadius: 3,
-                        color: Color.fromRGBO(0, 0, 0, 0.5),
-                      ),
-                    ],
-                  ),
+          SizedBox(height: generalAppLevelPadding / 2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.access_time, size: 20),
+              const SizedBox(width: 8),
+              ProText(
+                receivedEvent.formattedStartDateTime,
+                textStyle: const TextStyle(
+                  fontSize: 18,
                 ),
-              ],
-            ),
-          ],
-        ],
+              ),
+            ],
+          ),
+          if (receivedEvent.location != null && receivedEvent.location!.isNotEmpty) ...[
+          SizedBox(height: generalAppLevelPadding / 2),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.location_on, size: 20),
+              const SizedBox(width: 8),
+              ProText(receivedEvent.location!,
+                  textStyle: const TextStyle(fontSize: 18)),
+            ],
+          ),
+        ]],
       ),
     );
   }
@@ -393,6 +352,32 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
+  LinearGradient _buildHeroGradient(Event receivedEvent) {
+    ProThemeType? selectedTheme = null;
+
+    if (receivedEvent.theme != null) {
+      selectedTheme = ProThemeType.values.firstWhere(
+      (type) => type.toString() == receivedEvent.theme,
+      orElse: () => ProThemeType.classic,
+    );
+    }
+
+    final themeColor = selectedTheme != null
+        ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background
+        : Theme.of(context).colorScheme.background;
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        themeColor.withOpacity(0.1),
+        themeColor.withOpacity(0.85),
+        themeColor,
+        themeColor,
+      ],
+      stops: const [0.55, 0.8, 0.9, 1.0],
+    );
+  }
+
   Widget buildHeroImageAndContent(receivedEvent, height, width) {
     return // Event image with gradient and overlay
         SizedBox(
@@ -405,13 +390,10 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           fit: StackFit.expand,
           children: [
             buildEventImage(receivedEvent),
-            // Gradient overlay
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  gradient: _buildBottomGradient(
-                    _gradientColor ?? Colors.black,
-                  ),
+                  gradient: _buildHeroGradient(receivedEvent),
                 ),
               ),
             ),
@@ -423,37 +405,40 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   Widget buildEventDetails(receivedEvent, constraints) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (receivedEvent.description != null &&
-            receivedEvent.description != "") ...[
-          const SizedBox(height: generalAppLevelPadding),
-          ProText(
-            receivedEvent.description!,
-            textStyle: const TextStyle(
-              height: 1.5,
+    return Padding(
+      padding: const EdgeInsets.only(
+          left: generalAppLevelPadding, right: generalAppLevelPadding),
+      child: ProCard(
+        elevation: 10,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const ProText('Hosted by ', textStyle: TextStyle(fontSize: 16)),
+                Row(
+                  children: [
+                    ...receivedEvent.hosts
+                        .map((final User host) =>
+                            ProUserAvatar(user: host, radius: 20))
+                        .toList()
+                  ],
+                ),
+              ],
             ),
-            maxLines: 5,
-          ),
-        ],
-        // _buildEventInformation(
-        //                           receivedEvent, constraints.maxWidth),
-        //                       ..._buildInfoRow(
-        //                         Icons.star,
-        //                         Row(
-        //                           children: [
-        //                             const ProText('Hosted by '),
-        //                             Row(
-        //                               children: receivedEvent.hosts
-        //                                   .map((host) =>
-        //                                       ProUserAvatar(user: host))
-        //                                   .toList(),
-        //                             ),
-        //                           ],
-        //                         ),
-        //                       ),
-      ],
+            const SizedBox(height: generalAppLevelPadding),
+            ProText(
+              textAlign: TextAlign.center,
+              receivedEvent.description!,
+              textStyle: const TextStyle(
+                fontSize: 16,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -513,9 +498,11 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     child: Column(
                       children: [
                         buildHeroImageAndContent(
-                            receivedEvent, height * 0.7, width),
+                            receivedEvent, height * 0.6, width),
                         const SizedBox(height: generalAppLevelPadding),
-                        buildEventDetails(receivedEvent, constraints),
+                        if (receivedEvent.description != null &&
+                            receivedEvent.description != "")
+                          buildEventDetails(receivedEvent, constraints),
                         // Event content
                         Padding(
                           padding: const EdgeInsets.only(
@@ -526,21 +513,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // _buildEventInformation(
-                              ..._buildInfoRow(
-                                Icons.star,
-                                Row(
-                                  children: [
-                                    const ProText('Hosted by '),
-                                    Row(
-                                      children: receivedEvent.hosts
-                                          .map((host) =>
-                                              ProUserAvatar(user: host))
-                                          .toList(),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
                               if (receivedEvent.attendees != null &&
                                   receivedEvent
                                           .getAttendeesByRsvpStatus(
@@ -557,60 +529,13 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                                     height: generalAppLevelPadding * 1.5),
                                 _buildGuestList(receivedEvent, context),
                               ],
-                              ...[
-                                const SizedBox(
-                                    height: generalAppLevelPadding / 2),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    ProText(
-                                      'Comments',
-                                      textStyle: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    ProOutlinedButton(
-                                      onPressed: () {
-                                        openProBottomModalSheet(
-                                            context,
-                                            ProAddComment(
-                                                onUpdate:
-                                                    (final Comment comment) {
-                                                  if (receivedEvent.comments ==
-                                                      null) {
-                                                    receivedEvent.comments = [];
-                                                  }
-                                                  // add comment to top of event.comments
-                                                  receivedEvent.comments!
-                                                      .add(comment);
-                                                  addCommentToEvent(
-                                                          receivedEvent,
-                                                          comment,
-                                                          context)
-                                                      .whenComplete(() {
-                                                    ref
-                                                        .read(eventProvider
-                                                            .notifier)
-                                                        .updateEvent(
-                                                            receivedEvent);
-                                                  });
-                                                },
-                                                user: cookiesService
-                                                    .locallyAvailableUserInfo));
-                                      },
-                                      child: ProText('Comment'),
-                                    ),
-                                  ],
-                                ),
-                                ..._buildComments(receivedEvent,
-                                    cookiesService.currentJwtToken == null),
-                                const SizedBox(height: 200),
-                              ],
+                              SizedBox(height: generalAppLevelPadding),
+                              
                             ],
                           ),
                         ),
+                        buildCommentSection(receivedEvent),
+                              SizedBox(height: generalAppLevelPadding * 10),
                       ],
                     ),
                   ),
@@ -940,6 +865,58 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 trailing: Icon(attendee.rsvpStatus.getDisplayInfo().$1),
               ))
           .toList(),
+    );
+  }
+
+  Widget buildCommentSection(Event receivedEvent) {
+    return Padding(
+      padding: const EdgeInsets.only(
+                              left: generalAppLevelPadding,
+                              right: generalAppLevelPadding,
+                              top: generalAppLevelPadding),
+      child: ProCard(
+        elevation: 10,
+          child: Column(children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ProText(
+              'Comments',
+              textStyle: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            ProOutlinedButton(
+              onPressed: () {
+                openProBottomModalSheet(
+                    context,
+                    ProAddComment(
+                        onUpdate: (final Comment comment) {
+                          if (receivedEvent.comments == null) {
+                            receivedEvent.comments = [];
+                          }
+                          // add comment to top of event.comments
+                          receivedEvent.comments!.add(comment);
+                          addCommentToEvent(receivedEvent, comment, context)
+                              .whenComplete(() {
+                            ref
+                                .read(eventProvider.notifier)
+                                .updateEvent(receivedEvent);
+                          });
+                        },
+                        user: cookiesService.locallyAvailableUserInfo));
+              },
+              child: ProText('Comment'),
+            ),
+          ],
+        ),
+        if (receivedEvent.comments != null && receivedEvent.comments!.isNotEmpty)
+          ..._buildComments(receivedEvent, cookiesService.currentJwtToken == null),
+        if (receivedEvent.comments == null || receivedEvent.comments!.isEmpty)
+          SizedBox(height: 200, child: Center(child: const ProText(textStyle: TextStyle(fontSize: 16,), 'Be the first to break the silence! 🎤'))),
+        // const SizedBox(height: 200),
+      ])),
     );
   }
 

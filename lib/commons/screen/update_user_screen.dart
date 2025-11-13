@@ -150,6 +150,9 @@ class _AddOrEditUserState extends ConsumerState<AddOrEditUser> {
   Widget buildFormWidget(
     BuildContext context,
   ) {
+    if (user.photoUrl == null || user.photoUrl == "") {
+      user.photoUrl = widget.imageService.getRandomImage();
+    }
     return ProScaffold(
       appBar: AppBar(
         leading: IconButton(
