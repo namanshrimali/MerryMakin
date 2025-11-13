@@ -151,11 +151,11 @@ class _ProImageCardState extends State<ProImageCard> {
           end: Alignment.bottomCenter,
           colors: [
             gradientColor.withOpacity(0.7),
-            gradientColor.withOpacity(0.2),
+            gradientColor.withOpacity(0.3),
             Colors.transparent,
             Colors.transparent,
           ],
-          stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
+          stops: const [0.0, 0.25, 0.5, 1.0],
         );
       case TextPosition.center:
         return LinearGradient(
@@ -164,8 +164,8 @@ class _ProImageCardState extends State<ProImageCard> {
           colors: [
             Colors.transparent,
             Colors.transparent,
-            gradientColor.withOpacity(0.1),
-            gradientColor.withOpacity(0.1),
+            gradientColor.withOpacity(0.3),
+            gradientColor.withOpacity(0.3),
             Colors.transparent,
             Colors.transparent,
           ],
@@ -195,7 +195,6 @@ class _ProImageCardState extends State<ProImageCard> {
         children: [
           ProText(
             widget.title,
-            textAlign: TextAlign.center,
             textStyle: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -207,7 +206,6 @@ class _ProImageCardState extends State<ProImageCard> {
             DefaultTextStyle(
               style: const TextStyle(color: Colors.white),
               child: widget.subtitle!,
-              textAlign: TextAlign.center,
             ),
           ],
           if (widget.thirdRow != null) ...[
@@ -252,7 +250,7 @@ class _ProImageCardState extends State<ProImageCard> {
         borderRadius: BorderRadius.circular(widget.radius),
       ),
       surfaceTintColor: Colors.transparent,
-      margin: const EdgeInsets.only(left: generalAppLevelPadding / 2, right: generalAppLevelPadding / 2),
+      margin: const EdgeInsets.only(right: generalAppLevelPadding),
       child: InkWell(
         onTap: widget.onTap,
         child: ConstrainedBox(
@@ -262,7 +260,7 @@ class _ProImageCardState extends State<ProImageCard> {
           ),
           child: LayoutBuilder(builder: (context, constraints) {
             final effectiveHeight = widget.imageHeight ?? 200.0;
-            final gradientColor = _gradientColor ?? Theme.of(context).primaryColor;
+            final gradientColor = _gradientColor ?? Colors.black;
 
             return ClipRRect(
               borderRadius: BorderRadius.circular(widget.radius),
@@ -283,8 +281,7 @@ class _ProImageCardState extends State<ProImageCard> {
                             return Container(
                               height: effectiveHeight,
                               width: constraints.maxWidth,
-                              color: const ui.Color.fromARGB(108, 1, 26, 134)
-                                  .withOpacity(1),
+                              color: Colors.blueGrey.withOpacity(0.1),
                               // child: const Icon(Icons.error),
                             );
                           },

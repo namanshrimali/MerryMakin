@@ -11,7 +11,7 @@ extension ProFontTypeExtension on ProFontType {
   String get displayName {
     switch (this) {
       case ProFontType.system:
-        return 'Classic';
+        return 'Aa';
       case ProFontType.neonLights:
         return 'Neon Lights';
       case ProFontType.partyVibes:
@@ -35,16 +35,7 @@ extension ProFontTypeExtension on ProFontType {
   }
 
   String get previewText {
-    switch (this) {
-      case ProFontType.system:
-        return 'Classic Style';
-      case ProFontType.neonLights:
-        return 'NEON GLOW';
-      case ProFontType.partyVibes:
-        return 'Party Time!';
-      case ProFontType.elegantScript:
-        return 'Elegant Script';
-    }
+    return 'Aa';
   }
 }
 
@@ -61,6 +52,7 @@ class ProFontSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
+      alignment: WrapAlignment.spaceEvenly,
       spacing: 8,
       runSpacing: 8,
       children: ProFontType.values.map((font) {

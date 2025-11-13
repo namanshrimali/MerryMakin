@@ -20,6 +20,13 @@ class ProTextField extends StatelessWidget {
   final TextStyle? style;
   final TextAlign? textAlign;
   final TextStyle? hintStyle;
+  final FocusNode? focusNode;
+  final bool filled;
+  final Color? fillColor;
+  final InputBorder? border;
+  final InputBorder? focusedBorder;
+  final InputBorder? enabledBorder;
+  final EdgeInsetsGeometry? contentPadding;
   const ProTextField({
     super.key,
     this.label,
@@ -41,24 +48,63 @@ class ProTextField extends StatelessWidget {
     this.style,
     this.textAlign,
     this.hintStyle,
+    this.focusNode,
+    this.filled = false,
+    this.fillColor,
+    this.border,
+    this.focusedBorder,
+    this.enabledBorder,
+    this.contentPadding,
   });
 
-  Widget buildNewType() {
+  Widget buildNewType(context) {
+
+    final OutlineInputBorder overlayBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(20),
+      borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+    );
+
+    final OutlineInputBorder overlayFocusedBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(20),
+      borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary),
+    );
+
+
     return SizedBox(
       width: width,
       height: height,
       child: TextFormField(
+        focusNode: focusNode,
         autofocus: autofocus,
         controller: textEditingController,
         style: style,
         decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          contentPadding:
+          border: border ?? overlayBorder,
+          focusedBorder: focusedBorder ?? overlayFocusedBorder,
+          enabledBorder: enabledBorder ?? overlayBorder,
+          contentPadding: contentPadding ??
               const EdgeInsets.only(left: 8, right: 8, bottom: 18, top: 18),
           labelText: label,
           hintText: hintText,
-          suffix: suffixWidget,
-          prefix: prefixWidget,
+          suffixIcon: suffixWidget != null
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: suffixWidget,
+                )
+              : null,
+          suffixIconConstraints:
+              const BoxConstraints(minHeight: 0, minWidth: 0),
+          prefixIcon: prefixWidget != null
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: prefixWidget,
+                )
+              : null,
+          prefixIconConstraints:
+              const BoxConstraints(minHeight: 0, minWidth: 0),
+          filled: filled,
+          fillColor: fillColor,
+          hintStyle: hintStyle,
         ),
         keyboardType: multiline ? TextInputType.multiline : keyboardType,
         maxLines: multiline ? (maxLines ?? null) : 1,
@@ -86,7 +132,7 @@ class ProTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return buildNewType();
+    return buildNewType(context);
     // return TextField(
     //   keyboardType: keyboardType,
     //   controller: textEditingController,

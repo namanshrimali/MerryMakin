@@ -5,12 +5,12 @@ import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
-import 'package:merrymakin/commons/widgets/pro_date_time_picker.dart';
+import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/pro_list_item.dart';
-import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_text_field.dart';
+import 'package:merrymakin/commons/widgets/pro_date_time_picker.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
@@ -42,6 +42,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ProEffectType? selectedEffect;
   ProFontType? selectedFont;
   final CookiesService cookiesService = AppFactory().cookiesService;
+  late final FocusNode _eventNameFocusNode;
 
   final Map<String, bool> _visibleFields = {
     'spots': false,
@@ -62,6 +63,12 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         createdAt: DateTime.now().toUtc(),
         updatedAt: DateTime.now().toUtc(),
         imageUrl: imageService.getRandomImage());
+    _eventNameFocusNode = FocusNode();
+    _eventNameFocusNode.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
 
     Future eventFuture = Future<void>(() {}); // initialize with empty future
     if (widget.eventId != null) {
@@ -73,7 +80,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   void _submitData(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-            event.theme = selectedTheme.toString();
+      event.theme = selectedTheme.toString();
 
       addOrUpdateEvent(event, context).then((dbReturnedEvent) {
         if (dbReturnedEvent != null) {
@@ -86,16 +93,6 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         }
       });
     }
-  }
-
-  void onChangedCostPerSpot(value) {
-    setState(() {
-      event.costPerSpot = value;
-    });
-  }
-
-  void onSelectDate(DateTime value) {
-    event.startDateTime = value;
   }
 
   String? validateAmountField(String? amount) {
@@ -259,48 +256,128 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     );
   }
 
-  Widget _buildEventImage(final double height) {
-    return GestureDetector(
-      onTap: _handleImageSelection,
-      child: Container(
-        height: height,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(generalAppLevelPadding),
-        ),
-        child: Stack(
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(generalAppLevelPadding),
-              child: CachedNetworkImage(
-                imageUrl: event.imageUrl,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
+  LinearGradient _buildHeroGradient() {
+    final themeColor = selectedTheme != null ? ProThemes.themes[selectedTheme]!.theme.colorScheme.surface : Theme.of(context).colorScheme.surface;
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        themeColor.withOpacity(0.0),
+        themeColor.withOpacity(0.1),
+        themeColor.withOpacity(0.7),
+        themeColor.withOpacity(0.9),
+        themeColor.withOpacity(1),
+      ],
+      stops: const [0.0, 0.55, 0.7, 0.9, 1.0],
+    );
+  }
+
+  Widget _buildHeroSection(BuildContext context) {
+    final Size size = MediaQuery.sizeOf(context);
+    final double heroHeight = size.height * 0.9;
+
+    return SizedBox(
+      height: heroHeight,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: event.imageUrl,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            errorWidget: (context, url, error) => Container(
+              color: Colors.grey[300],
+              child: const Icon(Icons.error),
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: _buildHeroGradient(),
               ),
             ),
-            // Edit Icon
-            Positioned(
-              top: generalAppLevelPadding,
-              right: generalAppLevelPadding,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius:
-                      BorderRadius.circular(generalAppLevelPadding * 2),
-                ),
-                child: const Icon(
-                  Icons.edit,
-                  color: Colors.white,
-                  size: 20,
-                ),
+          ),
+          _buildChangeBackgroundButton(),
+          _buildHeroContentOverlay(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopActionBar(BuildContext context) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + generalAppLevelPadding,
+      left: generalAppLevelPadding,
+      right: generalAppLevelPadding,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildHeroActionChip(
+            onTap: () {
+              AppRouter.goHome(context);
+            },
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+            ),
+          ),
+          _buildHeroActionChip(
+            onTap: () => _submitData(context),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            child: const ProText(
+              'Save',
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroActionChip({
+    required VoidCallback onTap,
+    required Widget child,
+    EdgeInsetsGeometry padding = const EdgeInsets.all(12),
+  }) {
+    return Material(
+      color: Colors.black54,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: padding,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChangeBackgroundButton() {
+    return Align(
+      alignment: Alignment.center,
+      child: _buildHeroActionChip(
+        onTap: _handleImageSelection,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.photo_library,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            const ProText(
+              'Change Background',
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -309,28 +386,301 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     );
   }
 
+  Widget _buildHeroContentOverlay(BuildContext context) {
+    // final TextStyle whiteTextStyle = TextStyle(
+    //   color: Colors.white,
+    //   fontFamily: selectedFont?.fontFamily,
+    // );
+
+    return Positioned(
+      left: generalAppLevelPadding,
+      right: generalAppLevelPadding,
+      bottom: generalAppLevelPadding,
+      child: ProCard(
+        applyPadding: true,
+        // radius: 28,
+        // surfaceTintColor: Colors.white.withOpacity(0.1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ProTextField(
+              key: ValueKey('event-name-${event.id ?? 'new'}'),
+              initialValue: event.name,
+              onValidationCallback: validateTitleField,
+              focusNode: _eventNameFocusNode,
+              onChanged: (value) {
+                setState(() {
+                  event.name = (value as String);
+                });
+              },
+              onSaved: (value) {
+                event.name = ((value as String?) ?? '').trim();
+              },
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, fontFamily: selectedFont?.fontFamily),
+              hintText: 'Enter Event Name',
+              hintStyle: TextStyle(fontWeight: FontWeight.w500, fontFamily: selectedFont?.fontFamily),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 18,
+              ),
+            ),
+            const SizedBox(height: generalAppLevelPadding),
+            ProDateTimePicker(
+              initialValue: event.startDateTime,
+              firstDate: DateTime(2024),
+              lastDate: DateTime(2100),
+              hintText: 'Set date and time',
+              onDateTimeSelected: (selectedDate) {
+                setState(() {
+                  event.startDateTime = selectedDate;
+                });
+              },
+              // style: whiteTextStyle,
+              // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
+              // filled: true,
+              // fillColor: Colors.white.withOpacity(0.08),
+        
+              suffixIcon:
+                  const Icon(Icons.access_time),
+            ),
+            const SizedBox(height: generalAppLevelPadding),
+            ProTextField(
+              key: ValueKey('event-location-${event.id ?? 'new'}'),
+              initialValue: event.location,
+              onValidationCallback: validateLocationField,
+              onChanged: (value) {
+                setState(() {
+                  event.location = (value as String);
+                });
+              },
+              onSaved: (value) {
+                event.location = (value as String?)?.trim();
+              },
+              // style: whiteTextStyle,
+              hintText: 'Add location or link',
+              // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
+              suffixWidget:
+                  const Icon(Icons.location_on),
+              // filled: true,
+              // fillColor: Colors.white.withOpacity(0.08),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingControls(ThemeData currentTheme) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              onTap: _openThemeSelector,
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: currentTheme.primaryColor,
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: currentTheme.colorScheme.secondary,
+                                      borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: currentTheme.colorScheme.surface,
+                                      borderRadius: const BorderRadius.only(
+                                        bottomLeft: Radius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: currentTheme.colorScheme.tertiary,
+                                      borderRadius: const BorderRadius.only(
+                                        bottomRight: Radius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ProText(
+                      'Theme',
+                      textStyle: TextStyle(
+                        color: currentTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: currentTheme.primaryColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              onTap: _openEffectSelector,
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getEffectIcon(selectedEffect),
+                      size: 32,
+                      color: currentTheme.primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    ProText(
+                      'Effect',
+                      textStyle: TextStyle(
+                        color: currentTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: currentTheme.primaryColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFontSelectorOverlay(BuildContext context) {
+    final double bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bool shouldShow = _eventNameFocusNode.hasFocus && bottomInset > 0;
+
+    if (!shouldShow) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned(
+      left: generalAppLevelPadding,
+      right: generalAppLevelPadding,
+      bottom: 0,
+      child: ProCard(
+        applyPadding: false,
+        radius: 20,
+        surfaceTintColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: SizedBox(
+            height: 48,
+            child: ProFontSelector(
+              selectedFont: selectedFont ?? ProFontType.system,
+              onSelected: (font) {
+                setState(() {
+                  selectedFont = font;
+                  event.font = font.toString();
+                });
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   List<Widget> _buildEventOptions() {
     return [
-      ProDateTimePicker(
-          initialValue: event.startDateTime,
-          firstDate: DateTime(2024),
-          lastDate: DateTime(2100),
-          hintText: 'Set date and time',
-          onDateTimeSelected: onSelectDate),
-      const SizedBox(
-        height: generalAppLevelPadding,
-      ),
-      ProTextField(
-        hintText: 'Place name, address or link',
-        initialValue: event.location,
-        onValidationCallback: validateLocationField,
-        onChanged: (value) {
-          event.location = value;
-        },
-        onSaved: (value) {
-          event.location = value.toString().trim();
-        },
-      ),
       ..._buildEditableField('spots', 'Enter number of spots'),
       ..._buildEditableField('costPerSpot', 'Enter cost per spot'),
       ..._buildEditableField(
@@ -455,7 +805,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                   Expanded(
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: theme.theme.colorScheme.secondary,
+                                        color:
+                                            theme.theme.colorScheme.secondary,
                                         borderRadius: const BorderRadius.only(
                                           topRight: Radius.circular(8),
                                         ),
@@ -481,7 +832,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                   Expanded(
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: theme.theme.colorScheme.tertiary ?? theme.theme.colorScheme.inversePrimary,
+                                        color: theme.theme.colorScheme.tertiary,
                                         borderRadius: const BorderRadius.only(
                                           bottomRight: Radius.circular(8),
                                         ),
@@ -499,11 +850,11 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                         theme.name,
                         textStyle: TextStyle(
                           fontSize: 12,
-                          color: selectedTheme == themeType 
-                              ? theme.theme.primaryColor 
+                          color: selectedTheme == themeType
+                              ? theme.theme.primaryColor
                               : Colors.grey[800],
-                          fontWeight: selectedTheme == themeType 
-                              ? FontWeight.bold 
+                          fontWeight: selectedTheme == themeType
+                              ? FontWeight.bold
                               : FontWeight.normal,
                         ),
                         textAlign: TextAlign.center,
@@ -591,7 +942,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: currentTheme.theme.colorScheme.tertiary ?? currentTheme.theme.colorScheme.inversePrimary,
+                                color: currentTheme.theme.colorScheme.tertiary,
                                 borderRadius: const BorderRadius.only(
                                   bottomRight: Radius.circular(4),
                                 ),
@@ -676,7 +1027,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                        color: isSelected
+                            ? Theme.of(context).primaryColor
+                            : Colors.grey,
                         width: isSelected ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -686,14 +1039,20 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                       children: [
                         Icon(
                           _getEffectIcon(effectType),
-                          color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
                         ),
                         const SizedBox(height: 8),
                         ProText(
                           effectType.displayName,
                           textStyle: TextStyle(
-                            color: isSelected ? Theme.of(context).primaryColor : Colors.grey,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? Theme.of(context).primaryColor
+                                : Colors.grey,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -730,355 +1089,129 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         return Icons.favorite;
       case ProEffectType.fall_leaves:
         return Icons.eco;
-        // TODO: Handle this case.
+      // TODO: Handle this case.
     }
   }
 
-  Widget _buildEventNameSection() {
-    // Get the current theme data based on selection
-    final currentTheme = selectedTheme != null 
-        ? ProThemes.themes[selectedTheme]!.theme 
-        : ProThemes.themes[ProThemeType.classic]!.theme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ProTextField(
-          initialValue: event.name,
-          onValidationCallback: validateTitleField,
-          onChanged: (value) {
-            event.name = value;
-          },
-          onSaved: (value) {
-            event.name = value.toString().trim();
-          },
-          style: TextStyle(
-            fontFamily: selectedFont?.fontFamily,
-            fontSize: 24,
-            color: currentTheme.primaryColor,
-          ),
-          textAlign: TextAlign.center,
-          hintText: 'Enter Event Name',
-          hintStyle: TextStyle(
-            fontFamily: selectedFont?.fontFamily,
-            fontSize: 24,
-            color: currentTheme.primaryColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: ProFontSelector(
-            selectedFont: selectedFont?? ProFontType.system,
-            onSelected: (font) {
-              setState(() {
-                selectedFont = font;
-                event.font = font.toString();
-              });
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   bool isKeyboardVisible(BuildContext context) {
-  return MediaQuery.of(context).viewInsets.bottom > 0;
-}
+    return MediaQuery.of(context).viewInsets.bottom > 0;
+  }
 
   Widget buildFormWidget(
     BuildContext context,
   ) {
-    String addOrUpdate = event.id == null ? "New" : "Edit";
-    String titleText = '$addOrUpdate Event';
-
-    // Get the current theme data based on selection
-    final currentTheme = selectedTheme != null ? ProThemes.themes[selectedTheme]!.theme : ProThemes.themes[ProThemeType.classic]!.theme;
+    final ThemeData currentTheme = selectedTheme != null
+        ? ProThemes.themes[selectedTheme]!.theme
+        : Theme.of(context);
+    final ProThemeType themeType = selectedTheme ?? ProThemeType.classic;
+    final ProEffectType effectType = selectedEffect ?? ProEffectType.none;
 
     return Theme(
       data: currentTheme,
       child: ProThemeEffects(
         size: MediaQuery.sizeOf(context),
-        themeType: selectedTheme?? ProThemeType.classic,
-        effectType: selectedEffect?? ProEffectType.none,
+        themeType: themeType,
+        effectType: effectType,
         child: ProScaffold(
-          appBar: AppBar(
-            title: ProText(titleText),
-            backgroundColor: currentTheme.primaryColor,
-            foregroundColor: Colors.white,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                AppRouter.goHome(context);
-              },
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => _submitData(context),
-                child: const ProText(
-                  "Save",
-                  textStyle: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          floatingActionButton: isKeyboardVisible(context) ? null : Column(
-            mainAxisAlignment: MainAxisAlignment.end,
+          floatingActionButton: isKeyboardVisible(context)
+              ? null
+              : _buildFloatingControls(currentTheme),
+          body: Stack(
             children: [
-              // Theme Selection FAB
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
-                    onTap: _openThemeSelector,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+              Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    bottom: (_eventNameFocusNode.hasFocus &&
+                            MediaQuery.of(context).viewInsets.bottom > 0)
+                        ? 260
+                        : generalAppLevelPadding * 4,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildHeroSection(context),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: generalAppLevelPadding,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: generalAppLevelPadding),
+                            ProTextField(
+                              hintText: 'Add a description of your event',
+                              initialValue: event.description,
+                              onValidationCallback: validateDescriptionField,
+                              onChanged: (value) {
+                                event.description = value;
+                              },
+                              onSaved: (value) {
+                                event.description = value.toString().trim();
+                              },
+                              multiline: true,
+                              maxLines: 5,
+                            ),
+                            const SizedBox(height: generalAppLevelPadding),
+                            ..._buildEventOptions(),
+                            ProListItem(
+                              swipeForEditAndDelete: false,
+                              key: const Key('hide-guest-list'),
+                              title: const ProText('Hide Guest List'),
+                              subtitle: const ProText(
+                                'Hide the guest names to RSVP\'d guests',
+                                maxLines: 2,
+                              ),
+                              trailing: Switch(
+                                value: event.isGuestListHidden,
+                                onChanged: (bool selected) {
+                                  setState(() {
+                                    event.isGuestListHidden = selected;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: generalAppLevelPadding / 2),
+                            ProListItem(
+                              key: const Key('hide-guest-count'),
+                              title: const ProText('Hide Guest Count'),
+                              subtitle: const ProText(
+                                'Hide number of guests to RSVP\'d guests',
+                              ),
+                              swipeForEditAndDelete: false,
+                              trailing: Switch(
+                                value: event.isGuestCountHidden,
+                                onChanged: (bool selected) {
+                                  setState(() {
+                                    event.isGuestCountHidden = selected;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
-                            ),
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: currentTheme.primaryColor,
-                                            borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(4),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: currentTheme.colorScheme.secondary,
-                                            borderRadius: const BorderRadius.only(
-                                              topRight: Radius.circular(4),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: currentTheme.colorScheme.surface,
-                                            borderRadius: const BorderRadius.only(
-                                              bottomLeft: Radius.circular(4),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: currentTheme.colorScheme.tertiary ?? currentTheme.colorScheme.inversePrimary,
-                                            borderRadius: const BorderRadius.only(
-                                              bottomRight: Radius.circular(4),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ProText(
-                            'Theme',
-                            textStyle: TextStyle(
-                              color: currentTheme.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.chevron_right,
-                            size: 20,
-                            color: currentTheme.primaryColor,
-                          ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-              // Effects Selection FAB
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  child: InkWell(
-                    onTap: _openEffectSelector,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _getEffectIcon(selectedEffect),
-                            size: 32,
-                            color: currentTheme.primaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          ProText(
-                            'Effect',
-                            textStyle: TextStyle(
-                              color: currentTheme.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.chevron_right,
-                            size: 20,
-                            color: currentTheme.primaryColor,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              _buildFontSelectorOverlay(context),
+              _buildTopActionBar(context),
             ],
           ),
-          body: LayoutBuilder(builder: (context, constraints) {
-            double height = constraints.maxHeight;
-            return Padding(
-              padding: const EdgeInsets.only(
-                  right: generalAppLevelPadding * 2,
-                  left: generalAppLevelPadding * 2),
-              child: Form(
-                  key: _formKey,
-                  child: ProListView(height: height, listItems: [
-                    const SizedBox(
-                      height: generalAppLevelPadding / 2,
-                    ),
-                    _buildEventNameSection(),
-                    const SizedBox(height: generalAppLevelPadding),
-                    _buildEventImage(400),
-                    const SizedBox(height: generalAppLevelPadding),
-                    ProTextField(
-                      hintText: 'Add a description of your event',
-                      initialValue: event.description,
-                      onValidationCallback: validateDescriptionField,
-                      onChanged: (value) {
-                        event.description = value;
-                      },
-                      onSaved: (value) {
-                        event.description = value.toString().trim();
-                      },
-                      multiline: true,
-                      maxLines: 5,
-                    ),
-                    const SizedBox(height: generalAppLevelPadding),
-                    ..._buildEventOptions(),
-                    ProListItem(
-                      swipeForEditAndDelete: false,
-              key: Key('hide-guest-list'),
-              title: const ProText('Hide Guest List'),
-              subtitle: const ProText('Hide the guest names to RSVP\'d guests',
-                  maxLines: 2),
-              trailing: Switch(
-                value: event.isGuestListHidden,
-                onChanged: (bool selected) {
-                  setState(() {
-                    event.isGuestListHidden = selected;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(height: generalAppLevelPadding / 2),
-            ProListItem(
-              key: Key('hide-guest-count'),
-              
-              title: const ProText('Hide Guest Count'),
-              subtitle: const ProText('Hide number of guests to RSVP\'d guests'),
-              swipeForEditAndDelete: false,
-              trailing: Switch(
-                value: event.isGuestCountHidden,
-                onChanged: (bool selected) {
-                  setState(() {
-                    event.isGuestCountHidden = selected;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(height: generalAppLevelPadding * 10),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.end,
-                    //   children: [
-                    //     if (event.id != null &&
-                    //         widget.deleteTransaction != null)
-                    //       IconButton(
-                    //           onPressed: widget.deleteTransaction!,
-                    //           color: const Color.fromARGB(255, 255, 81, 69),
-                    //           icon: const Icon(Icons.delete)),
-                    //   ],
-                    // ),
-                  ])),
-            );
-          }),
         ),
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    _eventNameFocusNode.dispose();
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return FutureBuilder(
         future: _future,
         builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
