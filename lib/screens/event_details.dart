@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +58,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   ProEffectType effectType = ProEffectType.none;
   CookiesService cookiesService = AppFactory().cookiesService;
   Color? _gradientColor;
+  List<Color> _gradientColors = [Colors.black, Colors.black, Colors.black];
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0.0;
 
@@ -285,9 +285,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         children: [
           ProText(
             receivedEvent.name,
-            color: eventTheme != null
-                ? eventTheme!.colorScheme.primary
-                : Theme.of(context).colorScheme.primary,
+            color: Colors.white,
             textStyle: TextStyle(
               fontFamily: receivedEvent.font != null
                   ? ProFontType.values
@@ -299,6 +297,13 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   : null,
               fontSize: 32,
               fontWeight: FontWeight.bold,
+              shadows: [
+                Shadow(
+                  offset: Offset(0, 2),
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.3),
+                ),
+              ],
             ),
             maxLines: 3,
             textAlign: TextAlign.center,
@@ -307,12 +312,20 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.access_time, size: 20),
+              const Icon(Icons.access_time, size: 20, color: Colors.white),
               const SizedBox(width: 8),
               ProText(
                 receivedEvent.formattedStartDateTime,
+                color: Colors.white,
                 textStyle: const TextStyle(
                   fontSize: 18,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 3,
+                      color: Colors.black26,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -322,10 +335,22 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.location_on, size: 20),
+              const Icon(Icons.location_on, size: 20, color: Colors.white),
               const SizedBox(width: 8),
-              ProText(receivedEvent.location!,
-                  textStyle: const TextStyle(fontSize: 18)),
+              ProText(
+                receivedEvent.location!,
+                color: Colors.white,
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 3,
+                      color: Colors.black26,
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ]],
@@ -352,30 +377,104 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  LinearGradient _buildHeroGradient(Event receivedEvent) {
-    ProThemeType? selectedTheme = null;
-
-    if (receivedEvent.theme != null) {
-      selectedTheme = ProThemeType.values.firstWhere(
-      (type) => type.toString() == receivedEvent.theme,
-      orElse: () => ProThemeType.classic,
-    );
+  Gradient _buildHeroGradient(Event receivedEvent) {
+    // Apply gradient only at the bottom 25% of the image for text readability
+    // Keep the rest of the image completely transparent and visible
+    if (_gradientColors.length >= 3) {
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          Colors.transparent,
+          Colors.transparent,
+          Colors.transparent,
+          _gradientColors[1].withOpacity(0.4),
+          _gradientColors[2].withOpacity(0.9),
+          _gradientColors[2].withOpacity(1),
+        ],
+        stops: const [0.0, 0.6, 0.65, 0.7, 0.75, 0.8, 1.0],
+      );
+    } else if (_gradientColors.length == 2) {
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          Colors.transparent,
+          Colors.transparent,
+          _gradientColors[0].withOpacity(0.3),
+          _gradientColors[1].withOpacity(0.6),
+          _gradientColors[1].withOpacity(0.75),
+        ],
+        stops: const [0.0, 0.75, 0.85, 0.9, 0.95, 1.0],
+      );
+    } else {
+      // Fallback to single color
+      final gradientColor = _gradientColor ?? Colors.black;
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          Colors.transparent,
+          Colors.transparent,
+          gradientColor.withOpacity(0.4),
+          gradientColor.withOpacity(0.6),
+          gradientColor.withOpacity(0.75),
+        ],
+        stops: const [0.0, 0.75, 0.85, 0.9, 0.95, 1.0],
+      );
     }
+  }
 
-    final themeColor = selectedTheme != null
-        ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background
-        : Theme.of(context).colorScheme.background;
-    return LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        themeColor.withOpacity(0.1),
-        themeColor.withOpacity(0.85),
-        themeColor,
-        themeColor,
-      ],
-      stops: const [0.55, 0.8, 0.9, 1.0],
-    );
+  Gradient _buildFullScreenGradient() {
+    // Use extracted multiple colors from image, making them more vibrant and lively
+    // Using radial gradient for a more dynamic, organic flow
+    if (_gradientColors.length >= 3) {
+      // Create a radial gradient that flows from top to bottom
+      return RadialGradient(
+        center: Alignment.topCenter,
+        radius: 1.5,
+        colors: [
+          _gradientColors[0].withOpacity(0.6), // Lighter at top
+          _gradientColors[1].withOpacity(0.75), // Merge point with hero gradient
+          _gradientColors[1].withOpacity(0.85),
+          _gradientColors[2].withOpacity(0.9),
+          _gradientColors[2].withOpacity(0.95),
+          _gradientColors[2], // Full vibrant color at edges
+        ],
+        stops: const [0.0, 0.2, 0.4, 0.65, 0.85, 1.0],
+      );
+    } else if (_gradientColors.length == 2) {
+      return RadialGradient(
+        center: Alignment.topCenter,
+        radius: 1.5,
+        colors: [
+          _gradientColors[0].withOpacity(0.6), // Lighter at top
+          _gradientColors[0].withOpacity(0.75), // Merge point
+          _gradientColors[0].withOpacity(0.85),
+          _gradientColors[1].withOpacity(0.9),
+          _gradientColors[1], // Full vibrant color
+        ],
+        stops: const [0.0, 0.3, 0.5, 0.75, 1.0],
+      );
+    } else {
+      // Fallback to single color - make it more vibrant
+      final gradientColor = _gradientColor ?? Colors.black;
+      return RadialGradient(
+        center: Alignment.topCenter,
+        radius: 1.5,
+        colors: [
+          gradientColor.withOpacity(0.6), // Lighter at top
+          gradientColor.withOpacity(0.75), // Merge point
+          gradientColor.withOpacity(0.85),
+          gradientColor.withOpacity(0.92),
+          gradientColor, // Full vibrant color
+        ],
+        stops: const [0.0, 0.3, 0.55, 0.8, 1.0],
+      );
+    }
   }
 
   Widget buildHeroImageAndContent(receivedEvent, height, width) {
@@ -410,6 +509,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           left: generalAppLevelPadding, right: generalAppLevelPadding),
       child: ProCard(
         elevation: 10,
+        surfaceTintColor: Colors.white.withOpacity(0.1),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -427,7 +527,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: generalAppLevelPadding),
+            const SizedBox(height: generalAppLevelPadding),      
+            
             ProText(
               textAlign: TextAlign.center,
               receivedEvent.description!,
@@ -491,56 +592,62 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             size: Size(width, height),
             child: ProScaffold(
                 iosAppLink: IOS_APP_STORE_LINK,
-                body: Stack(children: [
-                  SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      children: [
-                        buildHeroImageAndContent(
-                            receivedEvent, height * 0.6, width),
-                        const SizedBox(height: generalAppLevelPadding),
-                        if (receivedEvent.description != null &&
-                            receivedEvent.description != "")
-                          buildEventDetails(receivedEvent, constraints),
-                        // Event content
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: generalAppLevelPadding,
-                              right: generalAppLevelPadding,
-                              top: generalAppLevelPadding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // _buildEventInformation(
-                              if (receivedEvent.attendees != null &&
-                                  receivedEvent
-                                          .getAttendeesByRsvpStatus(
-                                              RSVPStatus.GOING)
-                                          .length >
-                                      0 &&
-                                  receivedEvent
-                                          .getAttendeesByRsvpStatus(
-                                              RSVPStatus.MAYBE)
-                                          .length >
-                                      0 &&
-                                  !receivedEvent.isGuestListHidden) ...[
-                                const SizedBox(
-                                    height: generalAppLevelPadding * 1.5),
-                                _buildGuestList(receivedEvent, context),
-                              ],
-                              SizedBox(height: generalAppLevelPadding),
-                              
-                            ],
-                          ),
-                        ),
-                        buildCommentSection(receivedEvent),
-                              SizedBox(height: generalAppLevelPadding * 10),
-                      ],
-                    ),
+                backgroundColor: _gradientColor ?? Colors.black,
+                body: Container(
+                  decoration: BoxDecoration(
+                    gradient: _buildFullScreenGradient(),
                   ),
-                  buildNavigationButtons(receivedEvent),
-                ]),
+                  child: Stack(children: [
+                    SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        children: [
+                          buildHeroImageAndContent(
+                              receivedEvent, height * 0.7, width),
+                          const SizedBox(height: generalAppLevelPadding),
+                          if (receivedEvent.description != null &&
+                              receivedEvent.description != "")
+                            buildEventDetails(receivedEvent, constraints),
+                          // Event content
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: generalAppLevelPadding,
+                                right: generalAppLevelPadding,
+                                top: 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // _buildEventInformation(
+                                if (receivedEvent.attendees != null &&
+                                    receivedEvent
+                                            .getAttendeesByRsvpStatus(
+                                                RSVPStatus.GOING)
+                                            .length >
+                                        0 &&
+                                    receivedEvent
+                                            .getAttendeesByRsvpStatus(
+                                                RSVPStatus.MAYBE)
+                                            .length >
+                                        0 &&
+                                    !receivedEvent.isGuestListHidden) ...[
+                                  const SizedBox(
+                                      height: generalAppLevelPadding * 1.5),
+                                  _buildGuestList(receivedEvent, context),
+                                ],
+                                SizedBox(height: generalAppLevelPadding),
+                                
+                              ],
+                            ),
+                          ),
+                          buildCommentSection(receivedEvent),
+                                SizedBox(height: generalAppLevelPadding * 10),
+                        ],
+                      ),
+                    ),
+                    buildNavigationButtons(receivedEvent),
+                  ]),
+                ),
                 floatingActionButton: receivedEvent
                         .isHostedByMe(cookiesService.locallyAvailableUserInfo)
                     ? buildActionButtonForHosts(context, receivedEvent)
@@ -876,6 +983,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                               top: generalAppLevelPadding),
       child: ProCard(
         elevation: 10,
+        surfaceTintColor: Colors.white.withOpacity(0.1),
           child: Column(children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -953,6 +1061,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
 
   void _initializeGradient(Event? eventData) {
     if (eventData != null && eventData.imageUrl.isNotEmpty) {
+      // Extract multiple colors for gradient
+      extractMultipleColorsFromImage(eventData.imageUrl, mounted, colorCount: 3).then((colors) {
+        setState(() {
+          _gradientColors = colors;
+          _gradientColor = colors.isNotEmpty ? colors.last : Colors.black;
+        });
+      });
+      // Also extract single color for backward compatibility
       extractGradientFromImage(eventData.imageUrl, mounted).then((value) {
         setState(() {
           _gradientColor = value;
@@ -961,6 +1077,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     } else {
       setState(() {
         _gradientColor = Colors.black;
+        _gradientColors = [Colors.black, Colors.black, Colors.black];
       });
     }
   }

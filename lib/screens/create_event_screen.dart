@@ -43,8 +43,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ProThemeType? selectedTheme;
   ProEffectType? selectedEffect;
   ProFontType? selectedFont;
-  ThemeData defaultTheme = ProThemes.themes[ProThemeType.autumn]!.theme;
-  ProThemeType defaultThemeType = ProThemeType.autumn;
+  ThemeData defaultTheme = ProThemes.themes[ProThemeType.midnight]!.theme;
+  ProThemeType defaultThemeType = ProThemeType.midnight;
   ProEffectType defaultEffect = ProEffectType.fall_leaves;
   final CookiesService cookiesService = AppFactory().cookiesService;
   late final FocusNode _eventNameFocusNode;
@@ -70,7 +70,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         countryCurrency: cookiesService.locallyStoredCountryCurrency,
         createdAt: DateTime.now().toUtc(),
         updatedAt: DateTime.now().toUtc(),
-        imageUrl: imageService.getRandomImage());
+        imageUrl: imageService.getRandomImage(),
+        effect: defaultEffect.toString(),
+        theme: defaultThemeType.toString());
     _eventNameFocusNode = FocusNode();
     _eventNameFocusNode.addListener(() {
       if (mounted) {
@@ -271,7 +273,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   }
 
   LinearGradient _buildHeroGradient() {
-    final themeColor = selectedTheme != null ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background : defaultTheme.colorScheme.background;
+    final themeColor = selectedTheme != null
+        ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background
+        : defaultTheme.colorScheme.background;
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
@@ -427,9 +431,19 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               event.name = ((value as String?) ?? '').trim();
             },
             textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26, fontFamily: selectedFont?.fontFamily),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 26,
+                fontFamily: selectedFont?.fontFamily),
             hintText: 'Enter Event Name',
-            hintStyle: TextStyle(fontWeight: FontWeight.w500, fontFamily: selectedFont?.fontFamily, color: event.theme != null && ProThemes.themes[event.theme!] != null ? ProThemes.themes[event.theme!]!.theme.colorScheme.onSurface : Colors.grey[600]),
+            hintStyle: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontFamily: selectedFont?.fontFamily,
+                color: event.theme != null &&
+                        ProThemes.themes[event.theme!] != null
+                    ? ProThemes
+                        .themes[event.theme!]!.theme.colorScheme.onSurface
+                    : Colors.grey[600]),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
               vertical: 18,
@@ -450,9 +464,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
             // filled: true,
             // fillColor: Colors.white.withOpacity(0.08),
-      
-            suffixIcon:
-                const Icon(Icons.access_time),
+
+            suffixIcon: const Icon(Icons.access_time),
           ),
           const SizedBox(height: generalAppLevelPadding),
           ProTextField(
@@ -470,8 +483,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             // style: whiteTextStyle,
             hintText: 'Add location or link',
             // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
-            suffixWidget:
-                const Icon(Icons.location_on),
+            suffixWidget: const Icon(Icons.location_on),
             // filled: true,
             // fillColor: Colors.white.withOpacity(0.08),
           ),
@@ -1109,15 +1121,15 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   Widget buildFormWidget(
     BuildContext context,
   ) {
-    final ThemeData currentTheme = selectedTheme != null
-        ? ProThemes.themes[selectedTheme]!.theme
-        : defaultTheme;
+    if (selectedTheme == null) {
+      selectedTheme = defaultThemeType;
+    }
 
     final ProThemeType themeType = selectedTheme ?? defaultThemeType;
     final ProEffectType effectType = selectedEffect ?? defaultEffect;
 
     return Theme(
-      data: currentTheme,
+      data: ProThemes.themes[selectedTheme!]!.theme,
       child: ProThemeEffects(
         size: MediaQuery.sizeOf(context),
         themeType: themeType,
@@ -1125,7 +1137,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         child: ProScaffold(
           floatingActionButton: isKeyboardVisible(context)
               ? null
-              : _buildFloatingControls(currentTheme),
+              : _buildFloatingControls(ProThemes.themes[selectedTheme!]!.theme),
           body: Stack(
             children: [
               Form(
@@ -1153,7 +1165,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                               maxLines: 5,
                               onTap: () async {
                                 FocusScope.of(context).unfocus();
-                                final dynamic result = await openProBottomModalSheet(
+                                final dynamic result =
+                                    await openProBottomModalSheet(
                                   context,
                                   AIEnabledDescription(
                                     event: event,

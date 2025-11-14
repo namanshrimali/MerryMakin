@@ -1,7 +1,6 @@
-import 'dart:async';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
+import '../utils/colors.dart';
 import './pro_text.dart';
 
 enum TextPosition {
@@ -48,98 +47,12 @@ class _ProImageCardState extends State<ProImageCard> {
   }
 
   Future<void> _extractColorFromImage() async {
-    try {
-      final imageProvider = NetworkImage(widget.imageUrl);
-      final imageStream = imageProvider.resolve(ImageConfiguration.empty);
-
-      final completer = Completer<ui.Image?>();
-      late ImageStreamListener listener;
-
-      listener = ImageStreamListener(
-        (ImageInfo info, bool synchronousCall) {
-          completer.complete(info.image);
-          imageStream.removeListener(listener);
-        },
-        onError: (exception, stackTrace) {
-          completer.complete(null);
-          imageStream.removeListener(listener);
-        },
-      );
-
-      imageStream.addListener(listener);
-      final image = await completer.future;
-
-      if (image != null && mounted) {
-        // Sample pixels based on text position
-        final pixelData =
-            await image.toByteData(format: ui.ImageByteFormat.rawRgba);
-        if (pixelData != null) {
-          final bytes = pixelData.buffer.asUint8List();
-          final width = image.width;
-          final height = image.height;
-
-          int sampleStartY;
-          int sampleEndY;
-
-          // Sample from the area where text will be positioned
-          switch (widget.textPosition) {
-            case TextPosition.top:
-              // Sample from top 30% of the image
-              sampleStartY = 0;
-              sampleEndY = (height * 0.3).toInt();
-              break;
-            case TextPosition.center:
-              // Sample from center 30% of the image
-              sampleStartY = (height * 0.35).toInt();
-              sampleEndY = (height * 0.65).toInt();
-              break;
-            case TextPosition.bottom:
-              // Sample from bottom 30% of the image
-              sampleStartY = (height * 0.7).toInt();
-              sampleEndY = height;
-              break;
-          }
-
-          int totalR = 0, totalG = 0, totalB = 0;
-          int sampleCount = 0;
-
-          // Sample pixels in the relevant portion
-          for (int y = sampleStartY; y < sampleEndY; y += 2) {
-            for (int x = 0; x < width; x += 2) {
-              final index = (y * width + x) * 4;
-              if (index + 3 < bytes.length) {
-                totalR += bytes[index];
-                totalG += bytes[index + 1];
-                totalB += bytes[index + 2];
-                sampleCount++;
-              }
-            }
-          }
-
-          if (sampleCount > 0 && mounted) {
-            // Darken the color slightly to ensure text readability
-            final avgR = (totalR / sampleCount).round();
-            final avgG = (totalG / sampleCount).round();
-            final avgB = (totalB / sampleCount).round();
-
-            setState(() {
-              _gradientColor = Color.fromRGBO(
-                (avgR * 0.7).round().clamp(0, 255),
-                (avgG * 0.7).round().clamp(0, 255),
-                (avgB * 0.7).round().clamp(0, 255),
-                1.0,
-              );
-            });
-          }
-        }
-      }
-    } catch (e) {
-      // If extraction fails, use default dark color
-      if (mounted) {
-        setState(() {
-          _gradientColor = Colors.black;
-        });
-      }
+    // Use the improved color extraction from colors.dart
+    final color = await extractGradientFromImage(widget.imageUrl, mounted);
+    if (mounted) {
+      setState(() {
+        _gradientColor = color;
+      });
     }
   }
 
@@ -162,14 +75,13 @@ class _ProImageCardState extends State<ProImageCard> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.transparent,
-            Colors.transparent,
-            gradientColor.withOpacity(0.3),
-            gradientColor.withOpacity(0.3),
-            Colors.transparent,
-            Colors.transparent,
+                        gradientColor,
+                                    gradientColor.withOpacity(0.9),
+
+
+            gradientColor.withOpacity(0.7),
           ],
-          stops: const [0.0, 0.35, 0.45, 0.55, 0.65, 1.0],
+          stops: const [0.0, 0.5, 1.0],
         );
       case TextPosition.bottom:
         return LinearGradient(
@@ -180,8 +92,9 @@ class _ProImageCardState extends State<ProImageCard> {
             Colors.transparent,
             gradientColor.withOpacity(0.3),
             gradientColor.withOpacity(0.7),
+            gradientColor.withOpacity(0.85),
           ],
-          stops: const [0.0, 0.5, 0.75, 1.0],
+          stops: const [0.0, 0.5, 0.7, 0.85, 1.0],
         );
     }
   }
@@ -260,7 +173,7 @@ class _ProImageCardState extends State<ProImageCard> {
           ),
           child: LayoutBuilder(builder: (context, constraints) {
             final effectiveHeight = widget.imageHeight ?? 200.0;
-            final gradientColor = _gradientColor ?? Colors.black;
+            final gradientColor = _gradientColor ?? Theme.of(context).colorScheme.primary;
 
             return ClipRRect(
               borderRadius: BorderRadius.circular(widget.radius),

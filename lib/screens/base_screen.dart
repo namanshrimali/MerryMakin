@@ -83,10 +83,12 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                 });
 
           if (cookiesService.currentUser == null) {
-            AppRouter.goToLogin(context);
+            return const MerryMakinWelcomeScreen();
           }
           if (cookiesService.currentUser!.givenName == null ||
-              cookiesService.currentUser!.givenName == "") {
+              cookiesService.currentUser!.givenName == "" ||
+              cookiesService.currentUser!.firstRegistered.isAfter(
+                  DateTime.now().subtract(const Duration(minutes: 5)))) {
             return AddOrEditUser(
                 sprylyService: SprylyServices.MerryMakin.name,
                 cookiesService: cookiesService,

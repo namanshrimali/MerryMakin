@@ -36,38 +36,126 @@ Future<Color> extractGradientFromImage(String imageUrl, mounted) async {
         final width = image.width;
         final height = image.height;
 
-        // Sample from bottom 30% of the image where text will be positioned
-        final sampleStartY = (height * 0.7).toInt();
+        // Sample from bottom 40% of the image where text will be positioned
+        final sampleStartY = (height * 0.6).toInt();
         final sampleEndY = height;
 
         int totalR = 0, totalG = 0, totalB = 0;
         int sampleCount = 0;
+        int vibrantR = 0, vibrantG = 0, vibrantB = 0;
+        int vibrantCount = 0;
+        int brightR = 0, brightG = 0, brightB = 0;
+        int brightCount = 0;
 
         // Sample pixels in the bottom portion
         for (int y = sampleStartY; y < sampleEndY; y += 2) {
           for (int x = 0; x < width; x += 2) {
             final index = (y * width + x) * 4;
             if (index + 3 < bytes.length) {
-              totalR += bytes[index];
-              totalG += bytes[index + 1];
-              totalB += bytes[index + 2];
+              final r = bytes[index];
+              final g = bytes[index + 1];
+              final b = bytes[index + 2];
+              
+              // Calculate brightness
+              final brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+              final saturation = _calculateSaturation(r, g, b);
+              
+              totalR += r;
+              totalG += g;
+              totalB += b;
               sampleCount++;
+
+              // Prefer bright, vibrant colors (brightness > 100, saturation > 0.2)
+              if (brightness > 100 && saturation > 0.2) {
+                brightR += r;
+                brightG += g;
+                brightB += b;
+                brightCount++;
+                
+                // Even better: very bright and vibrant colors
+                if (brightness > 130 && saturation > 0.3) {
+                  vibrantR += r;
+                  vibrantG += g;
+                  vibrantB += b;
+                  vibrantCount++;
+                }
+              }
             }
           }
         }
 
         if (sampleCount > 0 && mounted) {
-          // Darken the color slightly to ensure text readability
-          final avgR = (totalR / sampleCount).round();
-          final avgG = (totalG / sampleCount).round();
-          final avgB = (totalB / sampleCount).round();
+          int finalR, finalG, finalB;
+          
+          // Prioritize: very bright vibrant > bright vibrant > average (but brightened)
+          if (vibrantCount > 0) {
+            // Use very bright, vibrant colors
+            finalR = (vibrantR / vibrantCount).round();
+            finalG = (vibrantG / vibrantCount).round();
+            finalB = (vibrantB / vibrantCount).round();
+            
+            // Enhance saturation for more vibrant look
+            final avgBrightness = (finalR + finalG + finalB) / 3;
+            finalR = ((finalR - avgBrightness) * 1.3 + avgBrightness).round().clamp(0, 255);
+            finalG = ((finalG - avgBrightness) * 1.25 + avgBrightness).round().clamp(0, 255);
+            finalB = ((finalB - avgBrightness) * 1.1 + avgBrightness).round().clamp(0, 255);
+          } else if (brightCount > 0) {
+            // Use bright colors
+            finalR = (brightR / brightCount).round();
+            finalG = (brightG / brightCount).round();
+            finalB = (brightB / brightCount).round();
+            
+            // Enhance saturation
+            final avgBrightness = (finalR + finalG + finalB) / 3;
+            finalR = ((finalR - avgBrightness) * 1.25 + avgBrightness).round().clamp(0, 255);
+            finalG = ((finalG - avgBrightness) * 1.2 + avgBrightness).round().clamp(0, 255);
+            finalB = ((finalB - avgBrightness) * 1.05 + avgBrightness).round().clamp(0, 255);
+          } else {
+            // Fallback: use average but brighten significantly
+            finalR = (totalR / sampleCount).round();
+            finalG = (totalG / sampleCount).round();
+            finalB = (totalB / sampleCount).round();
+            
+            // Brighten significantly to avoid dark colors
+            finalR = (finalR * 1.4).round().clamp(0, 255);
+            finalG = (finalG * 1.35).round().clamp(0, 255);
+            finalB = (finalB * 1.3).round().clamp(0, 255);
+            
+            // Boost saturation
+            final avgBrightness = (finalR + finalG + finalB) / 3;
+            finalR = ((finalR - avgBrightness) * 1.2 + avgBrightness).round().clamp(0, 255);
+            finalG = ((finalG - avgBrightness) * 1.15 + avgBrightness).round().clamp(0, 255);
+            finalB = ((finalB - avgBrightness) * 1.05 + avgBrightness).round().clamp(0, 255);
+          }
 
-          return Color.fromRGBO(
-            (avgR * 0.7).round().clamp(0, 255),
-            (avgG * 0.7).round().clamp(0, 255),
-            (avgB * 0.7).round().clamp(0, 255),
-            1.0,
-          );
+          // Ensure colors are always bright and lively (minimum brightness: 140)
+          final brightness = (finalR * 0.299 + finalG * 0.587 + finalB * 0.114);
+          if (brightness < 140) {
+            // Boost to ensure minimum brightness of 140
+            final boost = (140 - brightness) / brightness;
+            finalR = (finalR * (1 + boost * 0.8)).round().clamp(0, 255);
+            finalG = (finalG * (1 + boost * 0.8)).round().clamp(0, 255);
+            finalB = (finalB * (1 + boost * 0.8)).round().clamp(0, 255);
+          } else if (brightness > 220) {
+            // Slightly tone down very bright colors but keep them vibrant
+            finalR = (finalR * 0.95).round().clamp(0, 255);
+            finalG = (finalG * 0.95).round().clamp(0, 255);
+            finalB = (finalB * 0.95).round().clamp(0, 255);
+          }
+          
+          // Final check: ensure we have a bright, lively color
+          final finalBrightness = (finalR * 0.299 + finalG * 0.587 + finalB * 0.114);
+          if (finalBrightness < 140) {
+            final boost = (150 - finalBrightness) / finalBrightness;
+            finalR = (finalR * (1 + boost)).round().clamp(0, 255);
+            finalG = (finalG * (1 + boost)).round().clamp(0, 255);
+            finalB = (finalB * (1 + boost)).round().clamp(0, 255);
+          }
+
+          // Extract bright color first, then darken it for gradient backgrounds
+          final brightColor = Color.fromRGBO(finalR, finalG, finalB, 1.0);
+          // Darken to appropriate level for white text readability
+          return _darkenForGradient(brightColor, targetBrightness: 100.0);
         } 
       }
     }
@@ -75,4 +163,324 @@ Future<Color> extractGradientFromImage(String imageUrl, mounted) async {
     return Colors.black;
   }
   return Colors.black;
+}
+
+double _calculateSaturation(int r, int g, int b) {
+  final max = r > g ? (r > b ? r : b) : (g > b ? g : b);
+  final min = r < g ? (r < b ? r : b) : (g < b ? g : b);
+  if (max == 0) return 0.0;
+  return (max - min) / max;
+}
+
+/// Darkens a bright color to an appropriate level for gradient backgrounds
+/// while maintaining its hue and saturation characteristics for white text readability
+Color _darkenForGradient(Color brightColor, {double targetBrightness = 100.0}) {
+  final r = brightColor.red;
+  final g = brightColor.green;
+  final b = brightColor.blue;
+  
+  // Calculate current brightness
+  final currentBrightness = (r * 0.299 + g * 0.587 + b * 0.114);
+  
+  // If already dark enough, return as is (but ensure it's not too dark)
+  if (currentBrightness <= targetBrightness && currentBrightness >= 70) {
+    return brightColor;
+  }
+  
+  // Calculate how much to darken
+  double darkenFactor;
+  if (currentBrightness > targetBrightness) {
+    // Need to darken
+    darkenFactor = targetBrightness / currentBrightness;
+  } else {
+    // Too dark, lighten slightly but keep it dark enough for contrast
+    darkenFactor = (targetBrightness * 0.9) / currentBrightness;
+  }
+  
+  // Apply darkening while preserving color characteristics
+  // Use a mix of darkening and desaturation to maintain vibrancy
+  final newR = (r * darkenFactor * 0.85).round().clamp(0, 255);
+  final newG = (g * darkenFactor * 0.85).round().clamp(0, 255);
+  final newB = (b * darkenFactor * 0.85).round().clamp(0, 255);
+  
+  // Ensure minimum brightness for visibility (not pure black)
+  final newBrightness = (newR * 0.299 + newG * 0.587 + newB * 0.114);
+  if (newBrightness < 70) {
+    final boost = 70 / newBrightness;
+    return Color.fromRGBO(
+      (newR * boost).round().clamp(0, 255),
+      (newG * boost).round().clamp(0, 255),
+      (newB * boost).round().clamp(0, 255),
+      1.0,
+    );
+  }
+  
+  return Color.fromRGBO(newR, newG, newB, 1.0);
+}
+
+Future<List<Color>> extractMultipleColorsFromImage(String imageUrl, mounted, {int colorCount = 3}) async {
+  if (imageUrl.isEmpty) {
+    return List.generate(colorCount, (_) => Colors.black);
+  }
+  try {
+    final imageProvider = NetworkImage(imageUrl);
+    final imageStream = imageProvider.resolve(ImageConfiguration.empty);
+
+    final completer = Completer<ui.Image?>();
+    late ImageStreamListener listener;
+
+    listener = ImageStreamListener(
+      (ImageInfo info, bool synchronousCall) {
+        completer.complete(info.image);
+        imageStream.removeListener(listener);
+      },
+      onError: (exception, stackTrace) {
+        completer.complete(null);
+        imageStream.removeListener(listener);
+      },
+    );
+
+    imageStream.addListener(listener);
+    final image = await completer.future;
+
+    if (image != null && mounted) {
+      final pixelData =
+          await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      if (pixelData != null) {
+        final bytes = pixelData.buffer.asUint8List();
+        final width = image.width;
+        final height = image.height;
+
+        // Sample from different regions of the image for dominant color extraction
+        final regions = [
+          {'startY': 0, 'endY': (height * 0.33).toInt(), 'name': 'top'}, // Top third
+          {'startY': (height * 0.33).toInt(), 'endY': (height * 0.66).toInt(), 'name': 'middle'}, // Middle third
+          {'startY': (height * 0.66).toInt(), 'endY': height, 'name': 'bottom'}, // Bottom third
+        ];
+
+        final List<Map<String, dynamic>> colorBuckets = [];
+        
+        for (final region in regions) {
+          final sampleStartY = region['startY'] as int;
+          final sampleEndY = region['endY'] as int;
+          
+          int totalR = 0, totalG = 0, totalB = 0;
+          int sampleCount = 0;
+          int vibrantR = 0, vibrantG = 0, vibrantB = 0;
+          int vibrantCount = 0;
+          int brightR = 0, brightG = 0, brightB = 0;
+          int brightCount = 0;
+          // Use a color frequency map to find truly dominant colors in this region
+          final Map<String, Map<String, int>> dominantColorMap = {};
+
+          // Sample pixels in this region
+          for (int y = sampleStartY; y < sampleEndY; y += 3) {
+            for (int x = 0; x < width; x += 3) {
+              final index = (y * width + x) * 4;
+              if (index + 3 < bytes.length) {
+                final r = bytes[index];
+                final g = bytes[index + 1];
+                final b = bytes[index + 2];
+                
+                // Calculate brightness
+                final brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+                final saturation = _calculateSaturation(r, g, b);
+                
+                totalR += r;
+                totalG += g;
+                totalB += b;
+                sampleCount++;
+
+                // Prefer bright, vibrant colors (brightness > 100, saturation > 0.2)
+                if (brightness > 100 && saturation > 0.2) {
+                  brightR += r;
+                  brightG += g;
+                  brightB += b;
+                  brightCount++;
+                  
+                  // Track dominant colors by quantizing to reduce color space
+                  // Quantize to 16 levels per channel for dominant color detection
+                  final quantizedR = (r ~/ 16) * 16;
+                  final quantizedG = (g ~/ 16) * 16;
+                  final quantizedB = (b ~/ 16) * 16;
+                  final colorKey = '$quantizedR,$quantizedG,$quantizedB';
+                  
+                  if (!dominantColorMap.containsKey(colorKey)) {
+                    dominantColorMap[colorKey] = {'r': 0, 'g': 0, 'b': 0, 'count': 0};
+                  }
+                  dominantColorMap[colorKey]!['r'] = (dominantColorMap[colorKey]!['r'] as int) + r;
+                  dominantColorMap[colorKey]!['g'] = (dominantColorMap[colorKey]!['g'] as int) + g;
+                  dominantColorMap[colorKey]!['b'] = (dominantColorMap[colorKey]!['b'] as int) + b;
+                  dominantColorMap[colorKey]!['count'] = (dominantColorMap[colorKey]!['count'] as int) + 1;
+                  
+                  // Even better: very bright and vibrant colors
+                  if (brightness > 130 && saturation > 0.3) {
+                    vibrantR += r;
+                    vibrantG += g;
+                    vibrantB += b;
+                    vibrantCount++;
+                  }
+                }
+              }
+            }
+          }
+
+          if (sampleCount > 0) {
+            int finalR, finalG, finalB;
+            
+            // Try to use dominant colors from the region if available
+            if (dominantColorMap.isNotEmpty) {
+              // Sort by frequency to get most dominant colors
+              final sortedDominant = dominantColorMap.entries.toList()
+                ..sort((a, b) => (b.value['count'] as int).compareTo(a.value['count'] as int));
+              
+              // Use the most dominant bright color
+              final mostDominant = sortedDominant.first;
+              final dominantR = (mostDominant.value['r'] as int) ~/ (mostDominant.value['count'] as int);
+              final dominantG = (mostDominant.value['g'] as int) ~/ (mostDominant.value['count'] as int);
+              final dominantB = (mostDominant.value['b'] as int) ~/ (mostDominant.value['count'] as int);
+              
+              final dominantBrightness = (dominantR * 0.299 + dominantG * 0.587 + dominantB * 0.114);
+              
+              // Use dominant color if it's bright enough
+              if (dominantBrightness > 100) {
+                finalR = dominantR;
+                finalG = dominantG;
+                finalB = dominantB;
+              } else {
+                // Fall through to vibrant/bright extraction
+                if (vibrantCount > 0) {
+                  finalR = (vibrantR / vibrantCount).round();
+                  finalG = (vibrantG / vibrantCount).round();
+                  finalB = (vibrantB / vibrantCount).round();
+                } else if (brightCount > 0) {
+                  finalR = (brightR / brightCount).round();
+                  finalG = (brightG / brightCount).round();
+                  finalB = (brightB / brightCount).round();
+                } else {
+                  finalR = (totalR / sampleCount).round();
+                  finalG = (totalG / sampleCount).round();
+                  finalB = (totalB / sampleCount).round();
+                  finalR = (finalR * 1.4).round().clamp(0, 255);
+                  finalG = (finalG * 1.35).round().clamp(0, 255);
+                  finalB = (finalB * 1.3).round().clamp(0, 255);
+                }
+              }
+            } else {
+              // Prioritize: very bright vibrant > bright vibrant > average (but brightened)
+              if (vibrantCount > 0) {
+                // Use very bright, vibrant colors
+                finalR = (vibrantR / vibrantCount).round();
+                finalG = (vibrantG / vibrantCount).round();
+                finalB = (vibrantB / vibrantCount).round();
+                
+                // Enhance saturation more aggressively for lively, fun colors
+                final avgBrightness = (finalR + finalG + finalB) / 3;
+                finalR = ((finalR - avgBrightness) * 1.35 + avgBrightness).round().clamp(0, 255);
+                finalG = ((finalG - avgBrightness) * 1.3 + avgBrightness).round().clamp(0, 255);
+                finalB = ((finalB - avgBrightness) * 1.15 + avgBrightness).round().clamp(0, 255);
+              } else if (brightCount > 0) {
+                // Use bright colors
+                finalR = (brightR / brightCount).round();
+                finalG = (brightG / brightCount).round();
+                finalB = (brightB / brightCount).round();
+                
+                // Enhance saturation and ensure brightness
+                final avgBrightness = (finalR + finalG + finalB) / 3;
+                finalR = ((finalR - avgBrightness) * 1.3 + avgBrightness).round().clamp(0, 255);
+                finalG = ((finalG - avgBrightness) * 1.25 + avgBrightness).round().clamp(0, 255);
+                finalB = ((finalB - avgBrightness) * 1.1 + avgBrightness).round().clamp(0, 255);
+              } else {
+                // Fallback: use average but brighten significantly
+                finalR = (totalR / sampleCount).round();
+                finalG = (totalG / sampleCount).round();
+                finalB = (totalB / sampleCount).round();
+                
+                // Brighten significantly to avoid dark colors
+                finalR = (finalR * 1.4).round().clamp(0, 255);
+                finalG = (finalG * 1.35).round().clamp(0, 255);
+                finalB = (finalB * 1.3).round().clamp(0, 255);
+                
+                // Boost saturation
+                final avgBrightness = (finalR + finalG + finalB) / 3;
+                finalR = ((finalR - avgBrightness) * 1.25 + avgBrightness).round().clamp(0, 255);
+                finalG = ((finalG - avgBrightness) * 1.2 + avgBrightness).round().clamp(0, 255);
+                finalB = ((finalB - avgBrightness) * 1.1 + avgBrightness).round().clamp(0, 255);
+              }
+            }
+
+            // Ensure colors are always bright and lively (minimum brightness: 140)
+            final brightness = (finalR * 0.299 + finalG * 0.587 + finalB * 0.114);
+            if (brightness < 140) {
+              // Boost to ensure minimum brightness of 140
+              final boost = (140 - brightness) / brightness;
+              finalR = (finalR * (1 + boost * 0.8)).round().clamp(0, 255);
+              finalG = (finalG * (1 + boost * 0.8)).round().clamp(0, 255);
+              finalB = (finalB * (1 + boost * 0.8)).round().clamp(0, 255);
+            } else if (brightness > 220) {
+              // Slightly tone down very bright colors but keep them vibrant
+              finalR = (finalR * 0.95).round().clamp(0, 255);
+              finalG = (finalG * 0.95).round().clamp(0, 255);
+              finalB = (finalB * 0.95).round().clamp(0, 255);
+            }
+            
+            // Final check: ensure we have a bright, lively color (target: 140-200 range)
+            final finalBrightness = (finalR * 0.299 + finalG * 0.587 + finalB * 0.114);
+            if (finalBrightness < 140) {
+              final boost = (150 - finalBrightness) / finalBrightness;
+              finalR = (finalR * (1 + boost)).round().clamp(0, 255);
+              finalG = (finalG * (1 + boost)).round().clamp(0, 255);
+              finalB = (finalB * (1 + boost)).round().clamp(0, 255);
+            }
+
+            colorBuckets.add({
+              'r': finalR,
+              'g': finalG,
+              'b': finalB,
+              'region': region['name'] as String,
+            });
+          }
+        }
+
+        if (colorBuckets.isNotEmpty && mounted) {
+          // Sort by region (top to bottom) and return colors
+          colorBuckets.sort((a, b) {
+            final order = {'top': 0, 'middle': 1, 'bottom': 2};
+            return (order[a['region'] as String] ?? 0).compareTo(order[b['region'] as String] ?? 0);
+          });
+
+          // Extract bright colors first, then darken them for gradients
+          final brightColors = colorBuckets
+              .take(colorCount)
+              .map((bucket) => Color.fromRGBO(
+                    bucket['r'] as int,
+                    bucket['g'] as int,
+                    bucket['b'] as int,
+                    1.0,
+                  ))
+              .toList();
+
+          // If we have fewer colors than requested, duplicate the last one
+          while (brightColors.length < colorCount) {
+            brightColors.add(brightColors.isNotEmpty ? brightColors.last : Colors.black);
+          }
+
+          // Darken colors for gradient backgrounds (darker shades for white text readability)
+          // Use slightly different target brightness for variety
+          final darkenedColors = brightColors.asMap().entries.map((entry) {
+            final index = entry.key;
+            final brightColor = entry.value;
+            // Vary target brightness slightly for gradient depth (90-110 range)
+            final targetBrightness = 90.0 + (index * 10.0 / (colorCount - 1).clamp(1, colorCount));
+            return _darkenForGradient(brightColor, targetBrightness: targetBrightness);
+          }).toList();
+
+          return darkenedColors;
+        }
+      }
+    }
+  } catch (e) {
+    // Return default colors
+  }
+  return List.generate(colorCount, (_) => Colors.black);
 }
