@@ -1,4 +1,3 @@
-import 'package:characters/characters.dart';
 import 'package:flutter/widgets.dart';
 
 typedef TypingStatusChanged = void Function(bool isTyping);

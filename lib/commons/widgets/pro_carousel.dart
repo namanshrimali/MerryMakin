@@ -25,7 +25,7 @@ class _ProCarouselState extends State<ProCarousel> {
       children: [
         SizedBox(
           height: widget.height,
-          child: PageView.builder(
+          child: widget.items.length == 1 ? widget.items[0] : PageView.builder(
             padEnds: widget.padEnds,
             controller: PageController(viewportFraction: widget.viewportFraction ?? 1),
             itemCount: widget.items.length,

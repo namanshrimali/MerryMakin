@@ -38,7 +38,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen> {
   }
 
   void _initializeRandomTheme() {
-    _currentTheme = ProThemeType.values.where((theme) => theme != ProThemeType.classic && theme != ProThemeType.midnight).toList()[_random.nextInt(ProThemeType.values.length - 1)];
+    _currentTheme = ProThemeType.values.where((theme) => theme != ProThemeType.classic && theme != ProThemeType.midnight).toList()[_random.nextInt(ProThemeType.values.length - 2)];
     _currentEffectType = ProEffectType.values[_random.nextInt(ProEffectType.values.length)];
   }
 
@@ -102,6 +102,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen> {
                       userService: AppFactory().userService,
                       sprylyService: SprylyServices.MerryMakin.name,
                     ),
+                    const SizedBox(height: generalAppLevelPadding * 3),
                   ],
                 ),
               ),

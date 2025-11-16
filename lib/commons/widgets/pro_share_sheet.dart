@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:merrymakin/commons/models/event.dart';
+import 'package:merrymakin/commons/utils/constants.dart';
+import 'package:merrymakin/commons/utils/share_utils.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
+import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/user.dart';
 import '../service/user_service.dart';
@@ -109,27 +113,9 @@ class _ProShareSheetState extends State<ProShareSheet> {
 
   void _copyLink() {
     Clipboard.setData(ClipboardData(text: widget.link));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Link copied to clipboard')),
-    );
-    widget.onShare();
-  }
-
-  Future<void> _shareCurrentView() async {
-    switch (currentPage) {
-      case 0: // Link view
-      //   Share.share(
-      //     'Join me at ${widget.sanitizedMessage}!\nRSVP here: ${widget.link}',
-      //     subject: 'RSVP to ${widget.sanitizedMessage}',
-      //   );
-      //   break;
-      case 1: // Surface background image
-        await _shareImage(shareImage);
-        break;
-      case 2: // Primary background image
-        await _shareImage(primaryShareImage);
-        break;
-    }
+    Navigator.of(context).pop();
+    
+    widget.onShare('Link copied to clipboard');
   }
 
   Future<void> _shareImage(ui.Image? image) async {
@@ -148,6 +134,7 @@ class _ProShareSheetState extends State<ProShareSheet> {
         text: '${widget.sanitizedMessage} ${widget.link}',
         subject: 'RSVP to ${widget.sanitizedMessage}',
       );
+      Navigator.of(context).pop();
     } catch (e) {
       Share.share(
         '${widget.sanitizedMessage} ${widget.link}',
@@ -161,46 +148,34 @@ class _ProShareSheetState extends State<ProShareSheet> {
       padding: const EdgeInsets.only(right: 8.0),
       child: GestureDetector(
         onTap: () => setState(() => selectedImage = image),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: selectedImage == image
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey.withOpacity(0.3),
-              width: selectedImage == image ? 3 : 1,
-            ),
-          ),
-          child: Center(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(11),
-                  child: RawImage(
-                    image: image,
-                    fit: BoxFit.contain,
-                  ),
+        child: Center(
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(11),
+                child: RawImage(
+                  image: image,
+                  fit: BoxFit.contain,
                 ),
-                if (selectedImage == image)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+              ),
+              // if (selectedImage == image)
+              //   Positioned(
+              //     top: 8,
+              //     right: 8,
+              //     child: Container(
+              //       padding: const EdgeInsets.all(4),
+              //       decoration: BoxDecoration(
+              //         color: Theme.of(context).primaryColor,
+              //         shape: BoxShape.circle,
+              //       ),
+              //       child: const Icon(
+              //         Icons.check,
+              //         size: 20,
+              //         color: Colors.black,
+              //       ),
+              //     ),
+              //   ),
+            ],
           ),
         ),
       ),
@@ -211,29 +186,38 @@ class _ProShareSheetState extends State<ProShareSheet> {
     return ProPrimaryButton(
       const ProText(
         'Share',
-        textStyle: TextStyle(color: Colors.white),
       ),
       isBig: true,
       onPressed: () => _shareImage(selectedImage),
     );
   }
 
+  Widget _buildCopyToClipboardButton() {
+    return ProOutlinedButton(
+      child: ProText(
+        'Copy to Clipboard',
+      ),
+      isBig: true,
+      onPressed: () => _copyLink(),
+    );
+  }
+
   Widget _buildShareOptions() {
     final shareOptions = [
-      // (Icons.whatsapp, 'WhatsApp', () => ShareUtils.shareToWhatsApp(
-      //   'Join me at ${widget.sanitizedMessage}!',
-      //   widget.link,
-      // )),
-      // (Icons.message, 'Messages', () => ShareUtils.shareToMessages(
-      //   'Join me at ${widget.sanitizedMessage}!',
-      //   widget.link,
-      // )),
-      // (Icons.email, 'Email', () => ShareUtils.shareViaEmail(
-      //   subject: 'RSVP to ${widget.sanitizedMessage}',
-      //   message: 'Join me at ${widget.sanitizedMessage}!',
-      //   link: widget.link,
-      // )),
-      // (Icons.copy, 'Copy Link', _copyLink),
+      (Icons.messenger, 'WhatsApp', () => ShareUtils.shareToWhatsApp(
+        'Join me at ${widget.sanitizedMessage}!',
+        widget.link,
+      )),
+      (Icons.message, 'Messages', () => ShareUtils.shareToMessages(
+        'Join me at ${widget.sanitizedMessage}!',
+        widget.link,
+      )),
+      (Icons.email, 'Email', () => ShareUtils.shareViaEmail(
+        subject: 'RSVP to ${widget.sanitizedMessage}',
+        message: 'Join me at ${widget.sanitizedMessage}!',
+        link: widget.link,
+      )),
+      (Icons.copy, 'Copy Link', _copyLink),
     ];
 
     return Row(
@@ -253,7 +237,7 @@ class _ProShareSheetState extends State<ProShareSheet> {
     final height = MediaQuery.of(context).size.height;
 
     return Container(
-      height: height * 0.7,
+      height: height * 0.8,
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -265,9 +249,10 @@ class _ProShareSheetState extends State<ProShareSheet> {
             ),
           ),
           const ProText(
-            'Select a flyer to share with your socials',
+            'Post to your socials or share the link',
           ),
-          const SizedBox(height: 16),
+                    const Spacer(),
+
           ProCarousel(
             height: height * 0.5,
             viewportFraction: 0.8,
@@ -279,13 +264,15 @@ class _ProShareSheetState extends State<ProShareSheet> {
             },
             items: [
               if (shareImage != null) _buildSelectableImage(shareImage),
-              if (primaryShareImage != null) _buildSelectableImage(primaryShareImage),
+              // if (primaryShareImage != null) _buildSelectableImage(primaryShareImage),
             ],
           ),
           const Spacer(),
+          // const SizedBox(height: generalAppLevelPadding),
           _buildShareButton(),
-          const SizedBox(height: 8),
-          _buildShareOptions(),
+          const SizedBox(height: generalAppLevelPadding),
+          _buildCopyToClipboardButton(),
+          // _buildShareOptions(),
         ],
       ),
     );

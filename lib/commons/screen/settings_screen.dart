@@ -47,7 +47,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       onTap: () {
         openProBottomModalSheet(
             context,
-            titleText: "Update currency for all transactions",
             UpdateCurrency(
               cookiesService: widget.cookiesService,
               onUpdate: (CountryCurrency countryCurrency) {},

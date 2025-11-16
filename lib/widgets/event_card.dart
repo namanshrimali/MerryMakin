@@ -46,10 +46,10 @@ class EventCard extends StatelessWidget {
     } else {
       RSVPStatus rsvpStatus = event.getRsvpStatusForUser(user);
       if (event.hasEventEnded()) {
-        icon = Icon(rsvpStatus.getDisplayForPastInfo().$1);
+        icon = Icon(rsvpStatus.getDisplayForPastInfo().$1, color: Colors.white);
         text = rsvpStatus.getDisplayForPastInfo().$2;
       } else {
-        icon = Icon(rsvpStatus.getDisplayInfo().$1);
+        icon = Icon(rsvpStatus.getDisplayInfo().$1, color: Colors.white);
         text = rsvpStatus.getDisplayInfo().$2;
       }
     }

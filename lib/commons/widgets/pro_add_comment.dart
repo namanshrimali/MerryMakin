@@ -45,9 +45,9 @@ class _ProAddCommentState extends State<ProAddComment> {
               onChanged: (value) {
                 if (value != null && value.isNotEmpty) {
                   comment = Comment(
-                    comment: value,
-                    user: widget.user!,
-                    createdAt: DateTime.now().toUtc());
+                      comment: value,
+                      user: widget.user!,
+                      createdAt: DateTime.now().toUtc());
                 }
               },
               initialValue: comment == null ? '' : comment!.comment,
@@ -59,11 +59,11 @@ class _ProAddCommentState extends State<ProAddComment> {
               },
               keyboardType: TextInputType.multiline,
               onSaved: (value) {
-                if (value != null && value.isNotEmpty) { 
+                if (value != null && value.isNotEmpty) {
                   comment = Comment(
-                    comment: value,
-                    user: widget.user!,
-                    createdAt: DateTime.now().toUtc());
+                      comment: value,
+                      user: widget.user!,
+                      createdAt: DateTime.now().toUtc());
                 }
               },
               autofocus: true,

@@ -192,6 +192,7 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
           ),
           if (!kIsWeb && Platform.isIOS)
             SizedBox(height: generalAppLevelPadding,),
+          if (!kIsWeb && Platform.isIOS)
             SocialSignInButton.apple(
             label: 'Continue with Apple',
             onPressed: _signInWithApple,

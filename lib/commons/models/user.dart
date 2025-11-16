@@ -85,7 +85,7 @@ class User {
   }
 
   List<String> getInitials() {
-    return [givenName![0], familyName![0]];
+    return [givenName?[0] ?? '', familyName?[0] ?? ''];
   }
 
   String getFirstAndLastName() {

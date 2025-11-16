@@ -96,13 +96,13 @@ String getMonthName(int monthIndex) {
 }
 
 String getDayName(int dayIndex) {
-  final days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  return days[dayIndex];
+  final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',];
+  return days[dayIndex - 1];
 }
 
 String getSmallDayName(int dayIndex) {
-  final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return days[dayIndex];
+  final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', ];
+  return days[dayIndex - 1];
 }
 
 int getMonthsTillDate(DateTime selectedDate) {

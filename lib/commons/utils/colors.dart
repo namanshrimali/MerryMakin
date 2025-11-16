@@ -178,43 +178,22 @@ Color _darkenForGradient(Color brightColor, {double targetBrightness = 100.0}) {
   final r = brightColor.red;
   final g = brightColor.green;
   final b = brightColor.blue;
-  
+
   // Calculate current brightness
   final currentBrightness = (r * 0.299 + g * 0.587 + b * 0.114);
-  
-  // If already dark enough, return as is (but ensure it's not too dark)
-  if (currentBrightness <= targetBrightness && currentBrightness >= 70) {
+
+  // Only darken colors that are too bright for white text; never lighten or clamp to black
+  if (currentBrightness <= targetBrightness) {
     return brightColor;
   }
-  
-  // Calculate how much to darken
-  double darkenFactor;
-  if (currentBrightness > targetBrightness) {
-    // Need to darken
-    darkenFactor = targetBrightness / currentBrightness;
-  } else {
-    // Too dark, lighten slightly but keep it dark enough for contrast
-    darkenFactor = (targetBrightness * 0.9) / currentBrightness;
-  }
-  
-  // Apply darkening while preserving color characteristics
-  // Use a mix of darkening and desaturation to maintain vibrancy
-  final newR = (r * darkenFactor * 0.85).round().clamp(0, 255);
-  final newG = (g * darkenFactor * 0.85).round().clamp(0, 255);
-  final newB = (b * darkenFactor * 0.85).round().clamp(0, 255);
-  
-  // Ensure minimum brightness for visibility (not pure black)
-  final newBrightness = (newR * 0.299 + newG * 0.587 + newB * 0.114);
-  if (newBrightness < 70) {
-    final boost = 70 / newBrightness;
-    return Color.fromRGBO(
-      (newR * boost).round().clamp(0, 255),
-      (newG * boost).round().clamp(0, 255),
-      (newB * boost).round().clamp(0, 255),
-      1.0,
-    );
-  }
-  
+
+  // Darken proportionally towards the target brightness
+  final double darkenFactor = (targetBrightness / currentBrightness).clamp(0.0, 1.0);
+
+  final newR = (r * darkenFactor).round().clamp(0, 255);
+  final newG = (g * darkenFactor).round().clamp(0, 255);
+  final newB = (b * darkenFactor).round().clamp(0, 255);
+
   return Color.fromRGBO(newR, newG, newB, 1.0);
 }
 
@@ -462,7 +441,7 @@ Future<List<Color>> extractMultipleColorsFromImage(String imageUrl, mounted, {in
 
           // If we have fewer colors than requested, duplicate the last one
           while (brightColors.length < colorCount) {
-            brightColors.add(brightColors.isNotEmpty ? brightColors.last : Colors.black);
+            brightColors.add(brightColors.isNotEmpty ? brightColors.last : (brightColors.isNotEmpty ? brightColors.last : Colors.black));
           }
 
           // Darken colors for gradient backgrounds (darker shades for white text readability)
@@ -483,4 +462,163 @@ Future<List<Color>> extractMultipleColorsFromImage(String imageUrl, mounted, {in
     // Return default colors
   }
   return List.generate(colorCount, (_) => Colors.black);
+}
+
+/// Returns three colors: dominant colors from the top, middle, and bottom sections of the image.
+/// Order: [topDominant, middleDominant, bottomDominant]
+Future<List<Color>> extractSectionDominantColors(String imageUrl, bool mounted) async {
+  const int sections = 3;
+  final List<Color> fallback = List.generate(sections, (_) => Colors.black);
+  if (imageUrl.isEmpty) return fallback;
+  try {
+    final imageProvider = NetworkImage(imageUrl);
+    final imageStream = imageProvider.resolve(ImageConfiguration.empty);
+
+    final completer = Completer<ui.Image?>();
+    late ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (ImageInfo info, bool synchronousCall) {
+        completer.complete(info.image);
+        imageStream.removeListener(listener);
+      },
+      onError: (exception, stackTrace) {
+        completer.complete(null);
+        imageStream.removeListener(listener);
+      },
+    );
+    imageStream.addListener(listener);
+
+    final image = await completer.future;
+    if (image == null || !mounted) return fallback;
+
+    final pixelData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    if (pixelData == null) return fallback;
+
+    final bytes = pixelData.buffer.asUint8List();
+    final width = image.width;
+    final height = image.height;
+
+    // Define top, middle, bottom thirds
+    final regions = [
+      {'startY': 0, 'endY': (height * 0.33).toInt()}, // top
+      {'startY': (height * 0.33).toInt(), 'endY': (height * 0.66).toInt()}, // middle
+      {'startY': (height * 0.66).toInt(), 'endY': height}, // bottom
+    ];
+
+    final List<Color> results = [];
+
+    for (final region in regions) {
+      final int startY = region['startY'] as int;
+      final int endY = region['endY'] as int;
+
+      // Quantized color histogram (16 levels per channel)
+      final Map<String, Map<String, int>> histogram = {};
+
+      // Sample every 3px to keep it fast
+      for (int y = startY; y < endY; y += 3) {
+        for (int x = 0; x < width; x += 3) {
+          final index = (y * width + x) * 4;
+          if (index + 3 >= bytes.length) continue;
+          final r = bytes[index];
+          final g = bytes[index + 1];
+          final b = bytes[index + 2];
+
+          // Quantize to reduce noise and group similar colors
+          final qr = (r ~/ 16) * 16;
+          final qg = (g ~/ 16) * 16;
+          final qb = (b ~/ 16) * 16;
+          final key = '$qr,$qg,$qb';
+
+          histogram.putIfAbsent(key, () => {'r': 0, 'g': 0, 'b': 0, 'count': 0});
+          histogram[key]!['r'] = (histogram[key]!['r'] as int) + r;
+          histogram[key]!['g'] = (histogram[key]!['g'] as int) + g;
+          histogram[key]!['b'] = (histogram[key]!['b'] as int) + b;
+          histogram[key]!['count'] = (histogram[key]!['count'] as int) + 1;
+        }
+      }
+
+      if (histogram.isEmpty) {
+        // Reuse previous color if possible; avoid adding black
+        results.add(results.isNotEmpty ? results.last : Colors.black);
+        continue;
+      }
+
+      // Choose the most frequent quantized bucket, but avoid duplicates with already selected colors
+      final entries = histogram.entries.toList()
+        ..sort((a, b) => (b.value['count'] as int).compareTo(a.value['count'] as int));
+
+      Color? selectedColor;
+      // RGB distance threshold to consider colors "too similar"
+      const int similarityThreshold = 35;
+
+      for (final entry in entries) {
+        final bucket = entry.value;
+        final count = (bucket['count'] as int).clamp(1, 1 << 30);
+        final avgR = (bucket['r'] as int) ~/ count;
+        final avgG = (bucket['g'] as int) ~/ count;
+        final avgB = (bucket['b'] as int) ~/ count;
+        final candidate = Color.fromRGBO(
+          avgR.clamp(0, 255),
+          avgG.clamp(0, 255),
+          avgB.clamp(0, 255),
+          1.0,
+        );
+
+        bool isDistinct = true;
+        for (final existing in results) {
+          final dr = (candidate.red - existing.red).abs();
+          final dg = (candidate.green - existing.green).abs();
+          final db = (candidate.blue - existing.blue).abs();
+          // Use max channel distance as a cheap distinctness metric
+          final maxDelta = [dr, dg, db].reduce((a, b) => a > b ? a : b);
+          if (maxDelta < similarityThreshold) {
+            isDistinct = false;
+            break;
+          }
+        }
+        if (isDistinct) {
+          selectedColor = candidate;
+          break;
+        }
+      }
+
+      // If all buckets are similar, fall back to the very top bucket
+      selectedColor ??= () {
+        final bucket = entries.first.value;
+        final count = (bucket['count'] as int).clamp(1, 1 << 30);
+        final avgR = (bucket['r'] as int) ~/ count;
+        final avgG = (bucket['g'] as int) ~/ count;
+        final avgB = (bucket['b'] as int) ~/ count;
+        return Color.fromRGBO(
+          avgR.clamp(0, 255),
+          avgG.clamp(0, 255),
+          avgB.clamp(0, 255),
+          1.0,
+        );
+      }();
+
+      results.add(selectedColor);
+    }
+
+    // Ensure exactly three colors
+    while (results.length < sections) {
+      results.add(results.isNotEmpty ? results.last : (results.isNotEmpty ? results.last : Colors.black));
+    }
+    if (results.length > sections) {
+      results.removeRange(sections, results.length);
+    }
+
+    // Darken only overly bright colors for readability
+    final List<Color> adjusted = results.asMap().entries.map((entry) {
+      // Slight variation by section can add depth if used in gradients
+      final int index = entry.key;
+      final Color c = entry.value;
+      final double target = 100.0 + (index * 5); // 100, 105, 110
+      return _darkenForGradient(c, targetBrightness: target);
+    }).toList();
+
+    return adjusted;
+  } catch (e) {
+    return fallback;
+  }
 }

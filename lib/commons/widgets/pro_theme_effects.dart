@@ -83,7 +83,7 @@ class _ProThemeEffectsState extends State<ProThemeEffects>
         random.nextDouble() * widget.size.height,
       ),
       size: 10 + random.nextDouble() * 20,
-      speed: 1 + random.nextDouble(),
+      speed: 5 + random.nextDouble(),
       angle: random.nextDouble() * pi * 2,
     );
   }

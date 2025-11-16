@@ -46,11 +46,6 @@ class ProListItem extends StatelessWidget {
           ProCircularProgressBarIndicator(
             value: showCircularProgressBarWithProgress!,
           ),
-        const SizedBox(
-          width: generalAppLevelPadding,
-        ),
-        // if (onTap != null)
-        // const Icon(Icons.arrow_forward_ios, size: 12),
       ],
     );
   }
@@ -66,6 +61,7 @@ class ProListItem extends StatelessWidget {
       onTap: onTap,
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
+      // titleAlignment: ListTileTitleAlignment.top,
     );
   }
 

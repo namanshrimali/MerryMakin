@@ -46,14 +46,13 @@ Future<Event?> findEventWithId(final String eventId) async {
 
 Future<void> rsvpForEvent(
   final Event event,
+  final List<String> plusOnes,
   final RSVPStatus rsvpStatus,
-  final User? user,
 ) {
-  if (user == null || user.id == null) {
-    return Future.error('Please login to RSVP');
-  }
 
-  return eventsApi.sendRsvpForEvent(event.id!, rsvpStatus).then((response) {
+  return eventsApi.sendRsvpForEvent(event.id!, plusOnes, rsvpStatus).then((response) {
+    print(response.statusCode);
+    print(response.body);
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to RSVP: ${response.body}, ${response.statusCode}');
@@ -67,6 +66,15 @@ Future<void> addCommentToEvent(
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to Comment: ${response.body}, ${response.statusCode}');
+    }
+  });
+}
+
+Future<void> deleteCommentFromEvent(final Event event, final Comment comment, BuildContext context) {
+  return eventsApi.deleteCommentFromEventApi(event.id!, comment.id!).then((response) {
+    if (response.statusCode != 200) {
+      return Future.error(
+          'Failed to delete comment: ${response.body}, ${response.statusCode}');
     }
   });
 }

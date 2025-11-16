@@ -21,6 +21,7 @@ import 'package:merrymakin/commons/widgets/pro_image_picker.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart';
+import 'package:merrymakin/utils/event_gradient_helper.dart';
 import 'package:merrymakin/widgets/ai_enabled_description.dart';
 import '../commons/service/cookie_service.dart';
 import '../commons/widgets/pro_font_selector.dart';
@@ -108,6 +109,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       event.theme = selectedTheme.toString();
+      event.updatedAt = DateTime.now();
 
       addOrUpdateEvent(event, context).then((dbReturnedEvent) {
         if (dbReturnedEvent != null) {
@@ -285,111 +287,11 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     );
   }
 
-  Gradient _buildHeroGradient() {
-    // Apply gradient only at the bottom 25% of the image for text readability
-    // Keep the rest of the image completely transparent and visible
-    if (_gradientColors.length >= 3) {
-      return LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.transparent,
-          _gradientColors[1].withOpacity(0.4),
-          _gradientColors[2].withOpacity(0.9),
-          _gradientColors[2].withOpacity(1),
-        ],
-        stops: const [0.5, 0.55, 0.8, 1.0],
-      );
-    } else if (_gradientColors.length == 2) {
-      return LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.transparent,
-          Colors.transparent,
-          Colors.transparent,
-          _gradientColors[0].withOpacity(0.3),
-          _gradientColors[1].withOpacity(0.6),
-          _gradientColors[1].withOpacity(0.75),
-        ],
-        stops: const [0.0, 0.75, 0.8, 0.9, 0.95, 1.0],
-      );
-    } else {
-      // Fallback to single color
-      final gradientColor = _gradientColor ?? Colors.black;
-      return LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.transparent,
-          Colors.transparent,
-          Colors.transparent,
-          gradientColor.withOpacity(0.4),
-          gradientColor.withOpacity(0.6),
-          gradientColor.withOpacity(0.75),
-        ],
-        stops: const [0.0, 0.75, 0.7, 0.9, 0.95, 1.0],
-      );
-    }
-  }
-
-  Gradient _buildFullScreenGradient() {
-    // Background gradient starts with same colors as hero overlay gradient at bottom
-    // Then continues to evolve after the image area for seamless blending
-    if (_gradientColors.length >= 3) {
-      // Start with hero gradient's bottom colors, then evolve
-      return LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          _gradientColors[1].withOpacity(0.4), // Match hero gradient at 0.75 stop
-          _gradientColors[2].withOpacity(0.9), // Match hero gradient at 0.8 stop
-          _gradientColors[2].withOpacity(1), // Match hero gradient at 1.0 stop (seamless transition)
-          _gradientColors[2].withOpacity(0.95), // Continue evolving
-          _gradientColors[1].withOpacity(0.9), // Transition to second color
-          // _gradientColors[0].withOpacity(0.9), // Loop back - first color at bottom
-        ],
-        stops: const [0.0, 0.05, 0.1, 0.7, 1.0],
-      );
-    } else if (_gradientColors.length == 2) {
-      return LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          _gradientColors[0].withOpacity(0.3), // Match hero gradient at 0.9 stop
-          _gradientColors[1].withOpacity(0.6), // Match hero gradient at 0.95 stop
-          _gradientColors[1].withOpacity(0.75), // Match hero gradient at 1.0 stop (seamless transition)
-          _gradientColors[1].withOpacity(0.85), // Continue evolving
-          _gradientColors[1].withOpacity(0.9),
-          _gradientColors[0].withOpacity(0.85), // Transition to first color
-          _gradientColors[0].withOpacity(0.9), // Loop back - first color at bottom
-        ],
-        stops: const [0.0, 0.05, 0.1, 0.3, 0.5, 0.75, 1.0],
-      );
-    } else {
-      // Fallback to single color - match hero gradient then evolve
-      final gradientColor = _gradientColor ?? Colors.black;
-      return LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          gradientColor.withOpacity(0.4), // Match hero gradient at 0.9 stop
-          gradientColor.withOpacity(0.6), // Match hero gradient at 0.95 stop
-          gradientColor.withOpacity(0.75), // Match hero gradient at 1.0 stop (seamless transition)
-          gradientColor.withOpacity(0.85), // Continue evolving
-          gradientColor.withOpacity(0.92),
-          gradientColor.withOpacity(0.95), // Loop back at bottom
-        ],
-        stops: const [0.0, 0.05, 0.1, 0.4, 0.7, 1.0],
-      );
-    }
-  }
-
   void _initializeGradient() {
     if (event.imageUrl.isNotEmpty && event.imageUrl != _lastImageUrl) {
       _lastImageUrl = event.imageUrl;
       // Extract multiple colors for gradient
-      extractMultipleColorsFromImage(event.imageUrl, mounted, colorCount: 3).then((colors) {
+      extractSectionDominantColors(event.imageUrl, mounted,).then((colors) {
         if (mounted && event.imageUrl == _lastImageUrl) {
           setState(() {
             _gradientColors = colors;
@@ -438,7 +340,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                gradient: _buildHeroGradient(),
+                gradient: buildHeroGradient(_gradientColors),
               ),
             ),
           ),
@@ -804,7 +706,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
       child: ProCard(
         applyPadding: false,
         radius: 20,
-        surfaceTintColor: Colors.white,
+        surfaceTintColor: Colors.black.withOpacity(0.1),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: SizedBox(
@@ -1013,7 +915,6 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           const SizedBox(height: 16),
         ],
       ),
-      titleText: 'Select Theme',
     );
   }
 
@@ -1265,20 +1166,26 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           backgroundColor: _gradientColor ?? Colors.black,
           body: Container(
             decoration: BoxDecoration(
-              gradient: _buildFullScreenGradient(),
+              gradient: buildFullScreenGradient(_gradientColors),
             ),
             child: Stack(
               children: [
                 Form(
                   key: _formKey,
-                  child: SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    bottom: (_eventNameFocusNode.hasFocus &&
-                            MediaQuery.of(context).viewInsets.bottom > 0)
-                        ? 260
-                        : generalAppLevelPadding * 4,
-                  ),
-                  child: Column(
+                  child: GestureDetector(
+                    onTap: () {
+                      // Dismiss keyboard when tapping outside text fields
+                      FocusScope.of(context).unfocus();
+                    },
+                    behavior: HitTestBehavior.translucent,
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.only(
+                        bottom: (_eventNameFocusNode.hasFocus &&
+                                MediaQuery.of(context).viewInsets.bottom > 0)
+                            ? 260
+                            : generalAppLevelPadding * 4,
+                      ),
+                      child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       _buildHeroSection(context),
@@ -1297,11 +1204,15 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                 final dynamic result =
                                     await openProBottomModalSheet(
                                   context,
+                                  isFullScreen: true,
                                   AIEnabledDescription(
                                     event: event,
                                     controller: _descriptionController,
+                                    initialDressCodeSelection: event.dressCode,
+                                    initialFoodSelections: event.foodSituation?.split(','),
                                   ),
                                 );
+                                FocusScope.of(context).unfocus();
                                 if (!mounted) {
                                   return;
                                 }
@@ -1316,10 +1227,11 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                       ),
                                     );
                                     event.description = trimmed;
+                                    
                                   });
                                 }
                               },
-                              hintText: 'Tap to let AI do the talking 🤖✨',
+                              hintText: 'Tap and let AI write your party description! 🤖✨',
                               textEditingController: _descriptionController,
                               onValidationCallback: validateDescriptionField,
                               onChanged: (value) {
@@ -1368,11 +1280,12 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                           ],
                         ),
                       ),
-                      SizedBox(height: generalAppLevelPadding * 10),
+                      SizedBox(height: generalAppLevelPadding * 5),
                     ],
                   ),
+                    ),
+                  ),
                 ),
-              ),
               _buildFontSelectorOverlay(context),
               _buildTopActionBar(context),
             ],

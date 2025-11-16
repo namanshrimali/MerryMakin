@@ -13,7 +13,7 @@ class AIEnabledDescription extends StatefulWidget {
   final ValueChanged<String>? onDescriptionChanged;
   final TextEditingController? controller;
   final List<String>? initialFoodSelections;
-  final List<String>? initialDressCodeSelections;
+  final String? initialDressCodeSelection;
 
   const AIEnabledDescription({
     super.key,
@@ -21,7 +21,7 @@ class AIEnabledDescription extends StatefulWidget {
     this.onDescriptionChanged,
     this.controller,
     this.initialFoodSelections,
-    this.initialDressCodeSelections,
+    this.initialDressCodeSelection,
   });
 
   @override
@@ -50,7 +50,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
   late final AiTypingEngine _typingEngine;
 
   final Set<String> _selectedFood = <String>{};
-  final Set<String> _selectedDress = <String>{};
+  String? _selectedDress = null;
 
   bool _isTyping = false;
   bool _pendingContextRefresh = false;
@@ -89,11 +89,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
   }
 
   void _hydrateSelectionsFromEvent() {
-    if (widget.initialFoodSelections != null) {
-      _selectedFood.addAll(
-        widget.initialFoodSelections!.where(_foodOptions.contains),
-      );
-    } else if (widget.event.foodSituation != null &&
+    if (widget.event.foodSituation != null &&
         widget.event.foodSituation!.isNotEmpty) {
       _selectedFood.addAll(
         widget.event.foodSituation!
@@ -103,18 +99,8 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
       );
     }
 
-    if (widget.initialDressCodeSelections != null) {
-      _selectedDress.addAll(
-        widget.initialDressCodeSelections!.where(_dressOptions.contains),
-      );
-    } else if (widget.event.dressCode != null &&
-        widget.event.dressCode!.isNotEmpty) {
-      _selectedDress.addAll(
-        widget.event.dressCode!
-            .split(',')
-            .map((value) => value.trim())
-            .where(_dressOptions.contains),
-      );
+    if (widget.initialDressCodeSelection != null) {
+      _selectedDress = widget.initialDressCodeSelection;
     }
   }
 
@@ -133,7 +119,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     final String? foodLine =
         _selectedFood.isNotEmpty ? _buildFoodLine() : null;
     final String? dressLine =
-        _selectedDress.isNotEmpty ? _buildDressLine() : null;
+        _selectedDress != null && _selectedDress!.isNotEmpty ? _buildDressLine() : null;
 
     _lastFoodLine = foodLine;
     _lastDressLine = dressLine;
@@ -198,18 +184,17 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
           '🕶️ Smart Casual – Sharp, playful, and ready for photos.',
     };
 
-    final List<String> segments = _dressOptions
-        .where(_selectedDress.contains)
-        .map((String option) => descriptions[option] ?? option)
-        .toList();
+    if (_selectedDress == null) {
+      return '';
+    }
 
-    return 'Dress Code: ${segments.join(' ')}';
+    return 'Dress Code: ${descriptions[_selectedDress!] ?? _selectedDress!}';
   }
 
   String _applyEventDetails(String template, Event event) {
-    final String rawLocation = (event.location ?? '').trim();
-    final String location =
-        rawLocation.isNotEmpty ? rawLocation : 'To Be Decided';
+    // final String rawLocation = (event.location ?? '').trim();
+    // final String location =
+    //     rawLocation.isNotEmpty ? rawLocation : 'To Be Decided';
     final String date = _formatDate(event.startDateTime);
     final String time = _formatTime(event.startDateTime);
 
@@ -234,11 +219,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
         .replaceAll(' :', ':')
         .replaceAll(' ;', ';');
 
-    if (filled.isEmpty) {
-      return 'Location: $location';
-    }
-
-    return '$filled\nLocation: $location';
+    return filled;
   }
 
   String _formatDate(DateTime? dateTime) {
@@ -371,7 +352,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     }
 
     String? nextDressLine;
-    if (!_dressLineLockedByUser && _selectedDress.isNotEmpty) {
+    if (!_dressLineLockedByUser && _selectedDress != null && _selectedDress!.isNotEmpty) {
       nextDressLine = _buildDressLine();
       appendContextLine(nextDressLine);
     }
@@ -399,7 +380,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     if (_selectedFood.isEmpty && !_foodLineLockedByUser) {
       _lastFoodLine = null;
     }
-    if (_selectedDress.isEmpty && !_dressLineLockedByUser) {
+    if (_selectedDress == null || _selectedDress!.isEmpty && !_dressLineLockedByUser) {
       _lastDressLine = null;
     }
   }
@@ -419,13 +400,9 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     });
   }
 
-  void _onDressTapped(String value) {
+    void _onDressTapped(String value) {
     setState(() {
-      if (_selectedDress.contains(value)) {
-        _selectedDress.remove(value);
-      } else {
-        _selectedDress.add(value);
-      }
+      _selectedDress = _selectedDress == value ? null : value;
       if (_typingEngine.isTyping) {
         _pendingContextRefresh = true;
       } else {
@@ -441,7 +418,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        _SectionLabel(title: 'Food Situation', theme: theme),
+        ProText('Food Situation', textStyle: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -457,7 +434,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
               .toList(),
         ),
         const SizedBox(height: 20),
-        _SectionLabel(title: 'Dress Code', theme: theme),
+        ProText('Dress Code', textStyle: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -466,22 +443,20 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
               .map(
                 (String option) => FilterChip(
                   label: Text(option),
-                  selected: _selectedDress.contains(option),
+                  selected: _selectedDress == option,
                   onSelected: (_) => _onDressTapped(option),
                 ),
               )
               .toList(),
         ),
         const SizedBox(height: 24),
-        _SectionLabel(title: 'AI Generated Description', theme: theme),
+        ProText('AI Generated Description', textStyle: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         ProTextField(
           textEditingController: _controller,
           multiline: true,
-          maxLines: 8,
+          maxLines: 5,
           hintText: 'Let AI craft your event description...',
-          focusNode: _focusNode,
-          onChanged: (_) => widget.onDescriptionChanged?.call(_controller.text),
         ),
         if (_isTyping) ...<Widget>[
           const SizedBox(height: 12),
@@ -528,28 +503,8 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     widget.event.foodSituation =
         _selectedFood.isEmpty ? null : _selectedFood.join(', ');
     widget.event.dressCode =
-        _selectedDress.isEmpty ? null : _selectedDress.join(', ');
+        _selectedDress == null || _selectedDress!.isEmpty ? null : _selectedDress;
     Navigator.of(context).pop(trimmed);
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  final String title;
-  final ThemeData theme;
-
-  const _SectionLabel({
-    required this.title,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: theme.textTheme.titleSmall?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
-    );
   }
 }
 
@@ -647,73 +602,73 @@ String inferEventType(String eventName) {
 String generateDescription(String eventType, String eventName) {
   switch (eventType) {
     case 'festival:diwali':
-      return 'Celebrate the Festival of Lights! [Event Name] is on [Date] at [Time], at [Location]. Enjoy sweets, lights, and togetherness!';
+      return 'Celebrate the Festival of Lights! [Event Name] is on [Date] at [Time]. Enjoy sweets, lights, and togetherness!';
     case 'festival:holi':
-      return 'Celebrate the Festival of Colors! [Event Name] is on [Date] at [Time], at [Location]. Let’s throw colors and have fun together!';
+      return 'Celebrate the Festival of Colors! [Event Name] is on [Date] at [Time]. Let’s throw colors and have fun together!';
     case 'festival:dussehra':
-      return 'Celebrate the victory of good over evil! [Event Name] is on [Date] at [Time], at [Location]. Let’s join in the festivities!';
+      return 'Celebrate the victory of good over evil! [Event Name] is on [Date] at [Time]. Let’s join in the festivities!';
     case 'festival:raksha_bandhan':
-      return 'Celebrate the bond of siblings! [Event Name] is on [Date] at [Time], at [Location]. Join us for a fun and meaningful celebration!';
+      return 'Celebrate the bond of siblings! [Event Name] is on [Date] at [Time]. Join us for a fun and meaningful celebration!';
     case 'festival:navratri':
-      return 'Join us for nine nights of devotion and dance! [Event Name] is on [Date] at [Time], at [Location]. Celebrate Durga’s triumph!';
+      return 'Join us for nine nights of devotion and dance! [Event Name] is on [Date] at [Time]. Celebrate Durga’s triumph!';
     case 'festival:makar_sankranti':
-      return 'Let’s celebrate the harvest! [Event Name] is on [Date] at [Time], at [Location]. Enjoy sweets, kites, and festive spirit!';
+      return 'Let’s celebrate the harvest! [Event Name] is on [Date] at [Time]. Enjoy sweets, kites, and festive spirit!';
     case 'festival:onam':
-      return 'Celebrate Kerala’s harvest festival! [Event Name] is on [Date] at [Time], at [Location]. Join us for a grand feast and traditional fun!';
+      return 'Celebrate Kerala’s harvest festival! [Event Name] is on [Date] at [Time]. Join us for a grand feast and traditional fun!';
     case 'festival:lohri':
-      return 'Celebrate the harvest in Punjab! [Event Name] is on [Date] at [Time], at [Location]. Let’s gather around the bonfire and celebrate!';
+      return 'Celebrate the harvest in Punjab! [Event Name] is on [Date] at [Time]. Let’s gather around the bonfire and celebrate!';
     case 'festival:ganesh_chaturthi':
-      return 'Celebrate Lord Ganesha’s birthday! [Event Name] is on [Date] at [Time], at [Location]. Join us for prayers, sweets, and a grand procession!';
+      return 'Celebrate Lord Ganesha’s birthday! [Event Name] is on [Date] at [Time]. Join us for prayers, sweets, and a grand procession!';
     case 'festival:janmashtami':
-      return 'Celebrate the birth of Lord Krishna! [Event Name] is on [Date] at [Time], at [Location]. Let’s sing, dance, and worship together!';
+      return 'Celebrate the birth of Lord Krishna! [Event Name] is on [Date] at [Time]. Let’s sing, dance, and worship together!';
     case 'festival:baisakhi':
-      return 'Celebrate the harvest season! [Event Name] is on [Date] at [Time], at [Location]. Enjoy dancing and festive food!';
+      return 'Celebrate the harvest season! [Event Name] is on [Date] at [Time]. Enjoy dancing and festive food!';
     case 'festival:pongal':
-      return 'Celebrate the Tamil harvest festival! [Event Name] is on [Date] at [Time], at [Location]. Enjoy traditional food and vibrant celebrations!';
+      return 'Celebrate the Tamil harvest festival! [Event Name] is on [Date] at [Time]. Enjoy traditional food and vibrant celebrations!';
     case 'festival:christmas':
-      return 'It’s the most wonderful time of the year! [Event Name] is on [Date] at [Time], at [Location]. Join us for holiday cheer and festivities!';
+      return 'It’s the most wonderful time of the year! [Event Name] is on [Date] at [Time]. Join us for holiday cheer and festivities!';
     case 'festival:easter':
-      return 'Celebrate the resurrection of Christ! [Event Name] is on [Date] at [Time], at [Location]. Come for a joyful celebration and feast!';
+      return 'Celebrate the resurrection of Christ! [Event Name] is on [Date] at [Time]. Come for a joyful celebration and feast!';
     case 'festival:good_friday':
-      return 'Join us in reflection and prayer on Good Friday. [Event Name] is on [Date] at [Time], at [Location]. Let’s honor Christ’s sacrifice.';
+      return 'Join us in reflection and prayer on Good Friday. [Event Name] is on [Date] at [Time]. Let’s honor Christ’s sacrifice.';
     case 'festival:pentecost':
-      return 'Celebrate the coming of the Holy Spirit! [Event Name] is on [Date] at [Time], at [Location]. Join us for this significant Christian holiday!';
+      return 'Celebrate the coming of the Holy Spirit! [Event Name] is on [Date] at [Time]. Join us for this significant Christian holiday!';
     case 'festival:ascension_day':
-      return 'Celebrate the Ascension of Jesus! [Event Name] is on [Date] at [Time], at [Location]. Join us for reflection and celebration!';
+      return 'Celebrate the Ascension of Jesus! [Event Name] is on [Date] at [Time]. Join us for reflection and celebration!';
     case 'festival:all_saints_day':
-      return 'Honor the saints and martyrs! [Event Name] is on [Date] at [Time], at [Location]. Join us for this important Christian observance!';
+      return 'Honor the saints and martyrs! [Event Name] is on [Date] at [Time]. Join us for this important Christian observance!';
     case 'festival:assumption_of_mary':
-      return 'Celebrate the Assumption of Mary into heaven! [Event Name] is on [Date] at [Time], at [Location]. Come for mass and blessings!';
+      return 'Celebrate the Assumption of Mary into heaven! [Event Name] is on [Date] at [Time]. Come for mass and blessings!';
     case 'festival:advent':
-      return 'Prepare for the coming of Christ! [Event Name] is on [Date] at [Time], at [Location]. Join us for this joyful time of anticipation!';
+      return 'Prepare for the coming of Christ! [Event Name] is on [Date] at [Time]. Join us for this joyful time of anticipation!';
     case 'festival:epiphany':
-      return 'Celebrate the visit of the Magi! [Event Name] is on [Date] at [Time], at [Location]. Let’s commemorate the manifestation of Christ!';
+      return 'Celebrate the visit of the Magi! [Event Name] is on [Date] at [Time]. Let’s commemorate the manifestation of Christ!';
     case 'festival:ash_wednesday':
-      return 'Mark the beginning of Lent on Ash Wednesday! [Event Name] is on [Date] at [Time], at [Location]. Join us for reflection and prayer!';
+      return 'Mark the beginning of Lent on Ash Wednesday! [Event Name] is on [Date] at [Time]. Join us for reflection and prayer!';
     case 'holiday:new_year':
-      return 'Celebrate the beginning of the new year! [Event Name] is on [Date] at [Time], at [Location]. Let’s ring in the new year together!';
+      return 'Celebrate the beginning of the new year! [Event Name] is on [Date] at [Time]. Let’s ring in the new year together!';
     case 'holiday:labor_day':
-      return 'Take a break and enjoy Labor Day! [Event Name] is on [Date] at [Time], at [Location]. Let’s relax and celebrate the workers!';
+      return 'Take a break and enjoy Labor Day! [Event Name] is on [Date] at [Time]. Let’s relax and celebrate the workers!';
     case 'holiday:independence_day':
-      return 'Celebrate freedom on Independence Day! [Event Name] is on [Date] at [Time], at [Location]. Join us for fireworks and fun!';
+      return 'Celebrate freedom on Independence Day! [Event Name] is on [Date] at [Time]. Join us for fireworks and fun!';
     case 'holiday:international_day_of_peace':
-      return 'Celebrate peace on International Day of Peace! [Event Name] is on [Date] at [Time], at [Location]. Let’s unite for global harmony!';
+      return 'Celebrate peace on International Day of Peace! [Event Name] is on [Date] at [Time]. Let’s unite for global harmony!';
     case 'holiday:world_environment_day':
-      return 'Join us to protect the planet on World Environment Day! [Event Name] is on [Date] at [Time], at [Location]. Let’s make a difference!';
+      return 'Join us to protect the planet on World Environment Day! [Event Name] is on [Date] at [Time]. Let’s make a difference!';
     case 'holiday:mothers_day':
-      return 'Celebrate mothers everywhere! [Event Name] is on [Date] at [Time], at [Location]. Let’s honor the women who raised us!';
+      return 'Celebrate mothers everywhere! [Event Name] is on [Date] at [Time]. Let’s honor the women who raised us!';
     case 'holiday:fathers_day':
-      return 'Celebrate fathers and father figures! [Event Name] is on [Date] at [Time], at [Location]. Let’s appreciate the dads in our lives!';
+      return 'Celebrate fathers and father figures! [Event Name] is on [Date] at [Time]. Let’s appreciate the dads in our lives!';
     case 'holiday:veterans_day':
-      return 'Honor our veterans! [Event Name] is on [Date] at [Time], at [Location]. Join us for a tribute to those who served!';
+      return 'Honor our veterans! [Event Name] is on [Date] at [Time]. Join us for a tribute to those who served!';
     case 'holiday:thanksgiving':
-      return 'Give thanks this Thanksgiving! [Event Name] is on [Date] at [Time], at [Location]. Let’s gather to enjoy food and gratitude!';
+      return 'Give thanks this Thanksgiving! [Event Name] is on [Date] at [Time]. Let’s gather to enjoy food and gratitude!';
     case 'holiday:halloween':
-      return 'Get spooky this Halloween! [Event Name] is on [Date] at [Time], at [Location]. Come dressed up for fun and treats!';
+      return 'Get spooky this Halloween! [Event Name] is on [Date] at [Time]. Come dressed up for fun and treats!';
     case 'holiday:boxing_day':
-      return 'Celebrate Boxing Day with great sales and fun! [Event Name] is on [Date] at [Time], at [Location]. Let’s enjoy the festivities!';
+      return 'Celebrate Boxing Day with great sales and fun! [Event Name] is on [Date] at [Time]. Let’s enjoy the festivities!';
     case 'holiday:international_womens_day':
-      return 'Celebrate women around the world! [Event Name] is on [Date] at [Time], at [Location]. Join us for a day of empowerment and appreciation!';
+      return 'Celebrate women around the world! [Event Name] is on [Date] at [Time]. Join us for a day of empowerment and appreciation!';
     case 'party':
       return 'Hey! I’m hosting a little get-together on [Date] at [Time] at [Location]. Come by for some fun, good vibes, and maybe a drink or two!';
     case 'birthday':

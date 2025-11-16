@@ -22,6 +22,7 @@ class AddOrEditUser extends ConsumerStatefulWidget {
   final UserService userService;
   final ImageService imageService;
   final String? title;
+  final bool showWarning;
   AddOrEditUser({
     super.key,
     required this.sprylyService,
@@ -29,6 +30,7 @@ class AddOrEditUser extends ConsumerStatefulWidget {
     required this.userService,
     required this.imageService,
     this.title = null,
+    this.showWarning = true,
   });
 
   @override
@@ -50,12 +52,12 @@ class _AddOrEditUserState extends ConsumerState<AddOrEditUser> {
   void _submitData(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
+      AppFactory().cookiesService.finishOnboarding();
       userService.updateUser(user).then((dbReturnedUser) {
         if (dbReturnedUser != null) {
           ref.read(userProvider.notifier).login(dbReturnedUser);
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: ProText("Information updated")));
+          // ScaffoldMessenger.of(context)
+          //     .showSnackBar(SnackBar(content: ProText("Information updated")));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: ProText(
@@ -136,10 +138,7 @@ class _AddOrEditUserState extends ConsumerState<AddOrEditUser> {
           hintText: 'Last name',
         ),
         const SizedBox(height: 8),
-        if (user.givenName != null &&
-            user.givenName != "" &&
-            user.familyName != null &&
-            user.familyName != "")
+        if (widget.showWarning)
           ProText(
               "Your old RSVPs will stick with your previous name, but new invites will show the fresh you!"),
         const SizedBox(height: 8),

@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:merrymakin/commons/models/comment.dart';
+import 'package:merrymakin/commons/utils/date_time.dart';
 import '../models/event_attendee.dart';
 import '../models/event_request_dto.dart';
 import '../models/rsvp.dart';
@@ -204,6 +205,7 @@ class Event {
   }
 
   bool isHostedByMe(final User? user) {
+    // return true;
     if (user == null || user.id == null) {
       return false;
     }
@@ -254,6 +256,13 @@ class Event {
         : 'To Be Decided';
   }
 
+  String get fullFormattedStartDateTime {
+    if (startDateTime == null) {
+      return 'To Be Decided';
+    }
+    return '${getSmallDayName(startDateTime!.weekday)} ${getShortMonthName(startDateTime!.month)} ${startDateTime!.day} · ${startDateTime!.hour % 12}:${startDateTime!.minute.toString().padLeft(2, '0')} ${startDateTime!.hour >= 12 ? 'pm' : 'am'}';
+  }
+
   String _formatDateTime(DateTime dateTime) {
     final now = DateTime.now().toUtc();
     final difference = dateTime.difference(now).inDays;
@@ -272,9 +281,8 @@ class Event {
     }
 
     // Otherwise show full date
-    final month = dateTime.month.toString().padLeft(2, '0');
     final day = dateTime.day.toString().padLeft(2, '0');
-    return '$dayName $month/$day · $hour:$minute$period';
+    return '${getShortMonthName(dateTime.month)} ${day} · $hour:$minute$period';
   }
 
   RSVPStatus getRsvpStatusForUser(final User? user) {
@@ -301,5 +309,47 @@ class Event {
 
   List<Attendee> getAttendeesByRsvpStatus(RSVPStatus rsvpStatus) {
     return attendees!.where((attendee) => attendee.rsvpStatus == rsvpStatus).toList();
+  }
+
+  List<Attendee> getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus rsvpStatus) {
+    List<Attendee> attendeesByRsvpStatus = attendees!.where((attendee) => attendee.rsvpStatus == rsvpStatus).toList();
+    List<Attendee> attendeesWithTheirPlusOnes = [];
+    for (var attendee in attendeesByRsvpStatus) {
+      attendeesWithTheirPlusOnes.add(attendee);
+      if (attendee.plusOnes != null && attendee.plusOnes!.isNotEmpty) {
+        for (var plusOne in attendee.plusOnes!) {
+          final plusOneAttendee = Attendee(user: User(givenName: plusOne, firstRegistered: DateTime.now(), timeStampWhenAuthorized: DateTime.now(), email: '${plusOne}temporary@merrymakin.com'), rsvpStatus: attendee.rsvpStatus, rsvpDate: attendee.rsvpDate);
+          attendeesWithTheirPlusOnes.add(plusOneAttendee);
+        }
+      }
+    }
+    return attendeesWithTheirPlusOnes;
+  }
+
+  List<String> getPlusOneNamesForUser(final User? user) {
+    if (attendees == null || attendees!.isEmpty || user == null || user.id == null) {
+      return [];
+    }
+    final attendee = attendees!.where((attendee) => attendee.user.id == user.id).firstOrNull;
+    if (attendee == null) {
+      return [];
+    }
+    return attendee.plusOnes ?? [];
+  }
+
+  void setRsvpStatusForUser(final User? user, final RSVPStatus rsvpStatus) {
+    if (user == null || user.id == null) {
+      return;
+    }
+    if (attendees == null || attendees!.isEmpty) {
+      attendees = [];
+    }
+    final attendee = attendees!.where((attendee) => attendee.user.id == user.id).firstOrNull;
+    if (attendee != null) {
+      attendees!.remove(attendee);
+    }
+
+    attendees!.add(Attendee(user: user, rsvpStatus: rsvpStatus, rsvpDate: DateTime.now()));
+    updatedAt = DateTime.now().toUtc();
   }
 }

@@ -7,7 +7,6 @@ import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_primary_button.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
-import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
 import 'package:merrymakin/commons/widgets/pro_image_card.dart';
 import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
@@ -219,9 +218,6 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
         context,
         Column(
           children: [
-            SizedBox(
-              height: generalAppLevelPadding,
-            ),
             // Divider(),
             ProListItem(
               key: Key("Upcoming"),
@@ -284,30 +280,55 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
   Widget build(BuildContext context) {
     return ProScaffold(
         appBar: AppBar(
-          title: buildLeadingFilterSelector(),
+          title: Padding(
+            padding: const EdgeInsets.all(generalAppLevelPadding / 2),
+            child: buildLeadingFilterSelector(),
+          ),
           actions: [
-            InkWell(
-                onTap: () {
-                  AppRouter.goToProfile(context);
-                },
-                child: ProUserAvatar(
-                  radius: 24,
-                  user: AppFactory().cookiesService.locallyAvailableUserInfo!,
-                )),
+            Padding(
+              padding: const EdgeInsets.only(right: generalAppLevelPadding / 2, top: generalAppLevelPadding / 2),
+              child: InkWell(
+                  onTap: () {
+                    AppRouter.goToProfile(context);
+                  },
+                  child: ProUserAvatar(
+                    radius: 24,
+                    user: AppFactory().cookiesService.locallyAvailableUserInfo!,
+                  )),
+            ),
             SizedBox(
               width: generalAppLevelPadding,
             )
           ],
         ),
         floatingActionButton: IconButton.filled(
-          icon: Icon(
-            Icons.add,
-            size: 42,
+          padding: EdgeInsets.all(0),
+          icon: SizedBox(
+            width: 56,
+            height: 56,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.purpleAccent,
+                    Colors.blueAccent,
+                  ],
+                ),
+              ),
+              child: Icon(
+                Icons.add,
+                size: 36,
+                color: Colors.white,
+              ),
+            ),
           ),
           onPressed: () {
             AppRouter.goToNewEvent(context);
           },
-        ),
+        ),        
         body: buildEvents(context));
   }
 }

@@ -25,7 +25,7 @@ class ProSegmentedButton<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: segments.map((segment) {
         final bool isSelected =
             selected.any((element) => segment.value == element);

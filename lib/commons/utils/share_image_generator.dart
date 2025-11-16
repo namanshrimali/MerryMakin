@@ -8,8 +8,94 @@ import '../widgets/pro_theme_effects.dart';
 import 'dart:math';
 
 import 'date_time.dart';
+import '../../utils/event_gradient_helper.dart';
+import 'colors.dart';
 
 class ShareImageGenerator {
+
+  static generateDateTimeImage(Event event, Size size, ThemeData theme, bool usePrimaryBackground, Canvas canvas) {
+    final dateTime = event.startDateTime!;
+    final textColor = usePrimaryBackground ? theme.colorScheme.surface : theme.primaryColor;
+    
+    // Format time with AM/PM
+    final hour = dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour;
+    final amPm = dateTime.hour >= 12 ? 'PM' : 'AM';
+    
+    // Calculate section dimensions
+    final sectionWidth = size.width * 0.75;
+    final columnWidth = sectionWidth * 0.33;
+    final columnHeight = size.height * 0.1;
+    final columnTop = size.height * 0.8;
+    final leftOffset = (size.width - sectionWidth) / 2;
+
+    // Helper to paint centered text in a column
+    void paintColumnText(String text, double xOffset, double fontSize, {FontWeight? fontWeight}) {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(
+            color: textColor,
+            fontSize: fontSize,
+            fontWeight: fontWeight ?? FontWeight.normal,
+          ),
+        ),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      );
+      painter.layout(maxWidth: columnWidth);
+      painter.paint(
+        canvas,
+        Offset(
+          leftOffset + xOffset + (columnWidth - painter.width) / 2,
+          columnTop + (columnHeight - painter.height) / 2,
+        ),
+      );
+    }
+
+    // Left column: Day
+    paintColumnText(getDayName(dateTime.weekday), 0, 48, fontWeight: FontWeight.w500);
+
+    // Middle column: Month, Date, Year
+    final middlePainter = TextPainter(
+      text: TextSpan(
+        children: [
+          TextSpan(text: '${getMonthName(dateTime.month)}\n', style: TextStyle(color: textColor, fontSize: 48, fontWeight: FontWeight.w500)),
+          TextSpan(text: '${dateTime.day}\n', style: TextStyle(color: textColor, fontSize: 64)),
+          TextSpan(text: dateTime.year.toString(), style: TextStyle(color: textColor, fontSize: 48)),
+        ],
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+    middlePainter.layout(maxWidth: columnWidth);
+    middlePainter.paint(
+      canvas,
+      Offset(
+        leftOffset + columnWidth + (columnWidth - middlePainter.width) / 2,
+        columnTop + (columnHeight - middlePainter.height) / 2,
+      ),
+    );
+
+    // Right column: Time
+    final timePainter = TextPainter(
+      text: TextSpan(
+        children: [
+          TextSpan(text: '$hour ', style: TextStyle(color: textColor, fontSize: 48)),
+          TextSpan(text: amPm, style: TextStyle(color: textColor, fontSize: 48)),
+        ],
+      ),
+      textAlign: TextAlign.left,
+      textDirection: TextDirection.ltr,
+    );
+    timePainter.layout(maxWidth: columnWidth);
+    timePainter.paint(
+      canvas,
+      Offset(
+        leftOffset + columnWidth * 2 + (columnWidth - timePainter.width) / 2,
+        columnTop + (columnHeight - timePainter.height) / 2,
+      ),
+    );
+  }
   static Future<ui.Image> generateEventShareImage({
     required Event event,
     required ProThemeType themeType,
@@ -21,15 +107,29 @@ class ShareImageGenerator {
     final canvas = Canvas(recorder);
     final theme = ProThemes.themes[themeType]!.theme;
     final rect = Offset.zero & size;
+    
+    // Cache repeated calculations
+    final halfWidth = size.width / 2;
+    final textColor = usePrimaryBackground 
+        ? theme.colorScheme.surface 
+        : theme.textTheme.bodyLarge?.color ?? Colors.black;
+    final fontFamily = event.font != null 
+        ? ProFontType.values.firstWhere(
+            (type) => type.toString() == event.font,
+            orElse: () => ProFontType.system,
+          ).fontFamily
+        : null;
 
-    // Draw background with specified color
-    final paint = Paint()
-      ..color = usePrimaryBackground 
-          ? theme.primaryColor 
-          : theme.colorScheme.background;
-    canvas.drawRect(rect, paint);
+    // Compute gradient colors and load image in parallel
+    final gradientColors = await extractSectionDominantColors(event.imageUrl, true);
+    final eventImage = await _loadNetworkImage(event.imageUrl);
 
-    // Draw theme effects with even distribution
+    // Draw background gradient
+    final backgroundPaint = Paint()
+      ..shader = buildFullScreenGradient(gradientColors).createShader(rect);
+    canvas.drawRect(rect, backgroundPaint);
+
+    // Draw theme effects (reduced from 3x to 1x for performance)
     final random = Random();
     final effectPainter = EffectPainter(
       themeType: themeType,
@@ -37,74 +137,60 @@ class ShareImageGenerator {
       progress: 0.5,
       effects: List.generate(15, (index) => EffectItem(
         angle: random.nextDouble(),
-        position: Offset(
-          random.nextDouble() * size.width,  // Random X position
-          random.nextDouble() * size.height, // Random Y position
-        ),
+        position: Offset(random.nextDouble() * size.width, random.nextDouble() * size.height),
         size: 40,
         speed: 1,
-        
       )),
     );
-    
-    // Paint effects multiple times for better visibility
-    for (int i = 0; i < 3; i++) {
-      effectPainter.paint(canvas, size);
-    }
+    effectPainter.paint(canvas, size);
 
-    // Load and draw event image
-    final double targetImageSizeFactor = 0.7;
-    final eventImage = await _loadNetworkImage(event.imageUrl);
+    // Draw event image with overlay
+    double usedImageHeight = 0;
     if (eventImage != null) {
-      // Calculate aspect ratio
       final imageRatio = eventImage.width / eventImage.height;
-      final targetHeight = size.height * targetImageSizeFactor;
-      final targetWidth = targetHeight * imageRatio;
-
+      final targetHeight = size.width / imageRatio;
       final imageRect = Rect.fromCenter(
-        center: Offset(size.width / 2, size.height * 0.35),
-        width: targetWidth,
+        center: Offset(halfWidth, size.height * 0.35),
+        width: size.width,
         height: targetHeight,
       );
-      
+      usedImageHeight = imageRect.height;
+
       canvas.drawImageRect(
         eventImage,
         Rect.fromLTWH(0, 0, eventImage.width.toDouble(), eventImage.height.toDouble()),
         imageRect,
         Paint()..filterQuality = FilterQuality.high,
       );
+
+      final heroPaint = Paint()
+        ..shader = buildHeroGradient(gradientColors).createShader(imageRect);
+      canvas.drawRect(imageRect, heroPaint);
     }
 
-    // Calculate available space for text
-    final imageSpace = size.height * targetImageSizeFactor; // Space taken by image
-    final brandingSpace = size.height * 0.1; // Space for branding at bottom
+    // Calculate text layout
+    final imageSpace = usedImageHeight > 0 ? usedImageHeight : size.height * 0.7;
+    final brandingSpace = size.height * 0.1;
     final remainingSpace = size.height - imageSpace - brandingSpace;
-    
-    // Draw event name with theme primary color or inverse primary color
-    final nameHeight = event.startDateTime != null 
-        ? size.height * 0.1 // Fixed height when date is present
-        : remainingSpace * 0.8; // Larger height when no date
+    final nameHeight = event.startDateTime != null ? size.height * 0.1 : remainingSpace * 0.8;
     final maxWidth = size.width * 0.8;
-    double fontSize = 128; // Starting font size
-    TextPainter textPainter;
     
-    // Dynamically adjust font size until text fits
-    do {
+    // Binary search for optimal font size (faster than linear decrement)
+    double minFontSize = 24;
+    double maxFontSize = 128;
+    double fontSize = maxFontSize;
+    TextPainter? textPainter;
+    
+    while (maxFontSize - minFontSize > 2) {
+      fontSize = (minFontSize + maxFontSize) / 2;
       textPainter = TextPainter(
         text: TextSpan(
           text: event.name,
           style: TextStyle(
-            color: usePrimaryBackground 
-                ? theme.colorScheme.inversePrimary 
-                : theme.primaryColor,
+            color: textColor,
             fontSize: fontSize,
             fontWeight: FontWeight.bold,
-            fontFamily: event.font != null 
-                ? ProFontType.values.firstWhere(
-                    (type) => type.toString() == event.font,
-                    orElse: () => ProFontType.system,
-                  ).fontFamily
-                : null,
+            fontFamily: fontFamily,
           ),
         ),
         textAlign: TextAlign.center,
@@ -113,210 +199,60 @@ class ShareImageGenerator {
       textPainter.layout(maxWidth: maxWidth);
       
       if (textPainter.height > nameHeight) {
-        fontSize -= 4; // Reduce font size and try again
+        maxFontSize = fontSize;
+      } else {
+        minFontSize = fontSize;
       }
-    } while (textPainter.height > nameHeight && fontSize > 24);
-
-    // Calculate vertical position
-    final nameY = event.startDateTime != null
-        ? size.height * 0.7 // Original position when date is present
-        : imageSpace + (remainingSpace - textPainter.height) / 2; // Centered in remaining space
-
-    textPainter.paint(
-      canvas,
-      Offset(
-        (size.width - textPainter.width) / 2,
-        nameY,
-      ),
-    );
-
-    if (event.startDateTime != null) {
-      // Draw date information
-      final dateTime = event.startDateTime;
-
-      // Format time with AM/PM
-      final hour = dateTime!.hour > 12 ? dateTime.hour - 12 : dateTime.hour;
-      final amPm = dateTime.hour >= 12 ? 'PM' : 'AM';
-      // final minutes = dateTime.minute.toString().padLeft(2, '0');
-      
-      // Calculate section dimensions
-      final sectionWidth = size.width * 0.75; // 80% of total width
-      final columnWidth = sectionWidth * 0.33; // Each column takes 1/3 of section width
-      final columnHeight = size.height * 0.1;
-      final columnTop = size.height * 0.8;
-      final leftOffset = (size.width - sectionWidth) / 2; // Center the entire section
-
-      // // Draw horizontal lines for Day column
-      // final linePaint = Paint()
-      //   ..color = usePrimaryBackground 
-      //       ? theme.colorScheme.surface 
-      //       : theme.primaryColor
-      //   ..strokeWidth = 2;
-      
-      // Day column lines
-      // canvas.drawLine(
-      //   Offset(leftOffset, columnTop + columnHeight * 0.2),
-      //   Offset(leftOffset + columnWidth, columnTop + columnHeight * 0.2),
-      //   linePaint,
-      // );
-      // canvas.drawLine(
-      //   Offset(leftOffset, columnTop + columnHeight * 0.8),
-      //   Offset(leftOffset + columnWidth, columnTop + columnHeight * 0.8),
-      //   linePaint,
-      // );
-
-      // Time column lines
-      // canvas.drawLine(
-      //   Offset(leftOffset + columnWidth * 2, columnTop + columnHeight * 0.2),
-      //   Offset(leftOffset + columnWidth * 3, columnTop + columnHeight * 0.2),
-      //   linePaint,
-      // );
-      // canvas.drawLine(
-      //   Offset(leftOffset + columnWidth * 2, columnTop + columnHeight * 0.8),
-      //   Offset(leftOffset + columnWidth * 3, columnTop + columnHeight * 0.8),
-      //   linePaint,
-      // );
-
-      // Left column: Day
-      final leftColumnPainter = TextPainter(
-        text: TextSpan(
-          text: getDayName(dateTime.weekday),
-          style: TextStyle(
-            color: usePrimaryBackground 
-                ? theme.colorScheme.surface 
-                : theme.primaryColor,
-            fontSize: 48,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      );
-
-      // Middle column: Month, Date, Year
-      final middleColumnPainter = TextPainter(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: '${getMonthName(dateTime.month)}\n',
-              style: TextStyle(
-                color: usePrimaryBackground 
-                    ? theme.colorScheme.surface 
-                    : theme.primaryColor,
-                fontSize: 48,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            TextSpan(
-              text: '${dateTime.day}\n',
-              style: TextStyle(
-                color: usePrimaryBackground 
-                    ? theme.colorScheme.surface 
-                    : theme.primaryColor,
-                fontSize: 64,
-              ),
-            ),
-            TextSpan(
-              text: dateTime.year.toString(),
-              style: TextStyle(
-                color: usePrimaryBackground 
-                    ? theme.colorScheme.surface 
-                    : theme.primaryColor,
-                fontSize: 48,
-              ),
-            ),
-          ],
-        ),
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      );
-
-      // Right column: Time
-      final rightColumnPainter = TextPainter(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: '$hour ',
-              style: TextStyle(
-                color: usePrimaryBackground 
-                    ? theme.colorScheme.surface 
-                    : theme.primaryColor,
-                fontSize: 48,
-              ),
-            ),
-            TextSpan(
-              text: amPm,
-              style: TextStyle(
-                color: usePrimaryBackground 
-                    ? theme.colorScheme.surface 
-                    : theme.primaryColor,
-                fontSize: 48,
-              ),
-            ),
-          ],
-        ),
-        textAlign: TextAlign.left,
-        textDirection: TextDirection.ltr,
-      );
-
-      // Layout and paint left column (Day)
-      leftColumnPainter.layout(maxWidth: columnWidth);
-      leftColumnPainter.paint(
-        canvas,
-        Offset(
-          leftOffset + (columnWidth - leftColumnPainter.width) / 2,
-          columnTop + (columnHeight - leftColumnPainter.height) / 2,
-        ),
-      );
-
-      // Layout and paint middle column (Month, Date, Year)
-      middleColumnPainter.layout(maxWidth: columnWidth);
-      middleColumnPainter.paint(
-        canvas,
-        Offset(
-          leftOffset + columnWidth + (columnWidth - middleColumnPainter.width) / 2,
-          columnTop + (columnHeight - middleColumnPainter.height) / 2,
-        ),
-      );
-
-      // Layout and paint right column (Time)
-      rightColumnPainter.layout(maxWidth: columnWidth);
-      rightColumnPainter.paint(
-        canvas,
-        Offset(
-          leftOffset + columnWidth * 2 + (columnWidth - rightColumnPainter.width) / 2,
-          columnTop + (columnHeight - rightColumnPainter.height) / 2,
-        ),
-      );
     }
-
-    // Draw app branding
-    final brandingPainter = TextPainter(
+    
+    // Final layout with optimal size
+    textPainter = TextPainter(
       text: TextSpan(
-        text: 'RSVP on MerryMakin',
+        text: event.name,
         style: TextStyle(
-          color: usePrimaryBackground 
-              ? theme.colorScheme.surface 
-              : theme.textTheme.bodyLarge?.color,
-          fontSize: 32,
+          color: textColor,
+          fontSize: minFontSize,
+          fontWeight: FontWeight.bold,
+          fontFamily: fontFamily,
         ),
       ),
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
     );
-    brandingPainter.layout(maxWidth: size.width);
-    brandingPainter.paint(
-      canvas,
-      Offset(
-        (size.width - brandingPainter.width) / 2,
-        size.height * 0.95,
-      ),
-    );
+    textPainter.layout(maxWidth: maxWidth);
 
-    return recorder.endRecording().toImage(
-      size.width.toInt(),
-      size.height.toInt(),
-    );
+    final nameY = event.startDateTime != null
+        ? size.height * 0.75
+        : imageSpace + (remainingSpace - textPainter.height) / 2;
+    textPainter.paint(canvas, Offset((size.width - textPainter.width) / 2, nameY));
+
+    // Helper to paint centered text and return height
+    double paintText(String text, double fontSize, double yOffset) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: TextStyle(color: textColor, fontSize: fontSize)),
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      );
+      painter.layout(maxWidth: size.width);
+      painter.paint(canvas, Offset((size.width - painter.width) / 2, yOffset));
+      return painter.height;
+    }
+
+    double currentY = nameY + textPainter.height;
+    if (event.startDateTime != null) {
+      currentY += 4;
+      currentY += paintText(event.fullFormattedStartDateTime, 48, currentY);
+    }
+
+    if (event.location != null && event.location!.isNotEmpty) {
+      currentY += 4;
+      paintText(event.location!, 48, currentY);
+    }
+
+    // Draw branding
+    paintText('RSVP on MerryMakin', 32, size.height * 0.95);
+
+    return recorder.endRecording().toImage(size.width.toInt(), size.height.toInt());
   }
 
   static Future<ui.Image?> _loadNetworkImage(String imageUrl) async {

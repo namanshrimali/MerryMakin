@@ -68,7 +68,6 @@ class ProDropDown extends StatelessWidget {
       onTap: () {
         openProBottomModalSheet(
             context,
-            titleText: labelText,
             ProListView(
               height: 500,
               listItems: [

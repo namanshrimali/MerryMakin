@@ -15,7 +15,7 @@ enum RSVPStatus {
       case RSVPStatus.NOT_GOING:
         return (Icons.thumb_down, 'Can\'t Go');
       case RSVPStatus.UNDECIDED:
-        return (Icons.person, 'Undecided');
+        return (Icons.person, 'Open invite');
     }
   }
 

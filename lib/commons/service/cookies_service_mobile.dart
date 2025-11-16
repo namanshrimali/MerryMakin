@@ -72,7 +72,7 @@ class CookiesServiceMobile implements CookiesService {
       cookiesDAO.updateCookie(cookie);
     } else {
       Cookie newCookie = Cookie(
-          hasOnboarded: true,
+          hasOnboarded: false,
           preferences: '',
           jwt: jwtToken,
           defaultCountryCurrency:
@@ -125,7 +125,13 @@ class CookiesServiceMobile implements CookiesService {
 
   CountryCurrency get currentCountryCurrency =>
       internalLocallyStoredCountryCurrency;
-  Future<bool> get hasOnboarded => cookiesDAO.isTableEmpty();
+  
+  Future<bool> get hasOnboarded async {
+    Cookie? cookie = await cookiesDAO.getCookie();
+    return cookie?.hasOnboarded ?? false;
+  }
+  
+  
   Future<void> setPreference(String key, String value) =>
       throw UnimplementedError();
   Future<String?> getPreference(String key) => throw UnimplementedError();

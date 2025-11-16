@@ -62,12 +62,12 @@ class ProTextField extends StatelessWidget {
   Widget buildNewType(context) {
 
     final OutlineInputBorder overlayBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(32),
       borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary.withOpacity(0.5)),
     );
 
     final OutlineInputBorder overlayFocusedBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(32),
       borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary),
     );
 

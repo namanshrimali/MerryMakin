@@ -35,6 +35,7 @@ class Comment {
       'status': status,
       'user': user.toMap(),
       'createdAt': createdAt.toIso8601String(),
+      'id': id,
     };
   }
 }

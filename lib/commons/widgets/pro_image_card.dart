@@ -47,6 +47,9 @@ class _ProImageCardState extends State<ProImageCard> {
   }
 
   Future<void> _extractColorFromImage() async {
+    if (widget.imageUrl.isEmpty) {
+      return;
+    }
     // Use the improved color extraction from colors.dart
     final color = await extractGradientFromImage(widget.imageUrl, mounted);
     if (mounted) {
@@ -107,6 +110,7 @@ class _ProImageCardState extends State<ProImageCard> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ProText(
+            textAlign: TextAlign.center,
             widget.title,
             textStyle: const TextStyle(
               fontSize: 24,

@@ -89,7 +89,7 @@ class _ProDateTimePickerState extends State<ProDateTimePicker> {
 
     setState(() {
       _selectedDateTime = pickedDateTime;
-      _controller.text = prettifyDateWithTime(_selectedDateTime!);
+      _controller.text = fullDateWithTimeString(_selectedDateTime!);
     });
 
     widget.onDateTimeSelected?.call(pickedDateTime);

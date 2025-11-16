@@ -31,6 +31,7 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
     }
     openProBottomModalSheet(
       context,
+      isFullScreen: true,
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
         child: ProImagePicker(
@@ -52,11 +53,13 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
   Widget userAvatar() {
     Widget? childWidget = null;
     if (widget.user.photoUrl == null) {
+      final initials = widget.user.getInitials();
       childWidget = ProText(
-        '${widget.user.getFirstName()[0]}${widget.user.getLastName()[0]}',
+        '${initials[0].toUpperCase()}${initials[1].toUpperCase()}',
         textStyle: TextStyle(fontSize: widget.radius * .80),
       );
     }
+    // have gradient background color
     return Stack(children: [
       CircleAvatar(
           radius: widget.radius,

@@ -43,6 +43,23 @@ class EventsApi {
     return await sendPatchRequest(uri, headers, event.toMap());
   }
 
+  Future<Response> deleteCommentFromEventApi(
+    String eventId,
+    String commentId,
+  ) async {
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'access-token':
+          cookiesService.currentJwtToken ?? '',
+    };
+    Uri uri = Uri(
+        scheme: SCHEME,
+        host: DEV_HOST,
+        port: DEV_PORT,
+        path: "$DEV_PATH_EVENTS/$eventId/comment/$commentId");
+    return await sendDeleteRequest(uri, headers); 
+  }
+
   Future<Response> addCommentApi(
     String eventId,
     Comment comment,
@@ -65,6 +82,7 @@ class EventsApi {
 
   Future<Response> sendRsvpForEvent(
     String eventId,
+    List<String> plusOnes,
     RSVPStatus rsvpStatus,
   ) async {
     Map<String, String> headers = {
@@ -77,7 +95,7 @@ class EventsApi {
         host: DEV_HOST,
         port: DEV_PORT,
         path: "$DEV_PATH_EVENTS/$eventId/rsvp",
-        query: "rsvpStatus=${rsvpStatus.name}");
+        query: "rsvpStatus=${rsvpStatus.name}&plusOnes=${plusOnes.join(',')}");
     return await sendPostRequest(
       uri,
       headers,
