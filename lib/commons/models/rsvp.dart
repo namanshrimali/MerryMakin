@@ -11,7 +11,7 @@ enum RSVPStatus {
       case RSVPStatus.GOING:
         return (Icons.thumb_up, 'Going');
       case RSVPStatus.MAYBE:
-        return (Icons.swap_horiz, 'Maybe');
+        return (Icons.question_mark, 'Maybe');
       case RSVPStatus.NOT_GOING:
         return (Icons.thumb_down, 'Can\'t Go');
       case RSVPStatus.UNDECIDED:

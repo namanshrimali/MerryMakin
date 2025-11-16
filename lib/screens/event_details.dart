@@ -16,6 +16,7 @@ import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_segmented_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_stacked_fab.dart';
 import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/oauth_login.dart';
@@ -608,6 +609,50 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                         children: [
                           buildHeroImageAndContent(
                               receivedEvent, height * 0.7, width),
+                          // Inline RSVP options for guests (non-hosts)
+                          if (!receivedEvent
+                              .isHostedByMe(cookiesService.locallyAvailableUserInfo)) ...[
+                            const SizedBox(height: generalAppLevelPadding),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: generalAppLevelPadding),
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.center,
+                                children: [
+                                  if (cookiesService.currentJwtToken ==
+                                          null ||
+                                      cookiesService.currentJwtToken ==
+                                          '') ...[
+                                    ProOutlinedButton(
+                                      onPressed: () {
+                                        openProBottomModalSheet(
+                                          context,
+                                          OAuthLogin(
+                                            userService: userService,
+                                            sprylyService: SprylyServices
+                                                .MerryMakin.name,
+                                            onPressedCallback: () {
+                                              context.pop();
+                                              ref
+                                                  .read(eventProvider
+                                                      .notifier)
+                                                  .updateEvent(
+                                                      receivedEvent);
+                                            },
+                                          ),
+                                        );
+                                      },
+                                      child: const ProText(
+                                          'Login to RSVP'),
+                                    ),
+                                  ] else ...[
+                                    _buildRsvpButtons(receivedEvent),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: generalAppLevelPadding),
                           if (receivedEvent.description != null &&
                               receivedEvent.description != "")
@@ -803,39 +848,25 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Widget _buildRsvpButtons(Event event) {
     RSVPStatus rsvpStatus =
         event.getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
-    return Row(
-      children: [
-        IconButton(
-            isSelected: rsvpStatus == RSVPStatus.GOING,
-            icon: Icon(RSVPStatus.GOING.getDisplayInfo().$1),
-            // text: RSVPStatus.GOING.getDisplayInfo().$2,
-            onPressed: () {
-              rsvpForEvent(event, RSVPStatus.GOING,
-                      cookiesService.locallyAvailableUserInfo)
-                  .then((value) {
-                ref.read(eventProvider.notifier).updateEvent(event);
-              }).onError((error, stackTrace) =>
-                      showSnackBar(context, error.toString()));
-            }),
-        IconButton(
-            isSelected: rsvpStatus == RSVPStatus.MAYBE,
-            icon: Icon(RSVPStatus.MAYBE.getDisplayInfo().$1),
-            // text: RSVPStatus.MAYBE.getDisplayInfo().$2,
-            onPressed: () {
-              rsvpForEvent(event, RSVPStatus.MAYBE,
-                  cookiesService.locallyAvailableUserInfo);
-              ref.read(eventProvider.notifier).updateEvent(event);
-            }),
-        IconButton(
-            isSelected: rsvpStatus == RSVPStatus.NOT_GOING,
-            icon: Icon(RSVPStatus.NOT_GOING.getDisplayInfo().$1),
-            // text: RSVPStatus.NOT_GOING.getDisplayInfo().$2,
-            onPressed: () {
-              rsvpForEvent(event, RSVPStatus.NOT_GOING,
-                  cookiesService.locallyAvailableUserInfo);
-              ref.read(eventProvider.notifier).updateEvent(event);
-            })
-      ],
+    return ProCard(
+      applyPadding: false,
+      elevation: 10,
+      surfaceTintColor: Colors.white.withOpacity(0.1),
+      child: ProSegmentedButton(
+        backgroundColor: Colors.white.withOpacity(0.1),
+        selectedBackgroundColor: ProThemes.themes[themeType]?.theme.colorScheme.primary,
+        selectedTextColor: ProThemes.themes[themeType]?.theme.colorScheme.onPrimary,
+        segments: [
+        ProButtonSegment(icon: Icon(RSVPStatus.GOING.getDisplayInfo().$1), value: RSVPStatus.GOING, label: ProText(RSVPStatus.GOING.getDisplayInfo().$2)),
+        ProButtonSegment(icon: Icon(RSVPStatus.NOT_GOING.getDisplayInfo().$1), value: RSVPStatus.NOT_GOING, label: ProText(RSVPStatus.NOT_GOING.getDisplayInfo().$2)),
+        ProButtonSegment(icon: Icon(RSVPStatus.MAYBE.getDisplayInfo().$1), value: RSVPStatus.MAYBE, label: ProText(RSVPStatus.MAYBE.getDisplayInfo().$2)),
+      ], selected: {rsvpStatus}, onSelectionChanged: (selected) {
+        rsvpForEvent(event, selected.first, cookiesService.locallyAvailableUserInfo)
+            .then((value) {
+          ref.read(eventProvider.notifier).updateEvent(event);
+        }).onError((error, stackTrace) =>
+                showSnackBar(context, error.toString()));
+      }),
     );
   }
 

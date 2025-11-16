@@ -1,31 +1,70 @@
 import 'package:flutter/material.dart';
 
+import '../../utils/constants.dart';
+
 class ProSegmentedButton<T> extends StatelessWidget {
   final Set<T> selected;
   final List<ProButtonSegment<T>> segments;
   final Function(Set<T>) onSelectionChanged;
+  final Color? backgroundColor;
+  final Color? selectedBackgroundColor;
+  final Color? textColor;
+  final Color? selectedTextColor;
 
   const ProSegmentedButton({
     super.key,
     required this.segments,
     required this.selected,
     required this.onSelectionChanged,
+    this.backgroundColor,
+    this.selectedBackgroundColor,
+    this.textColor,
+    this.selectedTextColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: segments.map((segment) {
-        return selected.any((element) => segment.value == element)
-            ? FilledButton.tonal(
-                onPressed: () {},
-                child: segment.label,
-              )
-            : TextButton(
-                onPressed: () {onSelectionChanged({segment.value});},
-                child: segment.label,
-              );
+        final bool isSelected =
+            selected.any((element) => segment.value == element);
+    
+        final Widget child = Padding(
+          padding: const EdgeInsets.all(generalAppLevelPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (segment.icon != null) ...[
+                segment.icon!,
+                const SizedBox(height: 4),
+              ],
+              segment.label,
+            ],
+          ),
+        );
+    
+        return TextButton(
+          onPressed: () {
+            onSelectionChanged({segment.value});
+          },
+          style: ButtonStyle(
+            backgroundColor: isSelected
+                ? MaterialStatePropertyAll<Color>(selectedBackgroundColor!)
+                : null,
+            foregroundColor: isSelected
+                ? MaterialStatePropertyAll<Color>(selectedTextColor!)
+                : textColor != null
+                    ? MaterialStatePropertyAll<Color>(textColor!)
+                    : null,
+            shape: MaterialStatePropertyAll<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(32),
+              ),
+            ),
+          ),
+          child: child,
+        );
       }).toList(),
     );
   }
