@@ -62,19 +62,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0.0;
 
-  LinearGradient _buildBottomGradient(Color gradientColor) {
-    return LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        Colors.transparent,
-        Colors.transparent,
-        gradientColor.withOpacity(0.3),
-        gradientColor.withOpacity(0.7),
-      ],
-      stops: const [0.0, 0.5, 0.75, 1.0],
-    );
-  }
 
   List<Widget> _buildInfoRow(IconData? icon, Widget content) {
     return [
@@ -377,7 +364,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  Gradient _buildHeroGradient(Event receivedEvent) {
+  Gradient _buildHeroGradient(receivedEvent) {
     // Apply gradient only at the bottom 25% of the image for text readability
     // Keep the rest of the image completely transparent and visible
     if (_gradientColors.length >= 3) {
@@ -386,14 +373,12 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         end: Alignment.bottomCenter,
         colors: [
           Colors.transparent,
-          Colors.transparent,
-          Colors.transparent,
-          Colors.transparent,
+          _gradientColors[1].withOpacity(0.1),
           _gradientColors[1].withOpacity(0.4),
           _gradientColors[2].withOpacity(0.9),
           _gradientColors[2].withOpacity(1),
         ],
-        stops: const [0.0, 0.6, 0.65, 0.7, 0.75, 0.8, 1.0],
+        stops: const [0.55, 0.55, 0.6, 0.8, 1.0],
       );
     } else if (_gradientColors.length == 2) {
       return LinearGradient(
@@ -407,7 +392,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           _gradientColors[1].withOpacity(0.6),
           _gradientColors[1].withOpacity(0.75),
         ],
-        stops: const [0.0, 0.75, 0.85, 0.9, 0.95, 1.0],
+        stops: const [0.0, 0.75, 0.8, 0.9, 0.95, 1.0],
       );
     } else {
       // Fallback to single color
@@ -423,56 +408,59 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           gradientColor.withOpacity(0.6),
           gradientColor.withOpacity(0.75),
         ],
-        stops: const [0.0, 0.75, 0.85, 0.9, 0.95, 1.0],
+        stops: const [0.0, 0.75, 0.7, 0.9, 0.95, 1.0],
       );
     }
   }
 
   Gradient _buildFullScreenGradient() {
-    // Use extracted multiple colors from image, making them more vibrant and lively
-    // Using radial gradient for a more dynamic, organic flow
+    // Background gradient starts with same colors as hero overlay gradient at bottom
+    // Then continues to evolve after the image area for seamless blending
     if (_gradientColors.length >= 3) {
-      // Create a radial gradient that flows from top to bottom
-      return RadialGradient(
-        center: Alignment.topCenter,
-        radius: 1.5,
+      // Start with hero gradient's bottom colors, then evolve
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         colors: [
-          _gradientColors[0].withOpacity(0.6), // Lighter at top
-          _gradientColors[1].withOpacity(0.75), // Merge point with hero gradient
-          _gradientColors[1].withOpacity(0.85),
-          _gradientColors[2].withOpacity(0.9),
-          _gradientColors[2].withOpacity(0.95),
-          _gradientColors[2], // Full vibrant color at edges
+          _gradientColors[1].withOpacity(0.4), // Match hero gradient at 0.75 stop
+          _gradientColors[2].withOpacity(0.9), // Match hero gradient at 0.8 stop
+          _gradientColors[2].withOpacity(1), // Match hero gradient at 1.0 stop (seamless transition)
+          _gradientColors[2].withOpacity(0.95), // Continue evolving
+          _gradientColors[1].withOpacity(0.9), // Transition to second color
+          // _gradientColors[0].withOpacity(0.9), // Loop back - first color at bottom
         ],
-        stops: const [0.0, 0.2, 0.4, 0.65, 0.85, 1.0],
+        stops: const [0.0, 0.05, 0.1, 0.85, 1.0],
       );
     } else if (_gradientColors.length == 2) {
-      return RadialGradient(
-        center: Alignment.topCenter,
-        radius: 1.5,
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         colors: [
-          _gradientColors[0].withOpacity(0.6), // Lighter at top
-          _gradientColors[0].withOpacity(0.75), // Merge point
-          _gradientColors[0].withOpacity(0.85),
+          _gradientColors[0].withOpacity(0.3), // Match hero gradient at 0.9 stop
+          _gradientColors[1].withOpacity(0.6), // Match hero gradient at 0.95 stop
+          _gradientColors[1].withOpacity(0.75), // Match hero gradient at 1.0 stop (seamless transition)
+          _gradientColors[1].withOpacity(0.85), // Continue evolving
           _gradientColors[1].withOpacity(0.9),
-          _gradientColors[1], // Full vibrant color
+          _gradientColors[0].withOpacity(0.85), // Transition to first color
+          _gradientColors[0].withOpacity(0.9), // Loop back - first color at bottom
         ],
-        stops: const [0.0, 0.3, 0.5, 0.75, 1.0],
+        stops: const [0.0, 0.05, 0.1, 0.3, 0.5, 0.75, 1.0],
       );
     } else {
-      // Fallback to single color - make it more vibrant
+      // Fallback to single color - match hero gradient then evolve
       final gradientColor = _gradientColor ?? Colors.black;
-      return RadialGradient(
-        center: Alignment.topCenter,
-        radius: 1.5,
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         colors: [
-          gradientColor.withOpacity(0.6), // Lighter at top
-          gradientColor.withOpacity(0.75), // Merge point
-          gradientColor.withOpacity(0.85),
+          gradientColor.withOpacity(0.4), // Match hero gradient at 0.9 stop
+          gradientColor.withOpacity(0.6), // Match hero gradient at 0.95 stop
+          gradientColor.withOpacity(0.75), // Match hero gradient at 1.0 stop (seamless transition)
+          gradientColor.withOpacity(0.85), // Continue evolving
           gradientColor.withOpacity(0.92),
-          gradientColor, // Full vibrant color
+          gradientColor.withOpacity(0.95), // Loop back at bottom
         ],
-        stops: const [0.0, 0.3, 0.55, 0.8, 1.0],
+        stops: const [0.0, 0.05, 0.1, 0.4, 0.7, 1.0],
       );
     }
   }
@@ -541,6 +529,21 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         ),
       ),
     );
+  }
+
+    LinearGradient _buildGradient(Color gradientColor) {
+    return LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            Colors.transparent,
+            gradientColor.withOpacity(0.3),
+            gradientColor.withOpacity(0.7),
+            gradientColor.withOpacity(0.85),
+          ],
+          stops: const [0.0, 0.5, 0.7, 0.85, 1.0],
+        );
   }
 
   Widget _buildEvent(

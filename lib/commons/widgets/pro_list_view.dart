@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/utils/constants.dart';
 
 class ProListView extends StatelessWidget {
   final List<dynamic> listItems;
@@ -22,6 +23,18 @@ class ProListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // If there's only one item and we're scrolling horizontally, center it
+    if (listItems.length == 1 && scrollDirection == Axis.horizontal) {
+      return SizedBox(
+        height: height,
+        width: width,
+        child: Container(
+          padding: EdgeInsets.only(left: generalAppLevelPadding),
+          child: listItems.first,
+        ),
+      );
+    }
+
     // Use PageView for horizontal scrolling with peek effect
     if (scrollDirection == Axis.horizontal &&
         viewportFraction != null &&

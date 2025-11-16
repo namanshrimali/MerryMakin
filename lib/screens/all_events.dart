@@ -131,6 +131,8 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
       subtitle = "Your past events, hosted or attended, show up right here! 🎉";
     }
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ProImageCard(
           textPosition: TextPosition.center,
@@ -194,7 +196,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
         return SingleChildScrollView(
           physics: NeverScrollableScrollPhysics(),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // buildEventFilterSelection(constraints),
               const SizedBox(height: generalAppLevelPadding * 2),
@@ -202,7 +204,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
               ProListView(
                   scrollDirection: Axis.horizontal,
                   listItems: buildEventCards(filteredEvents, constraints,
-                      viewportFraction: filteredEvents.length == 0 ? 1 : 0.85),
+                      viewportFraction: 0.85),
                   height: constraints.maxHeight * 0.8,
                   viewportFraction: 0.9),
             ],

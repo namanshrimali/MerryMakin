@@ -292,7 +292,7 @@ Future<List<Color>> extractMultipleColorsFromImage(String imageUrl, mounted, {in
                 sampleCount++;
 
                 // Prefer bright, vibrant colors (brightness > 100, saturation > 0.2)
-                if (brightness > 100 && saturation > 0.2) {
+                if (brightness > 50 && saturation > 0.2) {
                   brightR += r;
                   brightG += g;
                   brightB += b;

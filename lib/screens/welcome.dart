@@ -38,7 +38,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen> {
   }
 
   void _initializeRandomTheme() {
-    _currentTheme = ProThemeType.values.where((theme) => theme != ProThemeType.classic).toList()[_random.nextInt(ProThemeType.values.length - 1)];
+    _currentTheme = ProThemeType.values.where((theme) => theme != ProThemeType.classic && theme != ProThemeType.midnight).toList()[_random.nextInt(ProThemeType.values.length - 1)];
     _currentEffectType = ProEffectType.values[_random.nextInt(ProEffectType.values.length)];
   }
 

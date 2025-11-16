@@ -163,9 +163,8 @@ class EffectPainter extends CustomPainter {
         theme.colorScheme.tertiary.withRed(240), // Light red
       ];
     }
-    if (themeType == ProThemeType.autumn) {
+    if (effectType == ProEffectType.fall_leaves) {
       effectColors = [
-        theme.primaryColor, // Orange
         Colors.orangeAccent,
         Colors.red
       ];

@@ -5,6 +5,7 @@ import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/utils/date_time.dart';
+import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/pro_list_item.dart';
@@ -45,11 +46,14 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ProFontType? selectedFont;
   ThemeData defaultTheme = ProThemes.themes[ProThemeType.midnight]!.theme;
   ProThemeType defaultThemeType = ProThemeType.midnight;
-  ProEffectType defaultEffect = ProEffectType.fall_leaves;
+  ProEffectType defaultEffect = ProEffectType.none;
   final CookiesService cookiesService = AppFactory().cookiesService;
   late final FocusNode _eventNameFocusNode;
   late final TextEditingController _descriptionController;
   bool _hasSyncedDescription = false;
+  Color? _gradientColor;
+  List<Color> _gradientColors = [Colors.black, Colors.black, Colors.black];
+  String? _lastImageUrl;
 
   final Map<String, bool> _visibleFields = {
     'spots': false,
@@ -91,6 +95,13 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
       eventFuture = findEventWithId(widget.eventId!);
     }
     _future = Future.wait([eventFuture]);
+    
+    // Initialize gradient from initial image
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializeGradient();
+      }
+    });
   }
 
   void _submitData(BuildContext context) {
@@ -265,6 +276,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               event.imageUrl = imageUrl;
             });
             Navigator.pop(context); // Close bottom sheet
+            // Initialize gradient when image changes
+            _initializeGradient();
           },
           imageService: imageService,
         ),
@@ -272,22 +285,133 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     );
   }
 
-  LinearGradient _buildHeroGradient() {
-    final themeColor = selectedTheme != null
-        ? ProThemes.themes[selectedTheme]!.theme.colorScheme.background
-        : defaultTheme.colorScheme.background;
-    return LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        themeColor.withOpacity(0.0),
-        themeColor.withOpacity(0.1),
-        themeColor.withOpacity(0.9),
-        themeColor.withOpacity(0.9),
-        themeColor.withOpacity(1),
-      ],
-      stops: const [0.0, 0.55, 0.7, 0.9, 1.0],
-    );
+  Gradient _buildHeroGradient() {
+    // Apply gradient only at the bottom 25% of the image for text readability
+    // Keep the rest of the image completely transparent and visible
+    if (_gradientColors.length >= 3) {
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          _gradientColors[1].withOpacity(0.4),
+          _gradientColors[2].withOpacity(0.9),
+          _gradientColors[2].withOpacity(1),
+        ],
+        stops: const [0.5, 0.55, 0.8, 1.0],
+      );
+    } else if (_gradientColors.length == 2) {
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          Colors.transparent,
+          Colors.transparent,
+          _gradientColors[0].withOpacity(0.3),
+          _gradientColors[1].withOpacity(0.6),
+          _gradientColors[1].withOpacity(0.75),
+        ],
+        stops: const [0.0, 0.75, 0.8, 0.9, 0.95, 1.0],
+      );
+    } else {
+      // Fallback to single color
+      final gradientColor = _gradientColor ?? Colors.black;
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.transparent,
+          Colors.transparent,
+          Colors.transparent,
+          gradientColor.withOpacity(0.4),
+          gradientColor.withOpacity(0.6),
+          gradientColor.withOpacity(0.75),
+        ],
+        stops: const [0.0, 0.75, 0.7, 0.9, 0.95, 1.0],
+      );
+    }
+  }
+
+  Gradient _buildFullScreenGradient() {
+    // Background gradient starts with same colors as hero overlay gradient at bottom
+    // Then continues to evolve after the image area for seamless blending
+    if (_gradientColors.length >= 3) {
+      // Start with hero gradient's bottom colors, then evolve
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          _gradientColors[1].withOpacity(0.4), // Match hero gradient at 0.75 stop
+          _gradientColors[2].withOpacity(0.9), // Match hero gradient at 0.8 stop
+          _gradientColors[2].withOpacity(1), // Match hero gradient at 1.0 stop (seamless transition)
+          _gradientColors[2].withOpacity(0.95), // Continue evolving
+          _gradientColors[1].withOpacity(0.9), // Transition to second color
+          // _gradientColors[0].withOpacity(0.9), // Loop back - first color at bottom
+        ],
+        stops: const [0.0, 0.05, 0.1, 0.7, 1.0],
+      );
+    } else if (_gradientColors.length == 2) {
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          _gradientColors[0].withOpacity(0.3), // Match hero gradient at 0.9 stop
+          _gradientColors[1].withOpacity(0.6), // Match hero gradient at 0.95 stop
+          _gradientColors[1].withOpacity(0.75), // Match hero gradient at 1.0 stop (seamless transition)
+          _gradientColors[1].withOpacity(0.85), // Continue evolving
+          _gradientColors[1].withOpacity(0.9),
+          _gradientColors[0].withOpacity(0.85), // Transition to first color
+          _gradientColors[0].withOpacity(0.9), // Loop back - first color at bottom
+        ],
+        stops: const [0.0, 0.05, 0.1, 0.3, 0.5, 0.75, 1.0],
+      );
+    } else {
+      // Fallback to single color - match hero gradient then evolve
+      final gradientColor = _gradientColor ?? Colors.black;
+      return LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          gradientColor.withOpacity(0.4), // Match hero gradient at 0.9 stop
+          gradientColor.withOpacity(0.6), // Match hero gradient at 0.95 stop
+          gradientColor.withOpacity(0.75), // Match hero gradient at 1.0 stop (seamless transition)
+          gradientColor.withOpacity(0.85), // Continue evolving
+          gradientColor.withOpacity(0.92),
+          gradientColor.withOpacity(0.95), // Loop back at bottom
+        ],
+        stops: const [0.0, 0.05, 0.1, 0.4, 0.7, 1.0],
+      );
+    }
+  }
+
+  void _initializeGradient() {
+    if (event.imageUrl.isNotEmpty && event.imageUrl != _lastImageUrl) {
+      _lastImageUrl = event.imageUrl;
+      // Extract multiple colors for gradient
+      extractMultipleColorsFromImage(event.imageUrl, mounted, colorCount: 3).then((colors) {
+        if (mounted && event.imageUrl == _lastImageUrl) {
+          setState(() {
+            _gradientColors = colors;
+            _gradientColor = colors.isNotEmpty ? colors.last : Colors.black;
+          });
+        }
+      });
+      // Also extract single color for backward compatibility
+      extractGradientFromImage(event.imageUrl, mounted).then((value) {
+        if (mounted && event.imageUrl == _lastImageUrl) {
+          setState(() {
+            _gradientColor = value;
+          });
+        }
+      });
+    } else if (event.imageUrl.isEmpty) {
+      setState(() {
+        _gradientColor = Colors.black;
+        _gradientColors = [Colors.black, Colors.black, Colors.black];
+        _lastImageUrl = null;
+      });
+    }
   }
 
   Widget _buildHeroSection(BuildContext context) {
@@ -496,120 +620,120 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                spreadRadius: 1,
-                blurRadius: 3,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Material(
-            color: currentTheme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              onTap: _openThemeSelector,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: Column(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: currentTheme.primaryColor,
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: currentTheme.colorScheme.secondary,
-                                      borderRadius: const BorderRadius.only(
-                                        topRight: Radius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: currentTheme.colorScheme.surface,
-                                      borderRadius: const BorderRadius.only(
-                                        bottomLeft: Radius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: currentTheme.colorScheme.tertiary,
-                                      borderRadius: const BorderRadius.only(
-                                        bottomRight: Radius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ProText(
-                      'Theme',
-                      textStyle: TextStyle(
-                        color: currentTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      size: 20,
-                      color: currentTheme.primaryColor,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+        // Container(
+        //   margin: const EdgeInsets.only(bottom: 16),
+        //   decoration: BoxDecoration(
+        //     borderRadius: BorderRadius.circular(16),
+        //     boxShadow: [
+        //       BoxShadow(
+        //         color: Colors.black.withOpacity(0.2),
+        //         spreadRadius: 1,
+        //         blurRadius: 3,
+        //         offset: const Offset(0, 2),
+        //       ),
+        //     ],
+        //   ),
+        //   child: Material(
+        //     color: currentTheme.colorScheme.surface,
+        //     borderRadius: BorderRadius.circular(16),
+        //     child: InkWell(
+        //       onTap: _openThemeSelector,
+        //       borderRadius: BorderRadius.circular(16),
+        //       child: Padding(
+        //         padding: const EdgeInsets.symmetric(
+        //           horizontal: 16,
+        //           vertical: 12,
+        //         ),
+        //         child: Row(
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: [
+        //             // Container(
+        //             //   width: 32,
+        //             //   height: 32,
+        //             //   padding: const EdgeInsets.all(4),
+        //             //   decoration: BoxDecoration(
+        //             //     borderRadius: BorderRadius.circular(8),
+        //             //     border: Border.all(color: Colors.grey[300]!),
+        //             //   ),
+        //             //   child: Column(
+        //             //     children: [
+        //             //       Expanded(
+        //             //         flex: 2,
+        //             //         child: Row(
+        //             //           children: [
+        //             //             Expanded(
+        //             //               flex: 2,
+        //             //               child: Container(
+        //             //                 decoration: BoxDecoration(
+        //             //                   color: currentTheme.primaryColor,
+        //             //                   borderRadius: const BorderRadius.only(
+        //             //                     topLeft: Radius.circular(4),
+        //             //                   ),
+        //             //                 ),
+        //             //               ),
+        //             //             ),
+        //             //             Expanded(
+        //             //               child: Container(
+        //             //                 decoration: BoxDecoration(
+        //             //                   color: currentTheme.colorScheme.secondary,
+        //             //                   borderRadius: const BorderRadius.only(
+        //             //                     topRight: Radius.circular(4),
+        //             //                   ),
+        //             //                 ),
+        //             //               ),
+        //             //             ),
+        //             //           ],
+        //             //         ),
+        //             //       ),
+        //             //       Expanded(
+        //             //         child: Row(
+        //             //           children: [
+        //             //             Expanded(
+        //             //               child: Container(
+        //             //                 decoration: BoxDecoration(
+        //             //                   color: currentTheme.colorScheme.surface,
+        //             //                   borderRadius: const BorderRadius.only(
+        //             //                     bottomLeft: Radius.circular(4),
+        //             //                   ),
+        //             //                 ),
+        //             //               ),
+        //             //             ),
+        //             //             Expanded(
+        //             //               child: Container(
+        //             //                 decoration: BoxDecoration(
+        //             //                   color: currentTheme.colorScheme.tertiary,
+        //             //                   borderRadius: const BorderRadius.only(
+        //             //                     bottomRight: Radius.circular(4),
+        //             //                   ),
+        //             //                 ),
+        //             //               ),
+        //             //             ),
+        //             //           ],
+        //             //         ),
+        //             //       ),
+        //             //     ],
+        //             //   ),
+        //             // ),
+        //             const SizedBox(width: 8),
+        //             // ProText(
+        //             //   'Theme',
+        //             //   textStyle: TextStyle(
+        //             //     color: currentTheme.primaryColor,
+        //             //     fontWeight: FontWeight.bold,
+        //             //   ),
+        //             // ),
+        //             // const SizedBox(width: 4),
+        //             // Icon(
+        //             //   Icons.chevron_right,
+        //             //   size: 20,
+        //             //   color: currentTheme.primaryColor,
+        //             // ),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -1138,11 +1262,16 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           floatingActionButton: isKeyboardVisible(context)
               ? null
               : _buildFloatingControls(ProThemes.themes[selectedTheme!]!.theme),
-          body: Stack(
-            children: [
-              Form(
-                key: _formKey,
-                child: SingleChildScrollView(
+          backgroundColor: _gradientColor ?? Colors.black,
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: _buildFullScreenGradient(),
+            ),
+            child: Stack(
+              children: [
+                Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
                   padding: EdgeInsets.only(
                     bottom: (_eventNameFocusNode.hasFocus &&
                             MediaQuery.of(context).viewInsets.bottom > 0)
@@ -1247,6 +1376,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               _buildFontSelectorOverlay(context),
               _buildTopActionBar(context),
             ],
+            ),
           ),
         ),
       ),
@@ -1319,6 +1449,13 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               );
               _hasSyncedDescription = true;
             }
+            
+            // Initialize gradient when event is loaded
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _initializeGradient();
+              }
+            });
           }
 
           return buildFormWidget(context);

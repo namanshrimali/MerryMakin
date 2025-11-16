@@ -94,7 +94,7 @@ class ImageService {
       return '';
     }
     final randomCategory =
-        _imageData.keys.elementAt(Random().nextInt(_imageData.keys.length));
+        _imageData.keys.elementAt(0);
     final randomImage = _imageData[randomCategory]!
         .elementAt(Random().nextInt(_imageData[randomCategory]!.length));
     return randomImage;

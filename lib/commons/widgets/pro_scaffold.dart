@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
@@ -164,7 +166,7 @@ class _ProScaffoldState extends State<ProScaffold> {
                   toolbarHeight: widget.toolbarHeight,
                 )
               : null),
-      body: widget.body,
+      body: SizedBox(width: min(MediaQuery.of(context).size.width, 720), child: widget.body),
       floatingActionButton: widget.floatingActionButton,
       floatingActionButtonLocation: widget.floatingActionButtonLocation,
       bottomNavigationBar: widget.bottomNavigationBar,
