@@ -46,7 +46,8 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _isSubmitting = false;
-  Comment? comment;
+  String? commentText;
+  String? gifUrl;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -140,17 +141,6 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
           ? "rsvped $rsvpStatusText${plusOnesText}"
           : "updated their rsvp to $rsvpStatusText${plusOnesText}";
 
-      if (comment == null) {
-        comment = Comment(
-          comment: '',
-          user: AppFactory().cookiesService.currentUser!,
-          status: status,
-          createdAt: DateTime.now().toUtc(),
-        );
-      } else {
-        comment!.status = status;
-      }
-
       // Update event attendees list
 
       await Future.wait([
@@ -159,20 +149,24 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
           plusOnes,
           _selectedRsvpStatus,
         ),
-        if (comment != null) ...[
-          addCommentToEvent(widget.event, comment!, context)
-        ],
+        addCommentToEvent(
+            widget.event,
+            Comment(
+              comment: commentText ?? '',
+              gifUrl: gifUrl,
+              user: AppFactory().cookiesService.currentUser!,
+              status: status,
+              createdAt: DateTime.now().toUtc(),
+            ),
+            context)
       ]).then((value) {
         if (mounted) {
           // Update the comment in widget.event with the server-returned comment
-          if (comment != null) {
-            // The result of addCommentToEvent is at index 1 (index 0 is rsvpForEvent)
-            final returnedComment =
-                value.length > 1 ? value[1] as Comment? : null;
-            if (returnedComment != null) {
-              // Replace the local comment with the server-returned comment
-              widget.event.comments!.add(returnedComment);
-            }
+          final returnedComment =
+              value.length > 1 ? value[1] as Comment? : null;
+          if (returnedComment != null) {
+            // Replace the local comment with the server-returned comment
+            widget.event.comments!.add(returnedComment);
           }
 
           ref.read(eventProvider.notifier).rsvpEvent(widget.event);
@@ -335,10 +329,9 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
         children: [
           // Comment Section
           ProUserCommentTextField(
-              comment: comment,
-              user: widget.user!,
-              onChanged: (Comment? value) {
-                comment = value;
+              onChanged: (String? value, String? gifUrl) {
+                this.commentText = value;
+                this.gifUrl = gifUrl;
               },
               gifService: AppFactory().gifService),
         ],

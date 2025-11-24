@@ -12,13 +12,13 @@ import 'pro_user_avatar.dart';
 
 class ProUserCommentTextField extends StatefulWidget {
   final Comment? comment;
-  final User user;
-  final Function(Comment?) onChanged;
+  final User? user;
+  final Function(String?, String?) onChanged;
   final ImageService gifService;
   const ProUserCommentTextField({
     super.key,
-    required this.comment,
-    required this.user,
+    this.comment,
+    this.user,
     required this.onChanged,
     required this.gifService,
   });
@@ -29,31 +29,27 @@ class ProUserCommentTextField extends StatefulWidget {
 }
 
 class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
-  Comment? comment;
+  String? commentText;
+  String? gifUrl;
 
   @override
   void initState() {
     super.initState();
-    comment = widget.comment;
+    commentText = widget.comment?.comment;
+    gifUrl = widget.comment?.gifUrl;
   }
 
   void _updateComment(String? text, String? gifUrl) {
-    final commentText = text?.trim() ?? '';
+    final commentTextTrimmed = text?.trim() ?? '';
     final gifUrlTrimmed = gifUrl?.trim();
 
-    if (commentText.isNotEmpty ||
-        (gifUrlTrimmed != null && gifUrlTrimmed.isNotEmpty)) {
-      comment = Comment(
-        comment: commentText,
-        gifUrl: gifUrlTrimmed?.isNotEmpty == true ? gifUrlTrimmed : null,
-        user: widget.user,
-        createdAt: DateTime.now().toUtc(),
-      );
-    } else {
-      comment = null;
+    setState(() {
+        commentText = commentText;
+        gifUrl = gifUrlTrimmed;
+      });
+      widget.onChanged(commentText, gifUrlTrimmed);
     }
-    widget.onChanged(comment);
-  }
+
 
   Widget _buildGif() {
     return Container(
@@ -72,7 +68,7 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
           ClipRRect(
             borderRadius: BorderRadius.circular(32),
             child: CachedNetworkImage(
-              imageUrl: comment?.gifUrl ?? '',
+              imageUrl: gifUrl ?? '',
               fit: BoxFit.contain,
               placeholder: (context, url) => Container(
                 color: Colors.grey[200],
@@ -93,7 +89,7 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
               icon: const Icon(Icons.close, size: 20),
               onPressed: () {
                 setState(() {
-                  _updateComment(comment?.comment, null);
+                  _updateComment(commentText, null);
                 });
               },
               style: IconButton.styleFrom(
@@ -118,13 +114,13 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
           label: 'Comment',
           hintText: 'Leave a comment',
           onChanged: (value) {
-            _updateComment(value, comment?.gifUrl);
+            _updateComment(value, gifUrl);
           },
-          initialValue: comment == null ? '' : comment!.comment,
+          initialValue: commentText == null ? '' : commentText,
           onValidationCallback: (value) {
             final hasText = value.isNotEmpty;
             final hasGif =
-                comment?.gifUrl != null && comment?.gifUrl?.isNotEmpty == true;
+                gifUrl != null && gifUrl?.isNotEmpty == true;
             if (!hasText && !hasGif) {
               return 'Please add a comment or GIF';
             }
@@ -133,13 +129,13 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
           keyboardType: TextInputType.multiline,
           multiline: true,
           onSaved: (value) {
-            _updateComment(value, comment?.gifUrl);
+            _updateComment(value, gifUrl);
           },
           autofocus: true,
-          prefixWidget: comment != null
+          prefixWidget: widget.user != null
               ? Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: ProUserAvatar(user: comment!.user),
+                  child: ProUserAvatar(user: widget.user!),
                 )
               : null,
           suffixWidget: IconButton(
@@ -148,7 +144,7 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
             tooltip: 'Add GIF',
           ),
         ),
-        if (comment?.gifUrl != null && true == comment?.gifUrl?.isNotEmpty) ...[
+        if (gifUrl != null && true == gifUrl?.isNotEmpty) ...[
           const SizedBox(height: generalAppLevelPadding),
           _buildGif(),
           
@@ -167,7 +163,7 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
               canUpload: false,
               onImageSelected: (gifUrl) {
                 setState(() {
-                  _updateComment(comment?.comment, gifUrl);
+                  _updateComment(commentText, gifUrl);
                 });
                 Navigator.pop(context);
               },

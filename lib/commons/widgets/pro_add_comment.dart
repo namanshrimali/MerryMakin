@@ -44,8 +44,13 @@ class _ProAddCommentState extends State<ProAddComment> {
             ProUserCommentTextField(
                 comment: comment,
                 user: widget.user!,
-                onChanged: (Comment? value) {
-                  comment = value;
+                onChanged: (String? value, String? gifUrl) {
+                  comment = Comment(
+                    comment: value ?? '',
+                    gifUrl: gifUrl,
+                    user: AppFactory().cookiesService.currentUser!,
+                    createdAt: DateTime.now().toUtc(),
+                  );
                 },
                 gifService: AppFactory().gifService),
             const SizedBox(
