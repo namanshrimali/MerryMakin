@@ -13,6 +13,8 @@ class ProImagePicker extends StatefulWidget {
   final int crossAxisCount;
   final double spacing;
   final ImageService imageService;
+  final bool canUpload;
+  final bool showAll;
 
   const ProImagePicker({
     super.key,
@@ -20,6 +22,8 @@ class ProImagePicker extends StatefulWidget {
     required this.imageService,
     this.crossAxisCount = 3,
     this.spacing = generalAppLevelPadding / 2,
+    this.canUpload = true,
+    this.showAll = true,
   });
 
   @override
@@ -30,15 +34,22 @@ class _ProImagePickerState extends State<ProImagePicker> {
   String? _selectedCategory;
   bool _isUploading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = widget.showAll ? null : widget.imageService.getCategories().first;
+  }
+
   Future<void> _uploadImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       setState(() => _isUploading = true);
-      
+
       try {
-        final imageUrl = await widget.imageService.uploadImage(File(image.path));
+        final imageUrl =
+            await widget.imageService.uploadImage(File(image.path));
         if (imageUrl != null) {
           widget.onImageSelected(imageUrl);
         } else {
@@ -69,24 +80,28 @@ class _ProImagePickerState extends State<ProImagePicker> {
         // Category filters
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding / 2),
+          padding: const EdgeInsets.symmetric(
+              horizontal: generalAppLevelPadding / 2),
           child: Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
-                child: FilterChip(
-                  label: const ProText('All'),
-                  selected: _selectedCategory == null,
-                  onSelected: (bool selected) {
-                    setState(() {
-                      _selectedCategory = null;
-                    });
-                  },
+              if (widget.showAll)
+                Padding(
+                  padding:
+                      const EdgeInsets.only(right: generalAppLevelPadding / 2),
+                  child: FilterChip(
+                    label: const ProText('All'),
+                    selected: _selectedCategory == null,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        _selectedCategory = null;
+                      });
+                    },
+                  ),
                 ),
-              ),
               ...widget.imageService.getCategories().map((category) {
                 return Padding(
-                  padding: const EdgeInsets.only(right: generalAppLevelPadding / 2),
+                  padding:
+                      const EdgeInsets.only(right: generalAppLevelPadding / 2),
                   child: FilterChip(
                     label: ProText(category),
                     selected: _selectedCategory == category,
@@ -117,7 +132,8 @@ class _ProImagePickerState extends State<ProImagePicker> {
               return GestureDetector(
                 onTap: () => widget.onImageSelected(imageUrl),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(generalAppLevelPadding / 2),
+                  borderRadius:
+                      BorderRadius.circular(generalAppLevelPadding / 2),
                   child: CachedNetworkImage(
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
@@ -139,23 +155,25 @@ class _ProImagePickerState extends State<ProImagePicker> {
         ),
 
         // Upload button
-        Padding(
-          padding: const EdgeInsets.all(generalAppLevelPadding),
-          child: ProOutlinedButton(
-            onPressed: _isUploading ? null : _uploadImage,
-            child: _isUploading
-                ? const CircularProgressIndicator()
-                : const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.upload),
-                      SizedBox(width: 8),
-                      ProText('Upload Image'),
-                    ],
-                  ),
+        if (widget.canUpload) ...[
+          Padding(
+            padding: const EdgeInsets.all(generalAppLevelPadding),
+            child: ProOutlinedButton(
+              onPressed: _isUploading ? null : _uploadImage,
+              child: _isUploading
+                  ? const CircularProgressIndicator()
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.upload),
+                        SizedBox(width: 8),
+                        ProText('Upload Image'),
+                      ],
+                    ),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
-} 
+}

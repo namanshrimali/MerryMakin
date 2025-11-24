@@ -29,6 +29,7 @@ class AppFactory {
   late final ImageService userIconService;
   late final EventsApi eventsApi;
   late final Function deleteEverything;
+  late final ImageService gifService;
 
   factory AppFactory.forFirstTimeMobile(Database database) {
     _instance ??= AppFactory._forMobile(database);
@@ -52,6 +53,7 @@ class AppFactory {
     // Initialize image service
     imageService = ImageService(IMAGE_REPOSITORY_JSON, cookiesService);
     userIconService = ImageService(USER_ICON_REPOSITORY_JSON, cookiesService);
+    gifService = ImageService(GIF_REPOSITORY_JSON, cookiesService);
     eventsApi = EventsApi(cookiesService);
     deleteEverything = () {
       cookiesService.clearCookies();
@@ -65,6 +67,8 @@ class AppFactory {
     userService = UserService(cookiesService);
     imageService = ImageService(IMAGE_REPOSITORY_JSON, cookiesService);
     userIconService = ImageService(USER_ICON_REPOSITORY_JSON, cookiesService);
+    gifService = ImageService(GIF_REPOSITORY_JSON, cookiesService);
+
     eventsApi = EventsApi(cookiesService);
     deleteEverything = () {
       cookiesService.clearCookies();

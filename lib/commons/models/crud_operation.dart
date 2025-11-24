@@ -3,4 +3,5 @@ enum CrudOperation {
   read,
   update,
   delete,
+  rsvp_update,
 }

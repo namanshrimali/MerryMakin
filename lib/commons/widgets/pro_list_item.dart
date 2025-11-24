@@ -17,6 +17,7 @@ class ProListItem extends StatelessWidget {
   final Function? confirmDismissRightSwipe;
   final GestureTapCallback? onTap;
   final bool dividerAtEnd;
+  final GestureLongPressCallback? onLongPress;
 
   const ProListItem({
     required Key key,
@@ -34,6 +35,7 @@ class ProListItem extends StatelessWidget {
     this.showCircularProgressBarWithProgress,
     this.isThreeLine = false,
     this.dividerAtEnd = false,
+    this.onLongPress,
   }) : super(key: key);
 
   Widget? buildTrailingWidget() {
@@ -59,9 +61,10 @@ class ProListItem extends StatelessWidget {
       leading: leading,
       trailing: buildTrailingWidget(),
       onTap: onTap,
+      onLongPress: onLongPress,
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
-      // titleAlignment: ListTileTitleAlignment.top,
+      titleAlignment: ListTileTitleAlignment.top,
     );
   }
 

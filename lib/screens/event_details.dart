@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1200,21 +1198,25 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   onPressed: () {
                     openProBottomModalSheet(
                       context,
-                      ProAddComment(
-                          onUpdate: (final Comment comment) {
-                            if (receivedEvent.comments == null) {
-                              receivedEvent.comments = [];
-                            }
-                            // add comment to top of event.comments
-                            receivedEvent.comments!.add(comment);
-                            addCommentToEvent(receivedEvent, comment, context)
-                                .whenComplete(() {
-                              ref
-                                  .read(eventProvider.notifier)
-                                  .updateEvent(receivedEvent);
-                            });
-                          },
-                          user: cookiesService.locallyAvailableUserInfo),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        child: ProAddComment(
+                            onUpdate: (final Comment comment) {
+                              if (receivedEvent.comments == null) {
+                                receivedEvent.comments = [];
+                              }
+                              addCommentToEvent(receivedEvent, comment, context)
+                                  .then((comment) {
+                                if (comment != null) {
+                                  receivedEvent.comments!.add(comment);
+                                }
+                                ref
+                                    .read(eventProvider.notifier)
+                                    .updateEvent(receivedEvent);
+                              });
+                            },
+                            user: cookiesService.locallyAvailableUserInfo),
+                      ),
                       theme: eventTheme,
                       themeType: themeType,
                       gradientColors: _gradientColors,
@@ -1244,6 +1246,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   List<Widget> _buildComments(Event event, final bool hideNames) {
+    print(ProThemes.themes[ProThemeType.midnight]?.theme.colorScheme);
     event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return event.comments
             ?.map((comment) => Padding(
@@ -1346,14 +1349,15 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     // This is safe to call in build - Riverpod ensures it only sets up once
     ref.listen<EventProviderState>(eventProvider, (previous, next) {
       // Only rebuild if the event ID matches and it's an update
-      if (next.event?.id == widget.eventId &&
-          next.crudOperation == CrudOperation.update) {
+      if (next.crudOperation == CrudOperation.update ||
+          next.crudOperation == CrudOperation.rsvp_update) {
         // Check if RSVP status changed to GOING and trigger celebration
         if (next.event != null) {
           final newRsvpStatus = next.event!
               .getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
           // Trigger celebration if status changed to GOING
-          if (newRsvpStatus == RSVPStatus.GOING) {
+          if (newRsvpStatus == RSVPStatus.GOING &&
+              next.crudOperation == CrudOperation.rsvp_update) {
             WidgetsBinding.instance.addPostFrameCallback((_) async {
               if (mounted) {
                 final celebrationOverlay = _celebrationKey.currentState;

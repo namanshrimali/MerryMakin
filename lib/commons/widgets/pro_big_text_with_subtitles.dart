@@ -7,6 +7,7 @@ class ProTextWithSubtitles extends StatelessWidget {
   const ProTextWithSubtitles(
       {super.key, required this.primaryText, required this.subtitleText});
 
+
   @override
   Widget build(BuildContext context) {
     return Column(

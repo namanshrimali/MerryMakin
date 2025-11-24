@@ -1,0 +1,179 @@
+ Widget _buildRsvpButtons(Event event, BuildContext context) {
+    RSVPStatus rsvpStatus =
+        event.getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
+    final bool hasRsvped = rsvpStatus != RSVPStatus.UNDECIDED;
+    final theme = ProThemes.themes[themeType]?.theme ?? Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final bool isGoing = rsvpStatus == RSVPStatus.GOING;
+
+    // Build list of quick action buttons
+    final List<Widget> quickActionButtons = [];
+
+    if (hasRsvped) {
+      // Share Event - Available for all RSVPed users
+      quickActionButtons.add(
+        Expanded(
+          child: _buildQuickActionButton(
+            icon: Icons.ios_share,
+            label: 'Share',
+            onPressed: () {
+              _shareEvent(event, context);
+            },
+            primaryColor: primaryColor,
+          ),
+        ),
+      );
+
+      // Add to Calendar - Show if event has a date
+      if (event.startDateTime != null) {
+        quickActionButtons.add(
+          Expanded(
+            child: _buildQuickActionButton(
+              icon: Icons.calendar_today,
+              label: 'Calendar',
+              onPressed: () => _addToCalendar(event),
+              primaryColor: primaryColor,
+            ),
+          ),
+        );
+      }
+
+      // Get Directions - Only for "Going" users with location
+      if (isGoing && event.location != null && event.location!.isNotEmpty) {
+        quickActionButtons.add(
+          Expanded(
+            child: _buildQuickActionButton(
+              icon: Icons.directions,
+              label: 'Directions',
+              onPressed: () => _showLocationOptionsModal(context, event),
+              primaryColor: primaryColor,
+            ),
+          ),
+        );
+      }
+
+      // View Guest List - Always show to ensure we have at least 2 buttons
+      quickActionButtons.add(
+        Expanded(
+          child: _buildQuickActionButton(
+            icon: Icons.people,
+            label: 'Guests',
+            onPressed: () {
+              openProBottomModalSheet(
+                context,
+                _buildAllAttendeesWithStatus(event),
+                theme: eventTheme,
+                themeType: themeType,
+                gradientColors: _gradientColors,
+              );
+            },
+            primaryColor: primaryColor,
+          ),
+        ),
+      );
+    } else {
+      // If not RSVPed, show placeholder buttons that prompt RSVP
+      quickActionButtons.addAll([
+        Expanded(
+          child: _buildQuickActionButton(
+            icon: Icons.share,
+            label: 'Share',
+            onPressed: () {
+              _shareEvent(event, context);
+            },
+            primaryColor: primaryColor,
+          ),
+        ),
+        Expanded(
+          child: _buildQuickActionButton(
+            icon: Icons.people,
+            label: 'Guests',
+            onPressed: () {
+              openProBottomModalSheet(
+                context,
+                _buildAllAttendeesWithStatus(event),
+                theme: eventTheme,
+                themeType: themeType,
+                gradientColors: _gradientColors,
+              );
+            },
+            primaryColor: primaryColor,
+          ),
+        ),
+      ]);
+    }
+
+    return ProCard(
+      elevation: 10,
+      surfaceTintColor: Colors.white.withOpacity(0.1),
+      child: Row(
+        children: [
+          // RSVP Status Button - Shows only the selected status
+          Expanded(
+            flex: hasRsvped ? 1 : 2,
+            child: _buildRsvpStatusButton(
+              rsvpStatus: rsvpStatus,
+              event: event,
+              primaryColor: primaryColor,
+            ),
+          ),
+          const SizedBox(width: generalAppLevelPadding / 2),
+          // Quick Action Buttons
+          ...quickActionButtons,
+        ],
+      ),
+    );
+  }
+
+
+
+
+  Future<void> _addToCalendar(Event event) async {
+    if (event.startDateTime == null) {
+      showSnackBar(context, 'Event date not available');
+      return;
+    }
+
+    try {
+      // Format dates for Google Calendar URL (works cross-platform)
+      final startDate = event.startDateTime!.toUtc();
+      final endDate = event.endDateTime ??
+          event.startDateTime!.add(const Duration(hours: 2));
+      final endDateUtc = endDate.toUtc();
+
+      // Format: YYYYMMDDTHHmmssZ
+      String formatDate(DateTime date) {
+        return '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}T${date.hour.toString().padLeft(2, '0')}${date.minute.toString().padLeft(2, '0')}${date.second.toString().padLeft(2, '0')}Z';
+      }
+
+      final startStr = formatDate(startDate);
+      final endStr = formatDate(endDateUtc);
+
+      // Build Google Calendar URL
+      final eventTitle = Uri.encodeComponent(event.name);
+      final eventDetails = Uri.encodeComponent(
+          '${event.description ?? ''}\n\nView event: https://merrymakin.com/${event.id}');
+      final eventLocation =
+          event.location != null ? Uri.encodeComponent(event.location!) : '';
+
+      final googleCalendarUrl = Uri.parse(
+          'https://calendar.google.com/calendar/render?action=TEMPLATE'
+          '&text=$eventTitle'
+          '&dates=$startStr/$endStr'
+          '&details=$eventDetails'
+          '&location=$eventLocation');
+
+      if (await canLaunchUrl(googleCalendarUrl)) {
+        await launchUrl(googleCalendarUrl,
+            mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          showSnackBar(context, 'Could not open calendar');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showSnackBar(context, 'Error adding to calendar: $e');
+      }
+    }
+  }

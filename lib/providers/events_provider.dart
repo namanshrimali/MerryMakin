@@ -26,6 +26,11 @@ class EventNotifier extends Notifier<EventProviderState> {
         crudOperation: CrudOperation.update, event: event);
   }
 
+  void rsvpEvent(Event event) {
+    state = EventProviderState(
+        crudOperation: CrudOperation.rsvp_update, event: event);
+  }
+
   void deleteEvent(Event event) {
     state = EventProviderState(
         crudOperation: CrudOperation.delete, event: event);

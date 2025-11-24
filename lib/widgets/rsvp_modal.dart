@@ -9,6 +9,7 @@ import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_primary_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_segmented_button.dart';
+import 'package:merrymakin/commons/widgets/pro_comment_textfield.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_text_field.dart';
 import 'package:merrymakin/factory/app_factory.dart';
@@ -42,10 +43,10 @@ class RsvpModal extends ConsumerStatefulWidget {
 class _ProRsvpModalState extends ConsumerState<RsvpModal> {
   late RSVPStatus _selectedRsvpStatus;
   final List<TextEditingController> _plusOneControllers = [];
-  final TextEditingController _commentController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _isSubmitting = false;
+  Comment? comment;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -65,7 +66,6 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
     for (var controller in _plusOneControllers) {
       controller.dispose();
     }
-    _commentController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -119,22 +119,11 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
       final plusOnes = _getPlusOnes();
 
       // Handle comment - post it via API if there's any comment
-      final commentText = _commentController.text;
       final plusOnesText =
           plusOnes.isNotEmpty && _selectedRsvpStatus != RSVPStatus.NOT_GOING
               ? " with ${plusOnes.join(", ")}"
               : "";
       final rsvpStatusText = _selectedRsvpStatus.getDisplayInfo().$2;
-      final comment = Comment(
-        comment: commentText,
-        user: AppFactory().cookiesService.currentUser!,
-        status: widget.event.getRsvpStatusForUser(
-                    AppFactory().cookiesService.currentUser!) ==
-                RSVPStatus.UNDECIDED
-            ? "rsvped $rsvpStatusText${plusOnesText}"
-            : "updated their rsvp to $rsvpStatusText${plusOnesText}",
-        createdAt: DateTime.now().toUtc(),
-      );
 
       widget.event.setRsvpStatusForUser(
         AppFactory().cookiesService.currentUser,
@@ -145,7 +134,23 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
       if (widget.event.comments == null) {
         widget.event.comments = [];
       }
-      widget.event.comments!.add(comment);
+      final String status = widget.event.getRsvpStatusForUser(
+                  AppFactory().cookiesService.currentUser!) ==
+              RSVPStatus.UNDECIDED
+          ? "rsvped $rsvpStatusText${plusOnesText}"
+          : "updated their rsvp to $rsvpStatusText${plusOnesText}";
+
+      if (comment == null) {
+        comment = Comment(
+          comment: '',
+          user: AppFactory().cookiesService.currentUser!,
+          status: status,
+          createdAt: DateTime.now().toUtc(),
+        );
+      } else {
+        comment!.status = status;
+      }
+      widget.event.comments!.add(comment!);
 
       // Update event attendees list
 
@@ -155,10 +160,12 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
           plusOnes,
           _selectedRsvpStatus,
         ),
-        addCommentToEvent(widget.event, comment, context)
-      ]).whenComplete(() {
+        if (comment != null) ...[
+          addCommentToEvent(widget.event, comment!, context)
+        ],
+      ]).then((value) {
         if (mounted) {
-          ref.read(eventProvider.notifier).updateEvent(widget.event);
+          ref.read(eventProvider.notifier).rsvpEvent(widget.event);
 
           Navigator.pop(context);
 
@@ -317,15 +324,13 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
       child: Column(
         children: [
           // Comment Section
-
-          ProTextField(
-            label: 'Share your thoughts',
-            hintText: '...',
-            textEditingController: _commentController,
-            keyboardType: TextInputType.multiline,
-            multiline: true,
-            maxLines: 1,
-          ),
+          ProUserCommentTextField(
+              comment: comment,
+              user: widget.user!,
+              onChanged: (Comment? value) {
+                comment = value;
+              },
+              gifService: AppFactory().gifService),
         ],
       ),
     );

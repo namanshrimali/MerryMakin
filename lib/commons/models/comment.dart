@@ -3,7 +3,8 @@ import 'package:merrymakin/commons/models/user.dart';
 class Comment {
   final String? id;
   final String comment;
-  final String? status;
+  String? status;
+  String? gifUrl;
   final User user;
   final DateTime createdAt;
   final List<Comment> replies;
@@ -13,6 +14,7 @@ class Comment {
     this.id,
     required this.comment,
     this.status,
+    this.gifUrl,
     required this.user,
     required this.createdAt,
     this.isReply = false,
@@ -24,6 +26,7 @@ class Comment {
       id: map['id'],
       comment: map['comment'],
       status: map['status'],
+      gifUrl: map['gifUrl'],
       user: User.fromMap(map['user']),
       createdAt: DateTime.parse(map['createdAt']),
     );
@@ -33,6 +36,7 @@ class Comment {
     return {
       'comment': comment,
       'status': status,
+      'gifUrl': gifUrl,
       'user': user.toMap(),
       'createdAt': createdAt.toIso8601String(),
       'id': id,

@@ -51,8 +51,6 @@ Future<void> rsvpForEvent(
 ) {
 
   return eventsApi.sendRsvpForEvent(event.id!, plusOnes, rsvpStatus).then((response) {
-    print(response.statusCode);
-    print(response.body);
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to RSVP: ${response.body}, ${response.statusCode}');
@@ -60,13 +58,14 @@ Future<void> rsvpForEvent(
   });
 }
 
-Future<void> addCommentToEvent(
+Future<Comment?> addCommentToEvent(
     final Event event, final Comment comment, BuildContext context) {
   return eventsApi.addCommentApi(event.id!, comment).then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to Comment: ${response.body}, ${response.statusCode}');
     }
+    return Comment.fromMap(jsonDecode(response.body));
   });
 }
 

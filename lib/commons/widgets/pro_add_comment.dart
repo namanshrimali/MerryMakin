@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:merrymakin/commons/models/user.dart';
-import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
+import 'package:merrymakin/commons/widgets/pro_comment_textfield.dart';
+import 'package:merrymakin/factory/app_factory.dart';
 import '../models/comment.dart';
 import '../utils/constants.dart';
 import '../widgets/buttons/pro_primary_button.dart';
 import '../widgets/pro_text.dart';
-import 'pro_text_field.dart';
 
 class ProAddComment extends StatefulWidget {
   final Function(Comment) onUpdate;
@@ -23,8 +23,10 @@ class _ProAddCommentState extends State<ProAddComment> {
   void _submitData(BuildContext context) {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      widget.onUpdate(comment!);
-      Navigator.pop(context, comment);
+      if (comment != null) {
+        widget.onUpdate(comment!);
+        Navigator.pop(context, comment);
+      }
     }
   }
 
@@ -36,42 +38,16 @@ class _ProAddCommentState extends State<ProAddComment> {
     return Form(
       key: _formKey,
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            ProTextField(
-              label: 'Comment',
-              hintText: 'Leave a comment',
-              onChanged: (value) {
-                if (value != null && value.isNotEmpty) {
-                  comment = Comment(
-                      comment: value,
-                      user: widget.user!,
-                      createdAt: DateTime.now().toUtc());
-                }
-              },
-              initialValue: comment == null ? '' : comment!.comment,
-              onValidationCallback: (value) {
-                if (value.isEmpty) {
-                  return 'Comment cannot be empty';
-                }
-                return null;
-              },
-              keyboardType: TextInputType.multiline,
-              onSaved: (value) {
-                if (value != null && value.isNotEmpty) {
-                  comment = Comment(
-                      comment: value,
-                      user: widget.user!,
-                      createdAt: DateTime.now().toUtc());
-                }
-              },
-              autofocus: true,
-              prefixWidget: Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ProUserAvatar(user: widget.user!),
-              ),
-            ),
+            ProUserCommentTextField(
+                comment: comment,
+                user: widget.user!,
+                onChanged: (Comment? value) {
+                  comment = value;
+                },
+                gifService: AppFactory().gifService),
             const SizedBox(
               height: generalAppLevelPadding,
             ),
