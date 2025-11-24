@@ -6,13 +6,14 @@ class ProTabView extends StatefulWidget {
   final List<String> childrenTabTitle;
   final bool showDivider;
   final EdgeInsets? tabPadding;
-  
+  final double? height;
   const ProTabView({
     super.key, 
     required this.children, 
     required this.childrenTabTitle,
     this.showDivider = true,
     this.tabPadding,
+    this.height,
   });
 
   @override
@@ -66,6 +67,7 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     
+    
     return Column(
       children: <Widget>[
         Container(
@@ -73,10 +75,10 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
             controller: _tabController,
             tabs: myTabs,
             tabAlignment: TabAlignment.start,
-            physics: const BouncingScrollPhysics(),
+            // physics: const BouncingScrollPhysics(),
             isScrollable: true,
             indicator: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(32),
               color: colorScheme.primaryContainer.withOpacity(isDark ? 0.4 : 0.3),
               border: Border.all(
                 color: colorScheme.primary.withOpacity(0.6),
@@ -128,10 +130,8 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
               ),
             );
           },
-          child: Container(
-            key: ValueKey<int>(_tabIndex),
-            child: widget.children[_tabIndex],
-          ),
+          child: SizedBox(height: widget.height ?? 400, child: TabBarView(controller: _tabController,  children: widget.children))
+
         ),
       ],
     );

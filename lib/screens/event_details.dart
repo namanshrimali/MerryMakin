@@ -606,7 +606,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                             const SizedBox(height: generalAppLevelPadding),
                           ],
 
-                          _buildGuestList(receivedEvent, context),
+                          _buildGuestList(receivedEvent, context, constraints),
                           buildCommentSection(receivedEvent),
                           SizedBox(height: generalAppLevelPadding * 10),
                         ],
@@ -706,7 +706,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  Widget _buildGuestList(Event event, BuildContext buildContext) {
+  Widget _buildGuestList(Event event, BuildContext buildContext, constraints) {
     final goingAttendees =
         event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING);
     final maybeAttendees =
@@ -741,7 +741,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                     onPressed: () {
                       openProBottomModalSheet(
                         buildContext,
-                        _buildAllAttendeesWithStatus(event),
+                        _buildAllAttendeesWithStatus(event, constraints.maxHeight * 0.4),
                         theme: eventTheme,
                         themeType: themeType,
                         gradientColors: _gradientColors,
@@ -1001,8 +1001,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  Widget _buildAllAttendeesWithStatus(Event event) {
+  Widget _buildAllAttendeesWithStatus(Event event, double? height) {
     return ProTabView(
+      height: height,
       childrenTabTitle: [
         'Going (${event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING).length})',
         'Maybe (${event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.MAYBE).length})',

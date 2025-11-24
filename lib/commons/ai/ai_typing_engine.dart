@@ -7,8 +7,8 @@ class AiTypingEngine {
     required this.controller,
     this.onTextChanged,
     this.onTypingStatusChanged,
-    this.forwardDelay = const Duration(milliseconds: 28),
-    this.backspaceDelay = const Duration(milliseconds: 24),
+    this.forwardDelay = const Duration(milliseconds: 24),
+    this.backspaceDelay = const Duration(milliseconds: 12),
   });
 
   final TextEditingController controller;
