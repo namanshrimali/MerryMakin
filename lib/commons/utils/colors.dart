@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 Future<Color> extractGradientFromImage(String imageUrl, mounted) async {
@@ -8,7 +9,7 @@ Future<Color> extractGradientFromImage(String imageUrl, mounted) async {
     return Colors.black;
   }
   try {
-    final imageProvider = NetworkImage(imageUrl);
+    final imageProvider = CachedNetworkImageProvider(imageUrl);
     final imageStream = imageProvider.resolve(ImageConfiguration.empty);
 
     final completer = Completer<ui.Image?>();
@@ -202,7 +203,7 @@ Future<List<Color>> extractMultipleColorsFromImage(String imageUrl, mounted, {in
     return List.generate(colorCount, (_) => Colors.black);
   }
   try {
-    final imageProvider = NetworkImage(imageUrl);
+    final imageProvider = CachedNetworkImageProvider(imageUrl);
     final imageStream = imageProvider.resolve(ImageConfiguration.empty);
 
     final completer = Completer<ui.Image?>();
@@ -471,7 +472,7 @@ Future<List<Color>> extractSectionDominantColors(String imageUrl, bool mounted) 
   final List<Color> fallback = List.generate(sections, (_) => Colors.black);
   if (imageUrl.isEmpty) return fallback;
   try {
-    final imageProvider = NetworkImage(imageUrl);
+    final imageProvider = CachedNetworkImageProvider(imageUrl);
     final imageStream = imageProvider.resolve(ImageConfiguration.empty);
 
     final completer = Completer<ui.Image?>();

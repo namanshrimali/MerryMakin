@@ -89,7 +89,7 @@ class ProUserComment extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: generalAppLevelPadding / 2),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(generalAppLevelPadding / 2),
+        borderRadius: BorderRadius.circular(generalAppLevelPadding),
         child: Container(
           constraints: const BoxConstraints(
             maxWidth: 300,

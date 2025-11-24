@@ -1246,7 +1246,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   List<Widget> _buildComments(Event event, final bool hideNames) {
-    print(ProThemes.themes[ProThemeType.midnight]?.theme.colorScheme);
     event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return event.comments
             ?.map((comment) => Padding(

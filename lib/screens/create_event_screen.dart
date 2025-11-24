@@ -55,6 +55,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   Color? _gradientColor;
   List<Color> _gradientColors = [Colors.black, Colors.black, Colors.black];
   String? _lastImageUrl;
+  bool _showRegeneratePrompt = false;
+  String? _lastEventDetailsHash;
+  bool _hasDismissedPrompt = false;
 
   final Map<String, bool> _visibleFields = {
     'spots': false,
@@ -287,6 +290,152 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     );
   }
 
+  String _getEventDetailsHash() {
+    final String timeStr = event.startDateTime?.toIso8601String() ?? '';
+    final String locationStr = event.location ?? '';
+    final String eventName = event.name;
+    return '$timeStr|$locationStr|$eventName';
+  }
+
+  void _checkAndShowRegeneratePrompt() {
+    // Only show if description exists and is not empty
+    if (event.description == null || event.description!.trim().isEmpty) {
+      return;
+    }
+
+    final String currentHash = _getEventDetailsHash();
+    
+    // If details changed and prompt hasn't been dismissed, show it
+    if (_lastEventDetailsHash != null && 
+        _lastEventDetailsHash != currentHash && 
+        !_hasDismissedPrompt) {
+      setState(() {
+        _showRegeneratePrompt = true;
+      });
+    }
+    
+    _lastEventDetailsHash = currentHash;
+  }
+
+  void _dismissRegeneratePrompt() {
+    setState(() {
+      _showRegeneratePrompt = false;
+      _hasDismissedPrompt = true;
+    });
+  }
+
+  Future<void> _handleRegenerateDescription() async {
+    _dismissRegeneratePrompt();
+    FocusScope.of(context).unfocus();
+    
+    final dynamic result = await openProBottomModalSheet(
+      context,
+      isFullScreen: true,
+      AIEnabledDescription(
+        event: event,
+        controller: _descriptionController,
+        initialDressCodeSelection: event.dressCode,
+        initialFoodSelections: event.foodSituation?.split(','),
+      ),
+    );
+    
+    FocusScope.of(context).unfocus();
+    if (!mounted) {
+      return;
+    }
+    
+    if (result is String) {
+      final String trimmed = result.trim();
+      setState(() {
+        _descriptionController.value =
+            _descriptionController.value.copyWith(
+          text: trimmed,
+          selection: TextSelection.collapsed(
+            offset: trimmed.length,
+          ),
+        );
+        event.description = trimmed;
+        // Reset dismiss flag after regeneration
+        _hasDismissedPrompt = false;
+        _lastEventDetailsHash = _getEventDetailsHash();
+      });
+    }
+  }
+
+  Widget _buildRegenerateDescriptionBanner(BuildContext context) {
+    if (!_showRegeneratePrompt) {
+      return const SizedBox.shrink();
+    }
+
+    final ThemeData theme = Theme.of(context);
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: generalAppLevelPadding),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(
+              Icons.auto_awesome_outlined,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ProText(
+                    'Event details updated',
+                    textStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  ProText(
+                    'Regenerate description?',
+                    textStyle: TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ProOutlinedButton(
+              onPressed: _handleRegenerateDescription,
+              child: ProText(
+                'Regenerate',
+                textStyle: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              onPressed: _dismissRegeneratePrompt,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minWidth: 32,
+                minHeight: 32,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _initializeGradient() {
     if (event.imageUrl.isNotEmpty && event.imageUrl != _lastImageUrl) {
       _lastImageUrl = event.imageUrl;
@@ -318,7 +467,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
 
   Widget _buildHeroSection(BuildContext context) {
     final Size size = MediaQuery.sizeOf(context);
-    final double heroHeight = size.height * 0.8;
+    final double heroHeight = size.height * 0.6;
 
     return SizedBox(
       height: heroHeight,
@@ -451,6 +600,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             onChanged: (value) {
               setState(() {
                 event.name = (value as String);
+                _checkAndShowRegeneratePrompt();
               });
             },
             onSaved: (value) {
@@ -485,6 +635,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               setState(() {
                 event.startDateTime = selectedDate;
               });
+              _checkAndShowRegeneratePrompt();
             },
             // style: whiteTextStyle,
             // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
@@ -501,6 +652,12 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             onChanged: (value) {
               setState(() {
                 event.location = (value as String);
+              });
+              // Debounce the check to avoid showing prompt while typing
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted && event.location == value) {
+                  _checkAndShowRegeneratePrompt();
+                }
               });
             },
             onSaved: (value) {
@@ -1196,6 +1353,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            _buildRegenerateDescriptionBanner(context),
                             ProTextField(
                               multiline: true,
                               maxLines: 5,
@@ -1227,7 +1385,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                       ),
                                     );
                                     event.description = trimmed;
-                                    
+                                    // Reset dismiss flag after regeneration
+                                    _hasDismissedPrompt = false;
+                                    _lastEventDetailsHash = _getEventDetailsHash();
                                   });
                                 }
                               },
@@ -1362,6 +1522,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               );
               _hasSyncedDescription = true;
             }
+            
+            // Initialize event details hash when event is loaded
+            _lastEventDetailsHash = _getEventDetailsHash();
             
             // Initialize gradient when event is loaded
             WidgetsBinding.instance.addPostFrameCallback((_) {

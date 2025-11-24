@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 import '../themes/pro_themes.dart';
@@ -126,7 +127,7 @@ class ShareImageGenerator {
 
     // Draw background gradient
     final backgroundPaint = Paint()
-      ..shader = buildFullScreenGradient(gradientColors).createShader(rect);
+      ..shader = buildFullScreenGradient(gradientColors,topOffset: 0.25).createShader(rect);
     canvas.drawRect(rect, backgroundPaint);
 
     // Draw theme effects (reduced from 3x to 1x for performance)
@@ -258,7 +259,7 @@ class ShareImageGenerator {
   static Future<ui.Image?> _loadNetworkImage(String imageUrl) async {
     try {
       final encodedUrl = Uri.encodeFull(imageUrl);
-      final imageProvider = NetworkImage(encodedUrl);
+      final imageProvider = CachedNetworkImageProvider(encodedUrl);
       final imageStream = imageProvider.resolve(ImageConfiguration.empty);
       final Completer<ui.Image?> completer = Completer<ui.Image?>();
       

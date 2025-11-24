@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import '../utils/colors.dart';
@@ -189,12 +190,12 @@ class _ProImageCardState extends State<ProImageCard> {
                     // Image with gradient overlay
                     Stack(
                       children: [
-                        Image.network(
-                          widget.imageUrl,
+                        CachedNetworkImage(
+                          imageUrl: widget.imageUrl,
                           height: effectiveHeight,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
+                          errorWidget: (context, url, error) {
                             return Container(
                               height: effectiveHeight,
                               width: constraints.maxWidth,

@@ -150,7 +150,6 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
       } else {
         comment!.status = status;
       }
-      widget.event.comments!.add(comment!);
 
       // Update event attendees list
 
@@ -165,6 +164,17 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
         ],
       ]).then((value) {
         if (mounted) {
+          // Update the comment in widget.event with the server-returned comment
+          if (comment != null) {
+            // The result of addCommentToEvent is at index 1 (index 0 is rsvpForEvent)
+            final returnedComment =
+                value.length > 1 ? value[1] as Comment? : null;
+            if (returnedComment != null) {
+              // Replace the local comment with the server-returned comment
+              widget.event.comments!.add(returnedComment);
+            }
+          }
+
           ref.read(eventProvider.notifier).rsvpEvent(widget.event);
 
           Navigator.pop(context);

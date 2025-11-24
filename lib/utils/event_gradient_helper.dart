@@ -64,10 +64,10 @@ Gradient buildHeroGradient(List<Color> _gradientColors, {double topOffset = 0.0}
               .withOpacity(allowTransparency ? 0.9 : 1), // Match hero gradient at 0.8 stop
           _gradientColors[2].withOpacity(
               allowTransparency ? 1 : 0.9), // Match hero gradient at 1.0 stop (seamless transition)
-          _gradientColors[2].withOpacity(allowTransparency ? 0.9 : 1), // Continue evolving
-          _gradientColors[1].withOpacity(allowTransparency ? 0.9 : 1), // Transition to second color
+          _gradientColors[1].withOpacity(allowTransparency ? 0.9 : 1), // Continue evolving
+          _gradientColors[0].withOpacity(allowTransparency ? 0.9 : 1), // Transition to second color
         ],
-        stops: [0.0, 0.05, 0.4, 0.95, 1.0].map((stop) => stop + topOffset).toList(),
+        stops: [0.0, 0.3, 0.6, 0.8, 1.0].map((stop) => stop + topOffset).toList(),
       );
     } else if (_gradientColors.length == 2) {
       return LinearGradient(
