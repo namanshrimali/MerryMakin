@@ -43,6 +43,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../commons/widgets/pro_user_comment.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/pro_share_sheet.dart';
+import '../widgets/activity_section.dart';
 import '../widgets/guest_list.dart';
 import '../widgets/rsvp_modal.dart';
 
@@ -614,7 +615,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                             gradientColors: _gradientColors,
                             effectType: effectType,
                           ),
-                          buildCommentSection(receivedEvent),
+                          CommentSection(
+                            event: receivedEvent,
+                            hideNames: receivedEvent.isGuestListHidden,
+                            eventTheme: eventTheme,
+                            effectType: effectType,
+                            themeType: themeType,
+                            gradientColors: _gradientColors,
+                          ),
                           SizedBox(height: generalAppLevelPadding * 10),
                         ],
                       ),
@@ -711,107 +719,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             );
           }),
     );
-  }
-
-  Widget buildCommentSection(Event receivedEvent) {
-    return Padding(
-      padding: const EdgeInsets.only(
-          left: generalAppLevelPadding,
-          right: generalAppLevelPadding,
-          top: generalAppLevelPadding),
-      child: ProCard(
-          elevation: 10,
-          surfaceTintColor: Colors.white.withOpacity(0.1),
-          child: Column(children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ProText(
-                  'Comments',
-                  textStyle: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                ProOutlinedButton(
-                  onPressed: () {
-                    openProBottomModalSheet(
-                      context,
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        child: ProAddComment(
-                            onUpdate: (final Comment comment) {
-                              if (receivedEvent.comments == null) {
-                                receivedEvent.comments = [];
-                              }
-                              addCommentToEvent(receivedEvent, comment, context)
-                                  .then((comment) {
-                                if (comment != null) {
-                                  receivedEvent.comments!.add(comment);
-                                }
-                                ref
-                                    .read(eventProvider.notifier)
-                                    .updateEvent(receivedEvent);
-                              });
-                            },
-                            user: cookiesService.locallyAvailableUserInfo),
-                      ),
-                      theme: eventTheme,
-                      themeType: themeType,
-                      gradientColors: _gradientColors,
-                    );
-                  },
-                  child: ProText('Comment'),
-                ),
-              ],
-            ),
-            if (receivedEvent.comments != null &&
-                receivedEvent.comments!.isNotEmpty)
-              ..._buildComments(
-                  receivedEvent, cookiesService.currentJwtToken == null),
-            if (receivedEvent.comments == null ||
-                receivedEvent.comments!.isEmpty)
-              SizedBox(
-                  height: 200,
-                  child: Center(
-                      child: const ProText(
-                          textStyle: TextStyle(
-                            fontSize: 16,
-                          ),
-                          'Be the first to break the silence! 🎤'))),
-            // const SizedBox(height: 200),
-          ])),
-    );
-  }
-
-  List<Widget> _buildComments(Event event, final bool hideNames) {
-    event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return event.comments
-            ?.map((comment) => Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: generalAppLevelPadding),
-                  child: ProUserComment(
-                      comment: comment,
-                      onDelete: (comment) {
-                        deleteCommentFromEvent(event, comment, context)
-                            .then((value) {
-                          setState(() {
-                            event.comments?.remove(comment);
-                          });
-                        });
-                      },
-                      canDelete:
-                          (cookiesService.locallyAvailableUserInfo != null &&
-                                  comment.user != null &&
-                                  comment.user!.email ==
-                                      cookiesService
-                                          .locallyAvailableUserInfo!.email) ||
-                              event.isHostedByMe(
-                                  cookiesService.locallyAvailableUserInfo),
-                      hideNames: event.isGuestListHidden || hideNames),
-                ))
-            .toList() ??
-        [];
   }
 
   @override

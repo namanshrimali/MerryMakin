@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
+import 'package:merrymakin/commons/widgets/oauth_login.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 
 import '../commons/models/event.dart';
 import '../commons/models/event_attendee.dart';
 import '../commons/models/rsvp.dart';
+import '../commons/models/spryly_services.dart';
+import '../commons/models/user.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/buttons/pro_outlined_button.dart';
 import '../commons/widgets/buttons/pro_primary_button.dart';
@@ -25,10 +28,19 @@ class GuestList extends StatelessWidget {
   final ProEffectType? effectType;
   final ProThemeType themeType;
   final List<Color> gradientColors;
-  const GuestList({super.key, required this.event, required this.maxHeight, this.eventTheme, required this.themeType, required this.gradientColors, this.effectType});
+  const GuestList(
+      {super.key,
+      required this.event,
+      required this.maxHeight,
+      this.eventTheme,
+      required this.themeType,
+      required this.gradientColors,
+      this.effectType});
 
-
-  Widget _buildGuestList(BuildContext buildContext,) {
+  Widget _buildGuestList(
+    BuildContext buildContext,
+    bool isUserAuthorized,
+  ) {
     final goingAttendees =
         event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING);
     final maybeAttendees =
@@ -41,65 +53,144 @@ class GuestList extends StatelessWidget {
         left: generalAppLevelPadding,
         right: generalAppLevelPadding,
       ),
+      child: GestureDetector(
+        onTap: () {
+          if (!isUserAuthorized) {
+            return;
+          }
+          openProBottomModalSheet(
+            buildContext,
+            _buildAllAttendeesWithStatus(maxHeight * 0.4, buildContext),
+          );
+        },
+        child: ProCard(
+          elevation: 10,
+          surfaceTintColor: Colors.white.withOpacity(0.1),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Header with title and view all button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const ProText(
+                    'Guest List',
+                    textStyle: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (hasGuests && totalGuests > 0 && isUserAuthorized)
+                    ProOutlinedButton(
+                      onPressed: () {
+                        openProBottomModalSheet(
+                          buildContext,
+                          _buildAllAttendeesWithStatus(
+                              maxHeight * 0.4, buildContext),
+                          theme: eventTheme,
+                          themeType: themeType,
+                          gradientColors: gradientColors,
+                        );
+                      },
+                      child: ProText('View All'),
+                    ),
+                ],
+              ),
+              if (hasGuests) ...[
+                Row(
+                  children: [
+                    ProText(
+                        'Going ${goingAttendees.length} • Maybe ${maybeAttendees.length}'),
+                  ],
+                ),
+              ],
+              const SizedBox(height: generalAppLevelPadding),
+
+              // Empty State - Enhanced with fun visuals
+              if (!hasGuests && !event.isGuestCountHidden)
+                _buildEmptyGuestState(event, buildContext),
+
+              // Guest Sections - Only show if there are guests
+              if (hasGuests) ...[
+                _buildStackedAvatars(
+                    goingAttendees + maybeAttendees,
+                    false,
+                    0,
+                    eventTheme?.colorScheme.primary ??
+                        Theme.of(buildContext).colorScheme.primary, isUserAuthorized),
+              ] else if (event.isGuestCountHidden && hasGuests) ...[
+                // Show avatars but hide counts
+                _buildHiddenCountGuestAvatars(goingAttendees, maybeAttendees),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnAuthorizedGuestState(BuildContext buildContext) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: generalAppLevelPadding,
+        right: generalAppLevelPadding,
+      ),
       child: ProCard(
         elevation: 10,
         surfaceTintColor: Colors.white.withOpacity(0.1),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Header with title and view all button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const ProText(
-                  'Guest List',
-                  textStyle: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(vertical: generalAppLevelPadding * 2),
+          child: Column(
+            children: [
+              // Fun icon with animation-ready container
+              Container(
+                padding: const EdgeInsets.all(generalAppLevelPadding),
+                decoration: BoxDecoration(
+                  color:
+                      (ProThemes.themes[themeType]?.theme.colorScheme.primary ??
+                              Theme.of(buildContext).colorScheme.primary)
+                          .withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
-                if (hasGuests && totalGuests > 0)
-                  ProOutlinedButton(
-                    onPressed: () {
-                      openProBottomModalSheet(
-                        buildContext,
-                        _buildAllAttendeesWithStatus(maxHeight * 0.4, buildContext),
-                        theme: eventTheme,
-                        themeType: themeType,
-                        gradientColors: gradientColors,
-                      );
-                    },
-                    child: ProText('View All'),
-                  ),
-              ],
-            ),
-            if (hasGuests) ...[
-              Row(
-                children: [
-                  ProText(
-                      'Going ${goingAttendees.length} • Maybe ${maybeAttendees.length}'),
-                ],
+                child: Icon(
+                  Icons.lock_outline_rounded,
+                  size: 48,
+                  color:
+                      ProThemes.themes[themeType]?.theme.colorScheme.primary ??
+                          Theme.of(buildContext).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: generalAppLevelPadding),
+              ProText(
+                'Get in the Know—Sign Up for the Guest List!',
+                textStyle: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: generalAppLevelPadding / 2),
+              ProText(
+                "Privacy first, party second! See who's coming once you're in the mix.",
+                textStyle: TextStyle(
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: generalAppLevelPadding * 1.5),
+              ProPrimaryButton(
+                ProText("Sign Up"),
+                onPressed: () {
+                  openProBottomModalSheet(
+                      buildContext,
+                      OAuthLogin(
+                          userService: AppFactory().userService,
+                          sprylyService: SprylyServices.MerryMakin.name));
+                },
               ),
             ],
-            const SizedBox(height: generalAppLevelPadding),
-
-            // Empty State - Enhanced with fun visuals
-            if (!hasGuests && !event.isGuestCountHidden)
-              _buildEmptyGuestState(event, buildContext),
-
-            // Guest Sections - Only show if there are guests
-            if (hasGuests) ...[
-              _buildStackedAvatars(
-                  goingAttendees + maybeAttendees,
-                  false,
-                  0,
-                  eventTheme?.colorScheme.primary ??
-                      Theme.of(buildContext).colorScheme.primary),
-            ] else if (event.isGuestCountHidden && hasGuests) ...[
-              // Show avatars but hide counts
-              _buildHiddenCountGuestAvatars(goingAttendees, maybeAttendees),
-            ],
-          ],
+          ),
         ),
       ),
     );
@@ -171,7 +262,7 @@ class GuestList extends StatelessWidget {
   }
 
   Widget _buildStackedAvatars(List<Attendee> attendees, bool hasOverflow,
-      int overflowCount, Color accentColor) {
+      int overflowCount, Color accentColor, bool isUserAuthorized) {
     const double avatarRadius = 24.0;
     const double overlap = 8.0;
     const int maxStacked = 5;
@@ -201,8 +292,9 @@ class GuestList extends StatelessWidget {
                   ],
                 ),
                 child: ProUserAvatar(
-                  user: attendee.user,
+                  user:  attendee.user,
                   radius: avatarRadius,
+                  hideMode: !isUserAuthorized
                 ),
               ),
             );
@@ -283,10 +375,10 @@ class GuestList extends StatelessWidget {
         'All (${event.attendees!.length})',
       ],
       children: [
-        _buildAttendeeList(
-            event.getAttendeesByRsvpStatus(RSVPStatus.GOING), RSVPStatus.GOING, context),
-        _buildAttendeeList(
-            event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE), RSVPStatus.MAYBE, context),
+        _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING),
+            RSVPStatus.GOING, context),
+        _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE),
+            RSVPStatus.MAYBE, context),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING),
             RSVPStatus.NOT_GOING, context),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.UNDECIDED),
@@ -296,7 +388,8 @@ class GuestList extends StatelessWidget {
     );
   }
 
-  Widget _buildAttendeeList(List<Attendee> attendees, RSVPStatus? status, BuildContext context) {
+  Widget _buildAttendeeList(
+      List<Attendee> attendees, RSVPStatus? status, BuildContext context) {
     if (attendees.isEmpty) {
       return _buildEmptyAttendeeState(status, context);
     }
@@ -448,6 +541,11 @@ class GuestList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _buildGuestList(context);
+    final User? user = AppFactory().cookiesService.currentUser;
+    final isUserAuthorized = user?.isUserAuthorized() ?? false;
+    // if (!isUserAuthorized) {
+    //   return _buildUnAuthorizedGuestState(context);
+    // }
+    return _buildGuestList(context, isUserAuthorized);
   }
 }

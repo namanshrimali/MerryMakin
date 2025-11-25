@@ -58,7 +58,6 @@ class AppFactory {
     deleteEverything = () {
       cookiesService.clearCookies();
       userService.deleteAllUsers();
-      // deleteAllEvents();
     };
   }
 

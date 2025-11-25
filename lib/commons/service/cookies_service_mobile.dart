@@ -42,6 +42,7 @@ class CookiesServiceMobile implements CookiesService {
       cookiesDAO.updateCookie(cookie);
     }
     userDAO.deleteAllUsers();
+    userDAO.initTable();
     userDAO.addUser(appUser);
   }
 

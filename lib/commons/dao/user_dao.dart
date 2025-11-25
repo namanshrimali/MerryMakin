@@ -60,7 +60,7 @@ class UserDAO {
   }
 
   Future<void> deleteAllUsers() async {
-    await _database.delete(userTableName);
+    await _database.execute('DROP TABLE IF EXISTS $userTableName');
   }
 
   Future<User?> findUserById(String userId) async {

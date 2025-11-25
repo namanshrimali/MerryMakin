@@ -11,6 +11,7 @@ class ProUserAvatar extends StatefulWidget {
   final bool canEdit;
   final Function? onTap;
   final ImageService? imageService;
+  final bool hideMode;
   ProUserAvatar({
     super.key,
     required this.user,
@@ -18,6 +19,7 @@ class ProUserAvatar extends StatefulWidget {
     this.radius = 12,
     this.canEdit = false,
     this.onTap = null,
+    this.hideMode = false,
   });
 
   @override
@@ -52,7 +54,7 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
 
   Widget userAvatar() {
     Widget? childWidget = null;
-    if (widget.user.photoUrl == null) {
+    if (widget.user.photoUrl == null || widget.hideMode) {
       final initials = widget.user.getInitials();
       childWidget = ProText(
         '${initials[0].toUpperCase()}${initials[1].toUpperCase()}',
@@ -63,7 +65,7 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
     return Stack(children: [
       CircleAvatar(
           radius: widget.radius,
-          backgroundImage: NetworkImage(widget.user.photoUrl ?? ''),
+          backgroundImage: NetworkImage(widget.user.photoUrl != null && !widget.hideMode ? widget.user.photoUrl! : ''),
           onBackgroundImageError: (_, __) {},
           child: childWidget),
       if (widget.canEdit)

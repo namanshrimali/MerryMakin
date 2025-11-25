@@ -11,6 +11,7 @@ import 'package:merrymakin/screens/all_events.dart';
 import 'package:merrymakin/screens/welcome.dart';
 import 'package:merrymakin/service/event_service.dart';
 
+import '../commons/models/rsvp.dart';
 import '../commons/service/cookie_service.dart';
 
 class BaseScreen extends ConsumerStatefulWidget {
@@ -49,6 +50,16 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
               snapshot.data == null ? [] : (snapshot.data![0] as List<Event>)
                 ..sort((a, b) {
                   // If both have startDateTime, compare them
+
+                  // event with undecided rsvp status for the user are first in order of the sorting.
+
+                  if (a.getRsvpStatusForUser(cookiesService.currentUser) == RSVPStatus.UNDECIDED) {
+                    return 1;
+                  }
+                  if (b.getRsvpStatusForUser(cookiesService.currentUser) == RSVPStatus.UNDECIDED) {
+                    return -1;
+                  }
+
                   if (a.startDateTime != null && b.startDateTime != null) {
                     int comparison =  a.startDateTime!.compareTo(b.startDateTime!);
                     if (comparison == 0) {

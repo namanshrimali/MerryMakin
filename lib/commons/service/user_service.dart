@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:http/src/response.dart';
 import 'package:merrymakin/commons/models/spryly_services.dart';
+import '../../factory/app_factory.dart';
 import '../api/user_api.dart';
+import '../dao/user_dao.dart';
 import '../models/user.dart';
 import '../models/user_request_dto.dart';
 import 'cookie_service.dart';
 
 class UserService {
-  // UserDAO userDAO;
   CookiesService cookiesService;
 
   // UserService(this.userDAO, this.cookiesService);
@@ -65,8 +66,7 @@ class UserService {
 
 
   Future<void> deleteAllUsers() {
-    // return userDAO.deleteAllUsers();
-    return Future.value();
+    return AppFactory().userDAO.deleteAllUsers();
   }
 
   Future<void> deleteUser() async {
