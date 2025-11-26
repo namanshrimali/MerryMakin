@@ -142,9 +142,9 @@ class ProUserComment extends StatelessWidget {
         ],
       );
     }
-
     return ProListItem(
       key: Key(comment.user.email.toString() + comment.createdAt.toString()),
+      listTitleAlignment: ListTileTitleAlignment.top,
       leading: hideNames
           ? CircleAvatar(child: Icon(Icons.person), radius: 20)
           : ProUserAvatar(user: comment.user, radius: 20),

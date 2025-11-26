@@ -30,6 +30,23 @@ class EventsApi {
     );
   }
 
+  Future<Response> sendTextBlast(
+    String eventId,
+    String message,
+  ) async {
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'access-token':
+          cookiesService.currentJwtToken ?? '',
+    };
+    Uri uri = Uri(
+        scheme: SCHEME,
+        host: DEV_HOST,
+        port: DEV_PORT,
+        path: "$DEV_PATH_EVENTS/$eventId/text-blast");
+    return await sendPostRequest(uri, headers, {'message': message});
+  }
+
   Future<Response> updateEvent(
     Event event,
     Uri uri,

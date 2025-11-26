@@ -53,77 +53,79 @@ class GuestList extends StatelessWidget {
         left: generalAppLevelPadding,
         right: generalAppLevelPadding,
       ),
-      child: GestureDetector(
-        onTap: () {
-          if (!isUserAuthorized) {
-            return;
-          }
-          openProBottomModalSheet(
-            buildContext,
-            _buildAllAttendeesWithStatus(maxHeight * 0.4, buildContext),
-          );
-        },
-        child: ProCard(
-          elevation: 10,
-          surfaceTintColor: Colors.white.withOpacity(0.1),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Header with title and view all button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const ProText(
-                    'Guest List',
-                    textStyle: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+      child: ProCard(
+        elevation: 10,
+        surfaceTintColor: Colors.white.withOpacity(0.1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Header with title and view all button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const ProText(
+                  'Guest List',
+                  textStyle: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
-                  if (hasGuests && totalGuests > 0 && isUserAuthorized)
-                    ProOutlinedButton(
-                      onPressed: () {
-                        openProBottomModalSheet(
-                          buildContext,
-                          _buildAllAttendeesWithStatus(
-                              maxHeight * 0.4, buildContext),
-                          theme: eventTheme,
-                          themeType: themeType,
-                          gradientColors: gradientColors,
-                        );
-                      },
-                      child: ProText('View All'),
-                    ),
+                ),
+                if (isUserAuthorized)
+                  ProOutlinedButton(
+                    onPressed: () {
+                      openProBottomModalSheet(
+                        gradientColors: [gradientColors[0]],
+                        buildContext,
+                        _buildAllAttendeesWithStatus(
+                            maxHeight * 0.4, buildContext),
+                        theme: eventTheme,
+                        themeType: themeType,
+                      );
+                    },
+                    child: ProText('View All'),
+                  ),
+              ],
+            ),
+            if (hasGuests) ...[
+              Row(
+                children: [
+                  ProText(
+                      'Going ${goingAttendees.length} • Maybe ${maybeAttendees.length}'),
                 ],
               ),
-              if (hasGuests) ...[
-                Row(
-                  children: [
-                    ProText(
-                        'Going ${goingAttendees.length} • Maybe ${maybeAttendees.length}'),
-                  ],
-                ),
-              ],
-              const SizedBox(height: generalAppLevelPadding),
+            ],
+            const SizedBox(height: generalAppLevelPadding),
 
-              // Empty State - Enhanced with fun visuals
-              if (!hasGuests && !event.isGuestCountHidden)
-                _buildEmptyGuestState(event, buildContext),
+            // Empty State - Enhanced with fun visuals
+            if (!hasGuests && !event.isGuestCountHidden)
+              _buildEmptyGuestState(event, buildContext),
 
-              // Guest Sections - Only show if there are guests
-              if (hasGuests) ...[
-                _buildStackedAvatars(
+            // Guest Sections - Only show if there are guests
+            if (hasGuests) ...[
+              GestureDetector(
+                onTap: () {
+                  if (!isUserAuthorized) {
+                    return;
+                  }
+                  openProBottomModalSheet(
+                    gradientColors: [gradientColors[0]],
+                    buildContext,
+                    _buildAllAttendeesWithStatus(maxHeight * 0.4, buildContext),
+                  );
+                },
+                child: _buildStackedAvatars(
                     goingAttendees + maybeAttendees,
                     false,
                     0,
                     eventTheme?.colorScheme.primary ??
-                        Theme.of(buildContext).colorScheme.primary, isUserAuthorized),
-              ] else if (event.isGuestCountHidden && hasGuests) ...[
-                // Show avatars but hide counts
-                _buildHiddenCountGuestAvatars(goingAttendees, maybeAttendees),
-              ],
+                        Theme.of(buildContext).colorScheme.primary,
+                    isUserAuthorized),
+              ),
+            ] else if (event.isGuestCountHidden && hasGuests) ...[
+              // Show avatars but hide counts
+              _buildHiddenCountGuestAvatars(goingAttendees, maybeAttendees),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -252,7 +254,7 @@ class GuestList extends StatelessWidget {
                 ),
                 theme: eventTheme,
                 themeType: themeType,
-                gradientColors: gradientColors,
+                gradientColors: [gradientColors[0]],
               );
             },
           ),
@@ -292,10 +294,9 @@ class GuestList extends StatelessWidget {
                   ],
                 ),
                 child: ProUserAvatar(
-                  user:  attendee.user,
-                  radius: avatarRadius,
-                  hideMode: !isUserAuthorized
-                ),
+                    user: attendee.user,
+                    radius: avatarRadius,
+                    hideMode: !isUserAuthorized),
               ),
             );
           }),

@@ -148,8 +148,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: ProListView(
               height: constraints.maxHeight,
               listItems: [
-                ...preferences,
-                const SizedBox(height: generalAppLevelPadding),
+                // ...preferences,
+                // const SizedBox(height: generalAppLevelPadding),
                 ...feedback,
                 const SizedBox(height: generalAppLevelPadding),
                 if (widget.cookiesService.locallyAvailableUserInfo != null)

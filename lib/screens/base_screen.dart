@@ -54,10 +54,10 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                   // event with undecided rsvp status for the user are first in order of the sorting.
 
                   if (a.getRsvpStatusForUser(cookiesService.currentUser) == RSVPStatus.UNDECIDED) {
-                    return 1;
+                    return -1;
                   }
                   if (b.getRsvpStatusForUser(cookiesService.currentUser) == RSVPStatus.UNDECIDED) {
-                    return -1;
+                    return 1;
                   }
 
                   if (a.startDateTime != null && b.startDateTime != null) {

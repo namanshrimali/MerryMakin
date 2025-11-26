@@ -467,7 +467,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
 
   Widget _buildHeroSection(BuildContext context) {
     final Size size = MediaQuery.sizeOf(context);
-    final double heroHeight = size.height * 0.6;
+    final double heroHeight = size.height * 0.7;
 
     return SizedBox(
       height: heroHeight,

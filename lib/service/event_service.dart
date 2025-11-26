@@ -6,7 +6,6 @@ import 'package:merrymakin/api/events_api.dart';
 import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
-import 'package:merrymakin/commons/models/user.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/user_service.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
@@ -54,6 +53,15 @@ Future<void> rsvpForEvent(
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to RSVP: ${response.body}, ${response.statusCode}');
+    }
+  });
+}
+
+Future<void> sendTextBlast(final Event event, final String message) {
+  return eventsApi.sendTextBlast(event.id!, message).then((response) {
+    if (response.statusCode != 200) {
+      return Future.error(
+          'Failed to send text blast: ${response.body}, ${response.statusCode}');
     }
   });
 }

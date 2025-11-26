@@ -115,7 +115,7 @@ class _CommentSectionState extends State<CommentSection> {
                         ),
                         theme: widget.eventTheme,
                         themeType: widget.themeType,
-                        gradientColors: widget.gradientColors,
+                        gradientColors: [widget.gradientColors[0]],
                       );
                     },
                     child: ProText('Comment'),

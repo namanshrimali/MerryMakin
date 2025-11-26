@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/crud_operation.dart';
 import 'package:merrymakin/commons/models/event.dart';
-import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/models/user.dart';
 import 'package:merrymakin/commons/resources.dart';
@@ -19,14 +17,11 @@ import 'package:merrymakin/commons/widgets/buttons/pro_segmented_button.dart';
 import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
 import 'package:merrymakin/commons/widgets/celebrations/pro_celebration_overlay.dart';
 import 'package:merrymakin/commons/widgets/celebrations/celebration_animations.dart';
-import 'package:merrymakin/commons/widgets/pro_add_comment.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:merrymakin/commons/widgets/pro_font_selector.dart';
 import 'package:merrymakin/commons/widgets/pro_list_item.dart';
-import 'package:merrymakin/commons/widgets/pro_list_view.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
-import 'package:merrymakin/commons/widgets/pro_tab_view.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart';
 import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
 import 'package:merrymakin/factory/app_factory.dart';
@@ -40,7 +35,6 @@ import 'package:merrymakin/commons/utils/platform_web.dart'
     as platform;
 import 'package:merrymakin/utils/event_gradient_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../commons/widgets/pro_user_comment.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/pro_share_sheet.dart';
 import '../widgets/activity_section.dart';
@@ -163,7 +157,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       ),
       theme: eventTheme,
       themeType: themeType,
-      gradientColors: _gradientColors,
+      gradientColors: [_gradientColors[0]],
     );
   }
 
@@ -249,7 +243,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       ),
       theme: eventTheme,
       themeType: themeType,
-      gradientColors: _gradientColors,
+      gradientColors: [_gradientColors[0],],
     );
   }
 
@@ -269,7 +263,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       ),
       theme: eventTheme,
       themeType: themeType,
-      gradientColors: _gradientColors,
+      gradientColors: [_gradientColors[0]],
     );
   }
 
@@ -715,7 +709,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               ),
               theme: eventTheme,
               themeType: themeType,
-              gradientColors: _gradientColors,
+      gradientColors: [_gradientColors[0]],
             );
           }),
     );

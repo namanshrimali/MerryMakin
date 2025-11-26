@@ -39,15 +39,15 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
     gifUrl = widget.comment?.gifUrl;
   }
 
-  void _updateComment(String? text, String? gifUrl) {
+  void _updateComment(String? text, String? selectedGifUrl) {
     final commentTextTrimmed = text?.trim() ?? '';
-    final gifUrlTrimmed = gifUrl?.trim();
+    final gifUrlTrimmed = selectedGifUrl?.trim();
 
     setState(() {
-        commentText = commentText;
+        commentText = commentTextTrimmed;
         gifUrl = gifUrlTrimmed;
       });
-      widget.onChanged(commentText, gifUrlTrimmed);
+      widget.onChanged(commentText, gifUrl);
     }
 
 
@@ -161,9 +161,9 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
           child: ProImagePicker(
               showAll: false,
               canUpload: false,
-              onImageSelected: (gifUrl) {
+              onImageSelected: (selectedGifUrl) {
                 setState(() {
-                  _updateComment(commentText, gifUrl);
+                  _updateComment(commentText, selectedGifUrl);
                 });
                 Navigator.pop(context);
               },

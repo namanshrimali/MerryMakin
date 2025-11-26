@@ -8,6 +8,7 @@ class ProListItem extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final bool isThreeLine;
+  final ListTileTitleAlignment? listTitleAlignment;
   final double? showProgressBarWithProgress;
   final double? showCircularProgressBarWithProgress;
   final bool swipeForEditAndDelete;
@@ -22,6 +23,7 @@ class ProListItem extends StatelessWidget {
   const ProListItem({
     required Key key,
     required this.title,
+    this.listTitleAlignment = ListTileTitleAlignment.center,
     this.subtitle,
     this.leading,
     this.trailing,
@@ -64,7 +66,7 @@ class ProListItem extends StatelessWidget {
       onLongPress: onLongPress,
       splashColor: Colors.transparent,
       hoverColor: Colors.transparent,
-      titleAlignment: ListTileTitleAlignment.top,
+      titleAlignment: listTitleAlignment,
     );
   }
 
