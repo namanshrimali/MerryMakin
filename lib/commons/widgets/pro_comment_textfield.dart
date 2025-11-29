@@ -159,7 +159,6 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
       SizedBox(
           height: MediaQuery.of(context).size.height * 0.7,
           child: ProImagePicker(
-              showAll: false,
               canUpload: false,
               onImageSelected: (selectedGifUrl) {
                 setState(() {

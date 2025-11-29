@@ -179,9 +179,10 @@ class _OAuthLoginState extends ConsumerState<OAuthLogin> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 250,
+      width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SocialSignInButton.google(
             label: 'Continue with Google',
