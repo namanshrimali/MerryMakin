@@ -113,7 +113,7 @@ class _CommentSectionState extends State<CommentSection> {
                               },
                               user: cookiesService.locallyAvailableUserInfo),
                         ),
-                        theme: widget.eventTheme,
+                        themeData: widget.eventTheme,
                         themeType: widget.themeType,
                         gradientColors: [widget.gradientColors[0]],
                       );

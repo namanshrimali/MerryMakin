@@ -78,7 +78,7 @@ class GuestList extends StatelessWidget {
                         buildContext,
                         _buildAllAttendeesWithStatus(
                             maxHeight * 0.4, buildContext),
-                        theme: eventTheme,
+                        themeData: eventTheme,
                         themeType: themeType,
                       );
                     },
@@ -252,7 +252,7 @@ class GuestList extends StatelessWidget {
                   themeType: themeType,
                   effectType: effectType,
                 ),
-                theme: eventTheme,
+                themeData: eventTheme,
                 themeType: themeType,
                 gradientColors: [gradientColors[0]],
               );

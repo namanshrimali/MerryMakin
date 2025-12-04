@@ -155,7 +155,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           ],
         ],
       ),
-      theme: eventTheme,
+      themeData: eventTheme,
       themeType: themeType,
       gradientColors: [_gradientColors[0]],
     );
@@ -241,7 +241,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
           ),
         ],
       ),
-      theme: eventTheme,
+      themeData: eventTheme,
       themeType: themeType,
       gradientColors: [_gradientColors[0],],
     );
@@ -261,7 +261,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         themeType: themeType,
         effectType: effectType,
       ),
-      theme: eventTheme,
+      themeData: eventTheme,
       themeType: themeType,
       gradientColors: [_gradientColors[0]],
     );
@@ -707,7 +707,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 user: cookiesService.locallyAvailableUserInfo,
                 themeType: themeType,
               ),
-              theme: eventTheme,
+              themeData: eventTheme,
               themeType: themeType,
       gradientColors: [_gradientColors[0]],
             );

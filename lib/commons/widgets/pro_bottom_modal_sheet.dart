@@ -16,7 +16,7 @@ const int _contentAnimationDuration = 200;
 
 Future openProBottomModalSheet(BuildContext context, Widget childWidget,
     {bool isFullScreen = false,
-    ThemeData? theme,
+    ThemeData? themeData,
     ProThemeType? themeType,
     List<Color>? gradientColors}) {
   return showModalBottomSheet(
@@ -33,7 +33,7 @@ Future openProBottomModalSheet(BuildContext context, Widget childWidget,
         return ProBottomModalSheetContent(
           isFullScreen: isFullScreen,
           child: childWidget,
-          theme: theme,
+          theme: themeData,
           themeType: themeType,
           gradientColors: gradientColors,
         );
