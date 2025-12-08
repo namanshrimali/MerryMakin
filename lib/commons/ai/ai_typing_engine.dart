@@ -27,8 +27,8 @@ class AiTypingEngine {
     _setTyping(false);
   }
 
-  Future<void> animateTo(String targetText) async {
-    final String currentText = controller.text;
+  Future<void> animateTo(String targetText, { bool animateAgain = false }) async {
+    final String currentText = animateAgain ? '' : controller.text;
     if (targetText == currentText) {
       return;
     }
@@ -37,6 +37,7 @@ class AiTypingEngine {
       await _typeForward(
         ++_generationKey,
         suffix: targetText.substring(currentText.length),
+        animateAgain: animateAgain,
       );
       return;
     }
@@ -60,12 +61,13 @@ class AiTypingEngine {
   Future<void> _typeForward(
     int runKey, {
     required String suffix,
+    bool animateAgain = false,
   }) async {
     if (suffix.isEmpty) {
       return;
     }
 
-    final StringBuffer buffer = StringBuffer(controller.text);
+    final StringBuffer buffer = StringBuffer(animateAgain ? '' : controller.text);
     _setTyping(true);
 
     for (final String char in suffix.characters) {

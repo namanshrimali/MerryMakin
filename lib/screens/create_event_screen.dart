@@ -304,7 +304,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     }
 
     final String currentHash = _getEventDetailsHash();
-    
+
     // If details changed and prompt hasn't been dismissed, show it
     if (_lastEventDetailsHash != null && 
         _lastEventDetailsHash != currentHash && 
@@ -333,6 +333,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
       isFullScreen: true,
       AIEnabledDescription(
         event: event,
+        animateAgain: true,
         controller: _descriptionController,
         initialDressCodeSelection: event.dressCode,
         initialFoodSelections: event.foodSituation?.split(','),
@@ -510,7 +511,11 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         children: [
           _buildHeroActionChip(
             onTap: () {
-              AppRouter.goHome(context);
+              if (event.id != null) {
+                AppRouter.goToEventDetails(context, event.id!);
+              } else {
+                AppRouter.goHome(context);
+              }
             },
             child: const Icon(
               Icons.arrow_back,
@@ -631,6 +636,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             firstDate: DateTime(2024),
             lastDate: DateTime(2100),
             hintText: 'Set date and time',
+            textAlign: TextAlign.center,
             onDateTimeSelected: (selectedDate) {
               setState(() {
                 event.startDateTime = selectedDate;
@@ -648,6 +654,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           ProTextField(
             key: ValueKey('event-location-${event.id ?? 'new'}'),
             initialValue: event.location,
+            textAlign: TextAlign.center,
             onValidationCallback: validateLocationField,
             onChanged: (value) {
               setState(() {
@@ -1353,6 +1360,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                           children: [
                             _buildRegenerateDescriptionBanner(context),
                             ProTextField(
+                              textAlign: TextAlign.center,
                               multiline: true,
                               maxLines: 5,
                               onTap: () async {

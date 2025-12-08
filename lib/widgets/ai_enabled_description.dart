@@ -14,6 +14,7 @@ class AIEnabledDescription extends StatefulWidget {
   final TextEditingController? controller;
   final List<String>? initialFoodSelections;
   final String? initialDressCodeSelection;
+  final bool animateAgain;
 
   const AIEnabledDescription({
     super.key,
@@ -22,6 +23,7 @@ class AIEnabledDescription extends StatefulWidget {
     this.controller,
     this.initialFoodSelections,
     this.initialDressCodeSelection,
+    this.animateAgain = false,
   });
 
   @override
@@ -129,7 +131,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
 
     final String composed =
         _composeFullText(baseText, foodLine, dressLine);
-    _typingEngine.animateTo(composed);
+    _typingEngine.animateTo(composed, animateAgain: widget.animateAgain);
   }
 
   List<String> _splitIntoLines(String description) {
@@ -453,9 +455,10 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
         ProText('AI Generated Description', textStyle: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         ProTextField(
+          textAlign: TextAlign.center,
           textEditingController: _controller,
           multiline: true,
-          maxLines: 5,
+          maxLines: 8,
           hintText: 'Let AI craft your event description...',
         ),
         if (_isTyping) ...<Widget>[

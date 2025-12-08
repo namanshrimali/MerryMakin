@@ -71,7 +71,6 @@ class ProTextField extends StatelessWidget {
       borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary),
     );
 
-
     return SizedBox(
       width: width,
       height: height,
@@ -136,26 +135,5 @@ class ProTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return buildNewType(context);
-    // return TextField(
-    //   keyboardType: keyboardType,
-    //   controller: textEditingController,
-    //   onChanged: (value) => onChanged != null ? onChanged!(value) : null,
-    //   onSubmitted: (_) => onSubmitted != null ? onSubmitted!() : null,
-    //   inputFormatters: keyboardType == TextInputType.number
-    //       ? <TextInputFormatter>[
-    //           FilteringTextInputFormatter.allow(RegExp(
-    //               r'^\d+\.?\d{0,2}')), // Allow only non-negative numbers with up to 2 decimal places
-    //         ]
-    //       : null,
-    //   decoration: InputDecoration(
-    //       border: const OutlineInputBorder(),
-    //       contentPadding:
-    //           const EdgeInsets.only(left: 8, right: 8, bottom: 18, top: 18),
-    //       labelText: label,
-    //       hintText: hintText,
-    //       suffix: suffixWidget,
-    //       prefix: prefixWidget),
-    //   autofocus: autofocus,
-    // );
   }
 }

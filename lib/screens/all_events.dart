@@ -35,7 +35,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     'upcoming',
     'hosting',
     'attended',
-    // 'past',
+    'past events',
   ];
 
   @override
@@ -51,14 +51,14 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
         return widget.events
             .where((event) =>
                 event.startDateTime == null ||
-                event.startDateTime!.isAfter(now))
+                event.startDateTime!.isAfter(now.subtract(Duration(hours: 6))))
             .toList();
 
-      case 'past':
+      case 'past events':
         return widget.events
             .where((event) =>
                 event.startDateTime != null &&
-                event.startDateTime!.isBefore(now))
+                event.startDateTime!.isBefore(now ))
             .toList();
 
       case 'hosting':
@@ -128,6 +128,9 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     } else if (selectedFilter == "attended") {
       title = "No attended events";
       subtitle = "Your past events, hosted or attended, show up right here! 🎉";
+    } else if (selectedFilter == "past") {
+      title = "No past events";
+      subtitle = "Your past events, hosted or attended, show up right here!";
     }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -158,7 +161,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
           thirdRow: selectedFilter == "attended"
               ? null
               : ProPrimaryButton(
-                  ProText("Create Event"),
+                  Padding(padding: EdgeInsets.all(generalAppLevelPadding), child: ProText("Create Event")),
                   onPressed: () {
                     AppRouter.goToNewEvent(context);
                   },
@@ -199,7 +202,6 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             children: [
               // buildEventFilterSelection(constraints),
               const SizedBox(height: generalAppLevelPadding * 2),
-
               ProListView(
                   scrollDirection: Axis.horizontal,
                   listItems: buildEventCards(filteredEvents, constraints,
@@ -222,6 +224,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             ProListItem(
               key: Key("Upcoming"),
               title: ProText("Upcoming"),
+              leading: Icon(Icons.calendar_month),
               swipeForEditAndDelete: false,
               onTap: () => {
                 setState(() {
@@ -232,8 +235,22 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             ),
             Divider(),
             ProListItem(
+              key: Key("Past Events"),
+              title: ProText("Past Events"),
+              leading: Icon(Icons.refresh),
+              swipeForEditAndDelete: false,
+              onTap: () => {
+                setState(() {
+                  selectedFilter = "past events";
+                  context.pop();
+                })
+              },
+            ),
+            Divider(),
+            ProListItem(
               key: Key("Hosting"),
               title: ProText("Hosting"),
+              leading: Icon(Icons.star),
               swipeForEditAndDelete: false,
               onTap: () => {
                 setState(() {
@@ -246,6 +263,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             ProListItem(
               key: Key("Attended"),
               title: ProText("Attended"),
+              leading: Icon(Icons.check),
               swipeForEditAndDelete: false,
               onTap: () => {
                 setState(() {
@@ -267,7 +285,8 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
       },
       child: Row(children: [
         ProText(
-          toBeginningOfSentenceCase(selectedFilter),
+          // capitalize the first letter of every word of the selected filter
+          selectedFilter.split(' ').map((word) => word.substring(0, 1).toUpperCase() + word.substring(1)).join(' '),
           textStyle: TextStyle(fontSize: 36, fontWeight: FontWeight.w500),
         ),
         SizedBox(width: generalAppLevelPadding / 4),

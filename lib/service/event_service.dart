@@ -13,13 +13,18 @@ import 'package:merrymakin/factory/app_factory.dart';
 
 final UserService userService = AppFactory().userService;
 final EventsApi eventsApi = AppFactory().eventsApi;
+List<Event>? eventsCache;
 
 Future<List<Event>> get allEvents async {
+  if (eventsCache != null && eventsCache!.isNotEmpty) {
+    return eventsCache!;
+  }
   return eventsApi.getAllEvents().then((Response response) {
     if (response.statusCode == 200) {
       try {
         final List<Event> eventsFromCloud = List<Event>.from(
             jsonDecode(response.body).map((map) => Event.fromMap(map)));
+        eventsCache = eventsFromCloud;
         return eventsFromCloud;
       } catch (e) {
         print(e);
@@ -34,9 +39,17 @@ Future<List<Event>> get allEvents async {
 
 Future<Event?> findEventWithId(final String eventId) async {
   // Get event from database
+  if (eventsCache != null && eventsCache!.isNotEmpty) {
+    // return deep copy of event
+    return eventsCache!.firstWhere((event) => event.id == eventId).deepCopy();
+  }
   final Response response = await eventsApi.getEventById(eventId);
   if (response.statusCode == 200) {
     Event event = Event.fromMap(jsonDecode(response.body));
+    if (eventsCache != null && eventsCache!.isNotEmpty) {
+      eventsCache!.removeWhere((event) => event.id == event.id);
+      eventsCache!.add(event);
+    }
     return event;
   }
   return Future.error(
@@ -48,9 +61,12 @@ Future<void> rsvpForEvent(
   final List<String> plusOnes,
   final RSVPStatus rsvpStatus,
 ) {
-
   return eventsApi.sendRsvpForEvent(event.id!, plusOnes, rsvpStatus).then((response) {
     if (response.statusCode != 200) {
+      if (eventsCache != null && eventsCache!.isNotEmpty) {
+        eventsCache!.removeWhere((event) => event.id == event.id);
+        eventsCache!.add(event);
+      }
       return Future.error(
           'Failed to RSVP: ${response.body}, ${response.statusCode}');
     }
@@ -83,6 +99,9 @@ Future<void> deleteCommentFromEvent(final Event event, final Comment comment, Bu
       return Future.error(
           'Failed to delete comment: ${response.body}, ${response.statusCode}');
     }
+    if (eventsCache != null && eventsCache!.isNotEmpty) {
+      eventsCache!.firstWhere((e) => e.id == event.id).comments?.removeWhere((c) => c.id == comment.id);
+    }
   });
 }
 
@@ -101,7 +120,12 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
       path: '$DEV_PATH_EVENTS/${event.id!}');
   return eventsApi.updateEvent(event, uri).then((Response response) {
     if (response.statusCode == 200) {
-      return Event.fromMap(jsonDecode(response.body));
+      final Event updatedEvent = Event.fromMap(jsonDecode(response.body));
+      if (eventsCache != null && eventsCache!.isNotEmpty) {
+        eventsCache!.removeWhere((event) => event.id == event.id);
+        eventsCache!.add(updatedEvent);
+      }
+      return updatedEvent;
     } else {
       if (context.mounted) {
         showSnackBar(context,
@@ -120,6 +144,9 @@ Future<Event?> _addEvent(final Event event, BuildContext context) async {
       .then((Response response) {
     if (response.statusCode == 200) {
       final Event savedEvent = Event.fromMap(jsonDecode(response.body));
+      if (eventsCache != null && eventsCache!.isNotEmpty) {
+        eventsCache!.add(savedEvent);
+      }
       return savedEvent;
     } else {
       if (context.mounted) {
@@ -134,5 +161,7 @@ Future<Event?> _addEvent(final Event event, BuildContext context) async {
 
 Future<void> deleteEvent(String eventId) async {
   await eventsApi.deleteEventFromServer(eventId);
-  // await eventsDao.delete(eventId.toString());
+  if (eventsCache != null && eventsCache!.isNotEmpty) {
+    eventsCache!.removeWhere((event) => event.id == eventId);
+  }
 }

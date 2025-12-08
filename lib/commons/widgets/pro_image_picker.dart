@@ -89,7 +89,7 @@ class _ProImagePickerState extends State<ProImagePicker> {
                   padding:
                       const EdgeInsets.only(right: generalAppLevelPadding / 2),
                   child: FilterChip(
-                    label: const ProText('All'),
+                    label: const ProText('Trending'),
                     selected: _selectedCategory == null,
                     onSelected: (bool selected) {
                       setState(() {

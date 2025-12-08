@@ -129,7 +129,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
       final speedMultiplier = _WelcomeScreenConstants.speedBase + 
           _random.nextDouble() * _WelcomeScreenConstants.speedRandomRange;
       final verticalOffset = (i % 3 == 0 ? 1.0 : _random.nextDouble()) * maxVerticalOffset;
-      final startOffset = i == 0 ? screenWidth - cardWidth / 2 : screenWidth + 
+      final startOffset = screenWidth + 
           (i * (screenWidth * _WelcomeScreenConstants.startOffsetSpacingRatio) + 
           _random.nextDouble() * _WelcomeScreenConstants.startOffsetRandomRange);
       final totalDistance = startOffset - endOffset;
@@ -236,6 +236,12 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
         child: OAuthLogin(
           userService: AppFactory().userService,
           sprylyService: SprylyServices.MerryMakin.name,
+          onPressedCallback: () {
+            _dismissLogin();
+            if (mounted) {
+              Navigator.pop(context);
+            }
+          },
         ),
       ),
       themeData: theme,
@@ -244,7 +250,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
   }
 
   void _dismissLogin() {
-    HapticFeedback.lightImpact();
+    HapticFeedback.lightImpact();    
   }
 
   @override

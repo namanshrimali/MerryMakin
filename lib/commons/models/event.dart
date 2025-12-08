@@ -352,4 +352,32 @@ class Event {
     attendees!.add(Attendee(user: user, rsvpStatus: rsvpStatus, rsvpDate: DateTime.now()));
     updatedAt = DateTime.now().toUtc();
   }
+
+  Event deepCopy() {
+    return Event(
+      id: id,
+      name: name,
+      imageUrl: imageUrl,
+      description: description,
+      location: location,
+      spots: spots,
+      costPerSpot: costPerSpot,
+      countryCurrency: countryCurrency,
+      hosts: hosts,
+      attendees: attendees,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      comments: comments,
+      dressCode: dressCode,
+      foodSituation: foodSituation,
+      isGuestListHidden: isGuestListHidden,
+      isGuestCountHidden: isGuestCountHidden,
+      subEvents: subEvents,
+      theme: theme,
+      effect: effect,
+      font: font,
+    );
+  }
 }

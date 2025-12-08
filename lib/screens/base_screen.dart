@@ -69,8 +69,8 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                   }
 
                   // If only one has startDateTime, put the non-null one first
-                  if (a.startDateTime != null) return -1;
-                  if (b.startDateTime != null) return 1;
+                  if (a.startDateTime == null) return -1;
+                  if (b.startDateTime == null) return 1;
 
                   // If both are null, compare createdAt
                   return a.createdAt.compareTo(b.createdAt);

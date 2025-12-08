@@ -17,7 +17,7 @@ class ProDateTimePicker extends StatefulWidget {
   final EdgeInsetsGeometry? contentPadding;
   final Widget? prefixIcon;
   final Widget? suffixIcon;
-
+  final TextAlign? textAlign;
   const ProDateTimePicker({
     super.key,
     this.initialValue,
@@ -35,6 +35,7 @@ class ProDateTimePicker extends StatefulWidget {
     this.contentPadding,
     this.prefixIcon,
     this.suffixIcon,
+    this.textAlign,
   });
 
   @override
@@ -113,6 +114,7 @@ class _ProDateTimePickerState extends State<ProDateTimePicker> {
       controller: _controller,
       readOnly: true,
       style: widget.style,
+      textAlign: widget.textAlign ?? TextAlign.start,
       decoration: InputDecoration(
         hintText: widget.hintText,
         hintStyle: widget.hintStyle,
