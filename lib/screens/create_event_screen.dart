@@ -292,9 +292,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
 
   String _getEventDetailsHash() {
     final String timeStr = event.startDateTime?.toIso8601String() ?? '';
-    final String locationStr = event.location ?? '';
+    // final String locationStr = event.location ?? '';
     final String eventName = event.name;
-    return '$timeStr|$locationStr|$eventName';
+    return '$timeStr|$eventName';
   }
 
   void _checkAndShowRegeneratePrompt() {
@@ -1159,26 +1159,24 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ProText(
-                      currentTheme.name,
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProText(
+                    currentTheme.name,
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    ProText(
-                      'Tap to change theme',
-                      textStyle: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                  ),
+                  ProText(
+                    'Tap to change theme',
+                    textStyle: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               Icon(
                 Icons.chevron_right,

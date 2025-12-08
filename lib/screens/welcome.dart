@@ -27,7 +27,6 @@ class MerryMakinWelcomeScreen extends StatefulWidget {
 
 class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
     with TickerProviderStateMixin {
-  Timer? _themeTimer;
   late ProThemeType _currentTheme;
   late ProEffectType _currentEffectType;
   final Random _random = Random();
@@ -40,10 +39,6 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
   List<_CardConfig> _cardConfigs = [];
   bool _cardsInitialized = false;
   
-  // OAuth login measurement
-  final GlobalKey _oauthLoginKey = GlobalKey();
-  double? _oauthLoginHeight;
-  
   // Image service
   late final ImageService _imageService;
 
@@ -52,7 +47,6 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
     super.initState();
     _imageService = AppFactory().imageService;
     _initializeRandomTheme();
-    _startThemeTimer();
     _initializeAnimations();
   }
 
@@ -65,7 +59,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
     
     _cardController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 60),
+      duration: const Duration(seconds: 300),
     )..repeat();
   }
   
@@ -84,11 +78,11 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
     final cardHeight = screenSize.height * 0.3;
     final cardWidth = screenSize.width * 0.4;
     final endOffset = -cardWidth;
-    final cardCount = events.length * 3;
+    final cardCount = events.length;
     
     _cardConfigs = List.generate(cardCount, (i) {
       final event = events[i % events.length];
-      final speedMultiplier = 0.5 + _random.nextDouble() / 2;
+      final speedMultiplier = 5 + _random.nextDouble();
       final maxVerticalOffset = (screenSize.height * 0.7 - cardHeight).clamp(0.0, screenSize.height * 0.7);
       final verticalOffset = (i % 3 == 0 ? 1 : _random.nextDouble()) * maxVerticalOffset;
       final startOffset = screenWidth + (i == 0 ? 0 : (i * (screenWidth / 3)) + _random.nextDouble() * 200.0);
@@ -112,7 +106,6 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
 
   @override
   void dispose() {
-    _themeTimer?.cancel();
     _arrowBounceController.dispose();
     _cardController.dispose();
     super.dispose();
@@ -124,19 +117,6 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
         .where((theme) => theme != ProThemeType.classic && theme != ProThemeType.midnight)
         .toList()[_random.nextInt(ProThemeType.values.length - 2)];
     _currentEffectType = ProEffectType.values[_random.nextInt(ProEffectType.values.length)];
-  }
-
-  void _startThemeTimer() {
-    _themeTimer = Timer.periodic(const Duration(seconds: 100), (timer) {
-      if (mounted) {
-        setState(() {
-          _currentTheme = ProThemeType.values
-              .where((theme) => theme != ProThemeType.classic)
-              .toList()[_random.nextInt(ProThemeType.values.length - 1)];
-          _currentEffectType = ProEffectType.values[_random.nextInt(ProEffectType.values.length)];
-        });
-      }
-    });
   }
 
   List<Event> _getMockEvents() {
@@ -528,7 +508,7 @@ class _WelcomeEventCard extends StatelessWidget {
                       textStyle: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 11,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w300,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

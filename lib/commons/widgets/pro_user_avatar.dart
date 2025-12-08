@@ -64,6 +64,7 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
     // have gradient background color
     return Stack(children: [
       CircleAvatar(
+        
           radius: widget.radius,
           backgroundImage: NetworkImage(widget.user.photoUrl != null && !widget.hideMode ? widget.user.photoUrl! : ''),
           onBackgroundImageError: (_, __) {},
@@ -89,6 +90,8 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
     final Widget avatar = userAvatar();
     if (widget.canEdit) {
       return InkWell(
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
         radius: widget.radius,
         child: avatar,
         onTap: () {
