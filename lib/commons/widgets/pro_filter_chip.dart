@@ -10,7 +10,7 @@ class ProFilterChip extends StatelessWidget {
   final Color? selectedTextColor;
   final Color? unselectedTextColor;
   final int? count;
-
+  final bool isEnabled;
   const ProFilterChip({
     super.key,
     required this.label,
@@ -18,14 +18,18 @@ class ProFilterChip extends StatelessWidget {
     required this.onSelected,
     this.backgroundColor,
     this.selectedColor,
-    this.selectedTextColor = Colors.white,
-    this.unselectedTextColor = Colors.black,
+    this.selectedTextColor,
+    this.unselectedTextColor,
     this.count,
+    this.isEnabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return FilterChip(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(32),
+      ),
       selected: isSelected,
       label: Row(
         mainAxisSize: MainAxisSize.min,
@@ -33,7 +37,7 @@ class ProFilterChip extends StatelessWidget {
           ProText(
             label[0].toUpperCase() + label.substring(1),
             textStyle: TextStyle(
-              color: isSelected ? selectedTextColor : unselectedTextColor,
+              color: isSelected ? Theme.of(context).colorScheme.onPrimary : unselectedTextColor,
             ),
           ),
           if (count != null) ...[
@@ -48,14 +52,14 @@ class ProFilterChip extends StatelessWidget {
                 count.toString(),
                 textStyle: TextStyle(
                   fontSize: 12,
-                  color: isSelected ? selectedTextColor : unselectedTextColor,
+                  color: isSelected ? Theme.of(context).colorScheme.onPrimary : unselectedTextColor,
                 ),
               ),
             ),
           ],
         ],
       ),
-      onSelected: onSelected,
+      onSelected: isEnabled ? onSelected : null,
       // backgroundColor: backgroundColor ?? Colors.grey[200],
       selectedColor: selectedColor ?? Theme.of(context).primaryColor,
     );

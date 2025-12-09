@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:merrymakin/commons/ai/ai_typing_engine.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
+import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_text_field.dart';
 
@@ -427,9 +428,9 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
           runSpacing: 8,
           children: _foodOptions
               .map(
-                (String option) => FilterChip(
-                  label: Text(option),
-                  selected: _selectedFood.contains(option),
+                (String option) => ProFilterChip(
+                  label: option,
+                  isSelected: _selectedFood.contains(option),
                   onSelected: (_) => _onFoodTapped(option),
                 ),
               )
@@ -443,9 +444,9 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
           runSpacing: 8,
           children: _dressOptions
               .map(
-                (String option) => FilterChip(
-                  label: Text(option),
-                  selected: _selectedDress == option,
+                (String option) => ProFilterChip(
+                  label: option,
+                  isSelected: _selectedDress == option,
                   onSelected: (_) => _onDressTapped(option),
                 ),
               )

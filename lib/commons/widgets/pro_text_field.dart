@@ -75,6 +75,7 @@ class ProTextField extends StatelessWidget {
       width: width,
       height: height,
       child: TextFormField(
+        
         onTap: onTap != null ? () => onTap!() : null,
         focusNode: focusNode,
         autofocus: autofocus,

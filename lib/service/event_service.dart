@@ -73,15 +73,6 @@ Future<void> rsvpForEvent(
   });
 }
 
-Future<void> sendTextBlast(final Event event, final String message) {
-  return eventsApi.sendTextBlast(event.id!, message).then((response) {
-    if (response.statusCode != 200) {
-      return Future.error(
-          'Failed to send text blast: ${response.body}, ${response.statusCode}');
-    }
-  });
-}
-
 Future<Comment?> addCommentToEvent(
     final Event event, final Comment comment, BuildContext context) {
   return eventsApi.addCommentApi(event.id!, comment).then((response) {
@@ -164,4 +155,15 @@ Future<void> deleteEvent(String eventId) async {
   if (eventsCache != null && eventsCache!.isNotEmpty) {
     eventsCache!.removeWhere((event) => event.id == eventId);
   }
+}
+
+Future<void> sendTextBlastForEvent(final Event event, final String? gifUrl, final String message, final List<String> rsvpStatuses, BuildContext context) {
+  // response is a comment that was posted to the event
+  return eventsApi.sendTextBlast(event.id!, message, gifUrl, rsvpStatuses).then((response) {
+    if (response.statusCode != 200) {
+      return Future.error(
+          'Failed to send text blast: ${response.body}, ${response.statusCode}');
+    }
+    return Comment.fromMap(jsonDecode(response.body));
+  });
 }

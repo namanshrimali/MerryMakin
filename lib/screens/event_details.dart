@@ -34,6 +34,7 @@ import 'package:merrymakin/commons/utils/platform_web.dart'
     if (dart.library.io) 'package:merrymakin/commons/utils/platform_stub.dart'
     as platform;
 import 'package:merrymakin/utils/event_gradient_helper.dart';
+import 'package:merrymakin/widgets/text_blast_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/pro_share_sheet.dart';
@@ -244,6 +245,17 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       themeData: eventTheme,
       themeType: themeType,
       gradientColors: [_gradientColors[0],],
+    );
+  }
+
+  void _textBlastEvent(Event event, BuildContext eventContext) {
+    openProBottomModalSheet(
+      eventContext,
+      isFullScreen: true,
+      TextBlastSheet(event: event),
+      themeData: eventTheme,
+      themeType: themeType,
+      gradientColors: [_gradientColors[0]],
     );
   }
 
@@ -499,13 +511,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  Widget buildRSVPButtonsSection(Event receivedEvent) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding),
-      child: _buildRsvpButtons(receivedEvent),
-    );
-  }
-
   Widget _buildEvent(
       BuildContext context, final Event? receivedEvent, WidgetRef ref) {
     if (receivedEvent == null) {
@@ -586,9 +591,14 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                           // Inline RSVP options for guests (non-hosts)
                           if (!receivedEvent.isHostedByMe(
                               cookiesService.locallyAvailableUserInfo)) ...[
-                            buildRSVPButtonsSection(receivedEvent),
+                            _buildRsvpButtons(receivedEvent),
                             const SizedBox(height: generalAppLevelPadding),
                           ],
+                          // if (receivedEvent.isHostedByMe(
+                          //     cookiesService.locallyAvailableUserInfo)) ...[
+                          //   _buildHostActionButtons(receivedEvent),
+                          //   const SizedBox(height: generalAppLevelPadding),
+                          // ],
                           // if (receivedEvent.isHostedByMe(
                           //     cookiesService.locallyAvailableUserInfo))
                           //   ...[
@@ -625,6 +635,8 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ]),
                 ),
               ),
+              floatingActionButton: receivedEvent.isHostedByMe(
+                              cookiesService.locallyAvailableUserInfo) ? buildActionButtonForHosts(context, event!) : null,
             ),
           );
         },
@@ -640,13 +652,13 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            heroTag: 'share',
+            heroTag: 'textblast',
             backgroundColor: theme.primaryColor,
             foregroundColor: theme.colorScheme.surface,
             onPressed: () {
-              _shareEvent(event, context);
+              _textBlastEvent(event, context);
             },
-            child: const Icon(Icons.share),
+            child: const Icon(Icons.campaign),
           ),
         ],
       ),
@@ -654,17 +666,51 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   }
 
   Widget _buildHostActionButtons(Event event) {
+    RSVPStatus rsvpStatus =
+        event.getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
     return Padding(
-      padding: const EdgeInsets.only(
-          left: generalAppLevelPadding, right: generalAppLevelPadding),
+      padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding),
+      
       child: ProCard(
         elevation: 10,
         surfaceTintColor: Colors.white.withOpacity(0.1),
-        child: Column(
-          children: [
-            ProText('Host Actions'),
-          ],
-        ),
+        child: ProSegmentedButton(
+            backgroundColor: Colors.white.withOpacity(0.1),
+            selectedBackgroundColor:
+                ProThemes.themes[themeType]?.theme.colorScheme.primary,
+            selectedTextColor:
+                ProThemes.themes[themeType]?.theme.colorScheme.onPrimary,
+            segments: [
+              ProButtonSegment(
+                  icon: Icon(RSVPStatus.GOING.getDisplayInfo().$1),
+                  value: RSVPStatus.GOING,
+                  label: ProText(RSVPStatus.GOING.getDisplayInfo().$2)),
+              ProButtonSegment(
+                  icon: Icon(RSVPStatus.NOT_GOING.getDisplayInfo().$1),
+                  value: RSVPStatus.NOT_GOING,
+                  label: ProText(RSVPStatus.NOT_GOING.getDisplayInfo().$2)),
+              ProButtonSegment(
+                  icon: Icon(RSVPStatus.MAYBE.getDisplayInfo().$1),
+                  value: RSVPStatus.MAYBE,
+                  label: ProText(RSVPStatus.MAYBE.getDisplayInfo().$2)),
+            ],
+            selected: {rsvpStatus},
+            onSelectionChanged: (selected) async {
+              // Open RSVP modal instead of directly RSVPing
+              await openProBottomModalSheet(
+                isFullScreen: true,
+                context,
+                RsvpModal(
+                  event: event,
+                  initialRsvpStatus: selected.first,
+                  user: cookiesService.locallyAvailableUserInfo,
+                  themeType: themeType,
+                ),
+                themeData: eventTheme,
+                themeType: themeType,
+        gradientColors: [_gradientColors[0]],
+              );
+            }),
       ),
     );
   }
@@ -672,46 +718,50 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   Widget _buildRsvpButtons(Event event) {
     RSVPStatus rsvpStatus =
         event.getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
-    return ProCard(
-      elevation: 10,
-      surfaceTintColor: Colors.white.withOpacity(0.1),
-      child: ProSegmentedButton(
-          backgroundColor: Colors.white.withOpacity(0.1),
-          selectedBackgroundColor:
-              ProThemes.themes[themeType]?.theme.colorScheme.primary,
-          selectedTextColor:
-              ProThemes.themes[themeType]?.theme.colorScheme.onPrimary,
-          segments: [
-            ProButtonSegment(
-                icon: Icon(RSVPStatus.GOING.getDisplayInfo().$1),
-                value: RSVPStatus.GOING,
-                label: ProText(RSVPStatus.GOING.getDisplayInfo().$2)),
-            ProButtonSegment(
-                icon: Icon(RSVPStatus.NOT_GOING.getDisplayInfo().$1),
-                value: RSVPStatus.NOT_GOING,
-                label: ProText(RSVPStatus.NOT_GOING.getDisplayInfo().$2)),
-            ProButtonSegment(
-                icon: Icon(RSVPStatus.MAYBE.getDisplayInfo().$1),
-                value: RSVPStatus.MAYBE,
-                label: ProText(RSVPStatus.MAYBE.getDisplayInfo().$2)),
-          ],
-          selected: {rsvpStatus},
-          onSelectionChanged: (selected) async {
-            // Open RSVP modal instead of directly RSVPing
-            await openProBottomModalSheet(
-              isFullScreen: true,
-              context,
-              RsvpModal(
-                event: event,
-                initialRsvpStatus: selected.first,
-                user: cookiesService.locallyAvailableUserInfo,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding),
+      
+      child: ProCard(
+        elevation: 10,
+        surfaceTintColor: Colors.white.withOpacity(0.1),
+        child: ProSegmentedButton(
+            backgroundColor: Colors.white.withOpacity(0.1),
+            selectedBackgroundColor:
+                ProThemes.themes[themeType]?.theme.colorScheme.primary,
+            selectedTextColor:
+                ProThemes.themes[themeType]?.theme.colorScheme.onPrimary,
+            segments: [
+              ProButtonSegment(
+                  icon: Icon(RSVPStatus.GOING.getDisplayInfo().$1),
+                  value: RSVPStatus.GOING,
+                  label: ProText(RSVPStatus.GOING.getDisplayInfo().$2)),
+              ProButtonSegment(
+                  icon: Icon(RSVPStatus.NOT_GOING.getDisplayInfo().$1),
+                  value: RSVPStatus.NOT_GOING,
+                  label: ProText(RSVPStatus.NOT_GOING.getDisplayInfo().$2)),
+              ProButtonSegment(
+                  icon: Icon(RSVPStatus.MAYBE.getDisplayInfo().$1),
+                  value: RSVPStatus.MAYBE,
+                  label: ProText(RSVPStatus.MAYBE.getDisplayInfo().$2)),
+            ],
+            selected: {rsvpStatus},
+            onSelectionChanged: (selected) async {
+              // Open RSVP modal instead of directly RSVPing
+              await openProBottomModalSheet(
+                isFullScreen: true,
+                context,
+                RsvpModal(
+                  event: event,
+                  initialRsvpStatus: selected.first,
+                  user: cookiesService.locallyAvailableUserInfo,
+                  themeType: themeType,
+                ),
+                themeData: eventTheme,
                 themeType: themeType,
-              ),
-              themeData: eventTheme,
-              themeType: themeType,
-      gradientColors: [_gradientColors[0]],
-            );
-          }),
+        gradientColors: [_gradientColors[0]],
+              );
+            }),
+      ),
     );
   }
 

@@ -73,16 +73,16 @@ class _ProThemeEffectsState extends State<ProThemeEffects>
       vsync: this,
     )..repeat();
 
-    effects = List.generate(15, (index) => _createEffect());
+    effects = List.generate(15, (index) => _createEffect(initialSize: index));
   }
 
-  EffectItem _createEffect() {
+  EffectItem _createEffect({int initialSize = 0}) {
     return EffectItem(
       position: Offset(
         random.nextDouble() * widget.size.width,
         random.nextDouble() * widget.size.height,
       ),
-      size: 10 + random.nextDouble() * 20,
+      size: initialSize + 10 + random.nextDouble() * 20,
       speed: 5 + random.nextDouble(),
       angle: random.nextDouble() * pi * 2,
     );

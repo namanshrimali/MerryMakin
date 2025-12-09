@@ -47,7 +47,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   ProFontType? selectedFont;
   ThemeData defaultTheme = ProThemes.themes[ProThemeType.midnight]!.theme;
   ProThemeType defaultThemeType = ProThemeType.midnight;
-  ProEffectType defaultEffect = ProEffectType.none;
+  ProEffectType defaultEffect = ProEffectType.snowflake;
   final CookiesService cookiesService = AppFactory().cookiesService;
   late final FocusNode _eventNameFocusNode;
   late final TextEditingController _descriptionController;

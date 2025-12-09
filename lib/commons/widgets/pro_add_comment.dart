@@ -9,8 +9,11 @@ import '../widgets/pro_text.dart';
 
 class ProAddComment extends StatefulWidget {
   final Function(Comment) onUpdate;
+  final int? maxLines;
   final User? user;
-  const ProAddComment({super.key, required this.onUpdate, required this.user});
+  final String? label;
+  final String? hintText;
+  const ProAddComment({super.key, required this.onUpdate, required this.user, this.maxLines = null, this.label = null, this.hintText = null});
 
   @override
   State<ProAddComment> createState() => _ProAddCommentState();
@@ -42,8 +45,11 @@ class _ProAddCommentState extends State<ProAddComment> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             ProUserCommentTextField(
+                maxLines: widget.maxLines,
                 comment: comment,
                 user: widget.user!,
+                label: widget.label,
+                hintText: widget.hintText,
                 onChanged: (String? value, String? gifUrl) {
                   comment = Comment(
                     comment: value ?? '',

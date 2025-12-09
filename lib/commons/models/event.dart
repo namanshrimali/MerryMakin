@@ -369,7 +369,6 @@ class Event {
       endDateTime: endDateTime,
       createdAt: createdAt,
       updatedAt: updatedAt,
-      comments: comments,
       dressCode: dressCode,
       foodSituation: foodSituation,
       isGuestListHidden: isGuestListHidden,
@@ -378,6 +377,14 @@ class Event {
       theme: theme,
       effect: effect,
       font: font,
+      comments: comments,
     );
+  }
+
+  List<String> getRSVPOptions() {
+    if (startDateTime != null && startDateTime!.isBefore(DateTime.now().subtract(const Duration(hours: 3)))) {
+      return [RSVPStatus.GOING.getDisplayForPastInfo().$2, RSVPStatus.NOT_GOING.getDisplayForPastInfo().$2, RSVPStatus.MAYBE.getDisplayInfo().$2];
+    }
+    return [RSVPStatus.GOING.getDisplayInfo().$2, RSVPStatus.MAYBE.getDisplayInfo().$2, RSVPStatus.NOT_GOING.getDisplayInfo().$2];
   }
 }

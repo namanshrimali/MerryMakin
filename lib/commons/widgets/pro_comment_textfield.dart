@@ -13,12 +13,18 @@ import 'pro_user_avatar.dart';
 class ProUserCommentTextField extends StatefulWidget {
   final Comment? comment;
   final User? user;
+  final int? maxLines;
+  final String? hintText;
+  final String? label;
   final Function(String?, String?) onChanged;
   final ImageService gifService;
   const ProUserCommentTextField({
     super.key,
     this.comment,
     this.user,
+    this.maxLines = null,
+    this.hintText = null,
+    this.label = null,
     required this.onChanged,
     required this.gifService,
   });
@@ -111,8 +117,8 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
     return Column(
       children: [
         ProTextField(
-          label: 'Comment',
-          hintText: 'Leave a comment',
+          label: widget.label ?? "Comment",
+          hintText: widget.hintText ?? "Leave a comment",
           onChanged: (value) {
             _updateComment(value, gifUrl);
           },
@@ -128,13 +134,14 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
           },
           keyboardType: TextInputType.multiline,
           multiline: true,
+          maxLines: widget.maxLines,
           onSaved: (value) {
             _updateComment(value, gifUrl);
           },
           autofocus: true,
           prefixWidget: widget.user != null
               ? Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(left: 8, right: 8),
                   child: ProUserAvatar(user: widget.user!),
                 )
               : null,
@@ -147,7 +154,6 @@ class _ProUserCommentTextFieldState extends State<ProUserCommentTextField> {
         if (gifUrl != null && true == gifUrl?.isNotEmpty) ...[
           const SizedBox(height: generalAppLevelPadding),
           _buildGif(),
-          
         ],
       ],
     );

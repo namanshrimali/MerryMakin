@@ -6,6 +6,7 @@ import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/resources.dart';
 
 import '../commons/models/event.dart';
+import '../commons/models/text_blast_request.dart';
 import '../commons/service/cookie_service.dart';
 
 class EventsApi {
@@ -33,6 +34,8 @@ class EventsApi {
   Future<Response> sendTextBlast(
     String eventId,
     String message,
+    String? gifUrl,
+    List<String> rsvpStatuses,
   ) async {
     Map<String, String> headers = {
       'Content-Type': 'application/json',
@@ -44,7 +47,8 @@ class EventsApi {
         host: DEV_HOST,
         port: DEV_PORT,
         path: "$DEV_PATH_EVENTS/$eventId/text-blast");
-    return await sendPostRequest(uri, headers, {'message': message});
+    TextBlastRequest textBlastRequest = TextBlastRequest(message: message, rsvpStatuses: rsvpStatuses, gifUrl: gifUrl);
+    return await sendPostRequest(uri, headers, textBlastRequest.toMap());
   }
 
   Future<Response> updateEvent(

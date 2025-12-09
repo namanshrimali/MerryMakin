@@ -299,6 +299,7 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
                           "e.g. ${suggestedPlusOneNames[index % suggestedPlusOneNames.length]}",
                       textEditingController: _plusOneControllers[index],
                       keyboardType: TextInputType.name,
+                      autofocus: index == _plusOneControllers.length - 1,
                     ),
                   ),
                   IconButton(
