@@ -10,8 +10,9 @@ import 'package:merrymakin/commons/widgets/pro_comment_delete_dialog.dart';
 import 'package:merrymakin/commons/widgets/pro_comment_reaction_button.dart';
 import 'package:merrymakin/commons/widgets/pro_comment_reaction_picker_overlay.dart';
 import 'package:merrymakin/commons/widgets/pro_comment_gif_widget.dart';
+import 'package:merrymakin/commons/widgets/pro_comment_reaction_details_sheet.dart';
+import 'package:merrymakin/commons/widgets/pro_animated_reaction_pill.dart';
 import 'package:merrymakin/commons/widgets/pro_user_comment_constants.dart';
-import 'package:merrymakin/commons/widgets/pro_pill.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import '../models/comment.dart';
 import '../utils/constants.dart';
@@ -57,6 +58,8 @@ class _ProUserCommentState extends State<ProUserComment> {
   bool _showReplies = true;
   ProCommentReactionPickerOverlay? _reactionPickerOverlay;
   final GlobalKey _reactionButtonKey = GlobalKey();
+  Set<String> _previousReactionKeys = {};
+  Set<String> _animatingOutReactions = {};
 
   @override
   void dispose() {
@@ -197,6 +200,24 @@ class _ProUserCommentState extends State<ProUserComment> {
     );
   }
 
+  /// Shows the reaction details modal sheet.
+  /// Similar to WhatsApp - displays tabs for each reaction type with user lists.
+  void _showReactionDetailsSheet(BuildContext context, {String? emoji}) {
+    if (widget.comment.reactions.isEmpty) return;
+
+    HapticFeedback.lightImpact();
+
+    openProBottomModalSheet(
+      context,
+      ProCommentReactionDetailsSheet(
+        comment: widget.comment,
+        currentUser: _currentUser,
+        onReaction: widget.onReaction,
+        selectedEmoji: emoji,
+      ),
+    );
+  }
+
   /// Builds the reaction button widget.
   Widget _buildReactionButton() {
     if (widget.onReaction == null) {
@@ -213,32 +234,78 @@ class _ProUserCommentState extends State<ProUserComment> {
 
   /// Builds individual reaction pill widgets as a list.
   List<Widget> _buildReactionPills() {
-    if (widget.comment.reactions.isEmpty) {
+    final currentReactionKeys = widget.comment.reactions.entries
+        .where((e) => e.value.isNotEmpty)
+        .map((e) => e.key)
+        .toSet();
+    
+    // Detect removed reactions (reactions that went from non-empty to empty)
+    // and add them to animating out set
+    final removedReactions = _previousReactionKeys.difference(currentReactionKeys);
+    for (final emoji in removedReactions) {
+      if (!_animatingOutReactions.contains(emoji)) {
+        _animatingOutReactions.add(emoji);
+        // Remove after animation duration
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            setState(() {
+              _animatingOutReactions.remove(emoji);
+            });
+          }
+        });
+      }
+    }
+    
+    // Remove reactions that came back from animating out set (count > 0 again)
+    _animatingOutReactions.removeAll(currentReactionKeys);
+    
+    // Update previous reaction keys for next build
+    _previousReactionKeys = currentReactionKeys;
+
+    // Build allReactions preserving order from comment.reactions
+    // This includes reactions with empty lists (count 0) in their original position
+    final allReactions = <String, List<User>>{};
+    for (final entry in widget.comment.reactions.entries) {
+      allReactions[entry.key] = entry.value;
+    }
+    
+    // Add any animating out reactions that aren't in comment.reactions yet
+    // (for backward compatibility with old data that might have removed them)
+    for (final emoji in _animatingOutReactions) {
+      if (!allReactions.containsKey(emoji)) {
+        // This shouldn't happen with the new logic, but handle it gracefully
+        allReactions[emoji] = [];
+      }
+    }
+
+    if (allReactions.isEmpty) {
       return [];
     }
 
-    return widget.comment.reactions.entries
-    .where((entry) => entry.value.length > 0)
-    .map((entry) {
-      final emoji = entry.key;
-      final List<User> users = entry.value;
-      final count = users.length;
-      final hasCurrentUser = _currentUser != null &&
-          widget.comment.hasUserReaction(_currentUser!, emoji);
+    // Build widgets preserving the order from allReactions
+    // Show reactions with count > 0 or reactions that are animating out (count 0)
+    return allReactions.entries
+        .where((entry) => entry.value.isNotEmpty || _animatingOutReactions.contains(entry.key))
+        .map((entry) {
+          final emoji = entry.key;
+          final List<User> users = entry.value;
+          final count = users.length;
+          final hasCurrentUser = _currentUser != null &&
+              widget.comment.hasUserReaction(_currentUser!, emoji);
+          final isAnimatingOut = _animatingOutReactions.contains(emoji);
 
-      return ProPill(
-        onSelected: widget.onReaction != null
-            ? () {
-                if (widget.onReaction != null) {
-                  widget.onReaction!(widget.comment, emoji);
-                }
-              }
-            : null,
-        label: ProText(emoji, textStyle: const TextStyle(fontSize: 16)),
-        count: count,
-        isSelected: hasCurrentUser,
-      );
-    }).toList();
+          return ProAnimatedReactionPill(
+            key: ValueKey('reaction-pill-$emoji-${widget.comment.id}'),
+            pillKey: ValueKey('reaction-pill-$emoji-${widget.comment.id}'),
+            emoji: emoji,
+            count: count,
+            isSelected: hasCurrentUser && !isAnimatingOut,
+            onTap: () {
+              // Show reaction details sheet when pill is tapped
+              _showReactionDetailsSheet(context, emoji: emoji);
+            },
+          );
+        }).toList();
   }
 
   /// Builds the replies section.

@@ -63,6 +63,53 @@ class _CommentSectionState extends State<CommentSection> {
     }
   }
 
+  /// Updates reactions while preserving insertion order.
+  /// New emojis are appended to the end, existing emojis stay in place.
+  /// When count reaches 0, the emoji is kept with empty list to preserve position for animation.
+  Map<String, List<User>> _updateReactionsPreservingOrder(
+    Map<String, List<User>> currentReactions,
+    String emoji,
+    User currentUser,
+    bool isAdding,
+  ) {
+    // Create a new LinkedHashMap to preserve order
+    final updatedReactions = <String, List<User>>{};
+    
+    // First, copy all existing reactions in their current order
+    for (final entry in currentReactions.entries) {
+      if (entry.key == emoji) {
+        // Update the existing emoji's user list
+        final updatedUsers = List<User>.from(entry.value);
+        if (isAdding) {
+          // Add user if not already present
+          if (!updatedUsers.any(
+            (user) => user.id == currentUser.id || user.email == currentUser.email,
+          )) {
+            updatedUsers.add(currentUser);
+          }
+        } else {
+          // Remove user
+          updatedUsers.removeWhere(
+            (user) => user.id == currentUser.id || user.email == currentUser.email,
+          );
+        }
+        // Keep the emoji in place even if count is 0 (empty list)
+        // This allows it to animate out from its original position
+        updatedReactions[emoji] = updatedUsers;
+      } else {
+        // Keep other reactions as-is
+        updatedReactions[entry.key] = List<User>.from(entry.value);
+      }
+    }
+    
+    // If adding a new emoji (not in existing reactions), append it to the end
+    if (isAdding && !currentReactions.containsKey(emoji)) {
+      updatedReactions[emoji] = [currentUser];
+    }
+    
+    return updatedReactions;
+  }
+
   List<Widget> _buildComments(Event event, BuildContext context,
       CookiesService cookiesService, final bool hideNames) {
     event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -118,15 +165,12 @@ class _CommentSectionState extends State<CommentSection> {
                                   event, comment.id!, emoji, context)
                               .then((_) {
                             setState(() {
-                              final updatedReactions = Map<String, List<User>>.from(comment.reactions);
-                              if (updatedReactions.containsKey(emoji)) {
-                                updatedReactions[emoji]!.removeWhere(
-                                  (user) => user.id == currentUser.id || user.email == currentUser.email,
-                                );
-                                if (updatedReactions[emoji]!.isEmpty) {
-                                  updatedReactions.remove(emoji);
-                                }
-                              }
+                              final updatedReactions = _updateReactionsPreservingOrder(
+                                comment.reactions,
+                                emoji,
+                                currentUser,
+                                false, // isAdding = false
+                              );
                               final updatedComment = comment.copyWith(
                                 reactions: updatedReactions,
                               );
@@ -140,22 +184,43 @@ class _CommentSectionState extends State<CommentSection> {
                                   event, comment.id!, emoji, context)
                               .then((updatedComment) {
                             if (updatedComment != null) {
+                              // Server response - preserve client-side order for existing reactions, append new ones
                               setState(() {
+                                final serverReactions = updatedComment.reactions;
+                                final orderedReactions = <String, List<User>>{};
+                                
+                                // First, preserve existing reactions in their current client-side order
+                                // Only include reactions that exist on server (filters out empty ones that were animating out)
+                                for (final entry in comment.reactions.entries) {
+                                  if (serverReactions.containsKey(entry.key) && 
+                                      serverReactions[entry.key]!.isNotEmpty) {
+                                    // Use server data but maintain client-side position
+                                    orderedReactions[entry.key] = serverReactions[entry.key]!;
+                                  }
+                                }
+                                
+                                // Then, append any new reactions from server (new emojis at the end)
+                                for (final entry in serverReactions.entries) {
+                                  if (!orderedReactions.containsKey(entry.key) && entry.value.isNotEmpty) {
+                                    orderedReactions[entry.key] = entry.value;
+                                  }
+                                }
+                                
+                                final orderedComment = updatedComment.copyWith(
+                                  reactions: orderedReactions,
+                                );
                                 _updateCommentInList(
-                                    event.comments ?? [], updatedComment);
+                                    event.comments ?? [], orderedComment);
                               });
                             } else {
                               // Optimistic update
                               setState(() {
-                                final updatedReactions = Map<String, List<User>>.from(comment.reactions);
-                                if (!updatedReactions.containsKey(emoji)) {
-                                  updatedReactions[emoji] = [];
-                                }
-                                if (!updatedReactions[emoji]!.any(
-                                  (user) => user.id == currentUser.id || user.email == currentUser.email,
-                                )) {
-                                  updatedReactions[emoji]!.add(currentUser);
-                                }
+                                final updatedReactions = _updateReactionsPreservingOrder(
+                                  comment.reactions,
+                                  emoji,
+                                  currentUser,
+                                  true, // isAdding = true
+                                );
                                 final optimisticComment = comment.copyWith(
                                   reactions: updatedReactions,
                                 );

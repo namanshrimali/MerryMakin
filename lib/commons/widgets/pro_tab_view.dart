@@ -8,6 +8,7 @@ class ProTabView extends StatefulWidget {
   final EdgeInsets? tabPadding;
   final double? height;
   final bool isTabsAtBottom;
+  final int? initialTabIndex;
   const ProTabView({
     super.key, 
     required this.children, 
@@ -16,6 +17,7 @@ class ProTabView extends StatefulWidget {
     this.tabPadding,
     this.height,
     this.isTabsAtBottom = false,
+    this.initialTabIndex,
   });
 
   @override
@@ -36,7 +38,15 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: widget.children.length, vsync: this);
+    final initialIndex = widget.initialTabIndex != null 
+        ? widget.initialTabIndex!.clamp(0, widget.children.length - 1)
+        : 0;
+    _tabIndex = initialIndex;
+    _tabController = TabController(
+      length: widget.children.length, 
+      vsync: this,
+      initialIndex: initialIndex,
+    );
     _tabController.addListener(_handleTabSelection);
     _buildTabs();
   }

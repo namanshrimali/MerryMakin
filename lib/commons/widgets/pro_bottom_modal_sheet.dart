@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../utils/constants.dart';
-import '../widgets/pro_text.dart';
 import '../themes/pro_themes.dart';
 import '../widgets/pro_theme_effects.dart';
 import '../../utils/event_gradient_helper.dart';

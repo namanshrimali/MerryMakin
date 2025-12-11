@@ -20,7 +20,7 @@ class ProUserCommentConstants {
   static const double reactionPickerHeight = 60.0;
   static const double reactionPickerOffset = 12.0;
   static const double reactionPickerEdgePadding = 8.0;
-  static const Duration reactionPickerAutoCloseDuration = Duration(seconds: 3);
+  static const Duration reactionPickerAutoCloseDuration = Duration(seconds: 10);
   static const Duration reactionAnimationDuration = Duration(milliseconds: 150);
 
   // Default available reactions
