@@ -7,6 +7,7 @@ class ProTabView extends StatefulWidget {
   final bool showDivider;
   final EdgeInsets? tabPadding;
   final double? height;
+  final bool isTabsAtBottom;
   const ProTabView({
     super.key, 
     required this.children, 
@@ -14,6 +15,7 @@ class ProTabView extends StatefulWidget {
     this.showDivider = true,
     this.tabPadding,
     this.height,
+    this.isTabsAtBottom = false,
   });
 
   @override
@@ -66,11 +68,8 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    
-    
-    return Column(
-      children: <Widget>[
-        Container(
+
+    Widget tabBar = Container(
           child: TabBar(
             controller: _tabController,
             tabs: myTabs,
@@ -112,7 +111,13 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
               letterSpacing: 0.2,
             ),
           ),
-        ),
+        );
+    
+    
+    return Column(
+      children: <Widget>[
+        if (!widget.isTabsAtBottom)
+        tabBar,
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 60),
           transitionBuilder: (child, animation) {
@@ -133,6 +138,8 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
           child: SizedBox(height: widget.height ?? 400, child: TabBarView(controller: _tabController,  children: widget.children))
 
         ),
+        if (widget.isTabsAtBottom)
+        tabBar,
       ],
     );
   }

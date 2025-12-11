@@ -38,6 +38,31 @@ class CommentSection extends StatefulWidget {
 }
 
 class _CommentSectionState extends State<CommentSection> {
+  Comment? _findCommentById(List<Comment> comments, String commentId) {
+    for (var comment in comments) {
+      if (comment.id == commentId) {
+        return comment;
+      }
+      if (comment.replies.isNotEmpty) {
+        final found = _findCommentById(comment.replies, commentId);
+        if (found != null) return found;
+      }
+    }
+    return null;
+  }
+
+  void _updateCommentInList(List<Comment> comments, Comment updatedComment) {
+    for (int i = 0; i < comments.length; i++) {
+      if (comments[i].id == updatedComment.id) {
+        comments[i] = updatedComment;
+        return;
+      }
+      if (comments[i].replies.isNotEmpty) {
+        _updateCommentInList(comments[i].replies, updatedComment);
+      }
+    }
+  }
+
   List<Widget> _buildComments(Event event, BuildContext context,
       CookiesService cookiesService, final bool hideNames) {
     event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -54,6 +79,92 @@ class _CommentSectionState extends State<CommentSection> {
                             event.comments?.remove(comment);
                           });
                         });
+                      },
+                      onReply: (parentComment, reply) {
+                        if (parentComment.id == null) return;
+                        addReplyToComment(
+                                event, parentComment.id!, reply, context)
+                            .then((addedReply) {
+                          if (addedReply != null) {
+                            setState(() {
+                              final foundComment = _findCommentById(
+                                  event.comments ?? [], parentComment.id!);
+                              if (foundComment != null) {
+                                final updatedReplies = [
+                                  ...foundComment.replies,
+                                  addedReply
+                                ];
+                                final updatedComment = foundComment.copyWith(
+                                  replies: updatedReplies,
+                                );
+                                _updateCommentInList(
+                                    event.comments ?? [], updatedComment);
+                              }
+                            });
+                          }
+                        });
+                      },
+                      onReaction: (comment, emoji) {
+                        if (comment.id == null) return;
+                        final currentUser =
+                            AppFactory().cookiesService.currentUser;
+                        if (currentUser == null) return;
+
+                        final hasReaction = comment.hasUserReaction(currentUser, emoji);
+
+                        if (hasReaction) {
+                          // Remove reaction
+                          removeReactionFromComment(
+                                  event, comment.id!, emoji, context)
+                              .then((_) {
+                            setState(() {
+                              final updatedReactions = Map<String, List<User>>.from(comment.reactions);
+                              if (updatedReactions.containsKey(emoji)) {
+                                updatedReactions[emoji]!.removeWhere(
+                                  (user) => user.id == currentUser.id || user.email == currentUser.email,
+                                );
+                                if (updatedReactions[emoji]!.isEmpty) {
+                                  updatedReactions.remove(emoji);
+                                }
+                              }
+                              final updatedComment = comment.copyWith(
+                                reactions: updatedReactions,
+                              );
+                              _updateCommentInList(
+                                  event.comments ?? [], updatedComment);
+                            });
+                          });
+                        } else {
+                          // Add reaction
+                          addReactionToComment(
+                                  event, comment.id!, emoji, context)
+                              .then((updatedComment) {
+                            if (updatedComment != null) {
+                              setState(() {
+                                _updateCommentInList(
+                                    event.comments ?? [], updatedComment);
+                              });
+                            } else {
+                              // Optimistic update
+                              setState(() {
+                                final updatedReactions = Map<String, List<User>>.from(comment.reactions);
+                                if (!updatedReactions.containsKey(emoji)) {
+                                  updatedReactions[emoji] = [];
+                                }
+                                if (!updatedReactions[emoji]!.any(
+                                  (user) => user.id == currentUser.id || user.email == currentUser.email,
+                                )) {
+                                  updatedReactions[emoji]!.add(currentUser);
+                                }
+                                final optimisticComment = comment.copyWith(
+                                  reactions: updatedReactions,
+                                );
+                                _updateCommentInList(
+                                    event.comments ?? [], optimisticComment);
+                              });
+                            }
+                          });
+                        }
                       },
                       canDelete:
                           (cookiesService.locallyAvailableUserInfo != null &&

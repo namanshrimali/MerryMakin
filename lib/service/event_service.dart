@@ -50,7 +50,7 @@ Future<Event?> findEventWithId(final String eventId) async {
       eventsCache!.removeWhere((event) => event.id == event.id);
       eventsCache!.add(event);
     }
-    return event;
+    return event.deepCopy();
   }
   return Future.error(
       'Failed to get event: ${response.body}, ${response.statusCode}');
@@ -165,5 +165,41 @@ Future<void> sendTextBlastForEvent(final Event event, final String? gifUrl, fina
           'Failed to send text blast: ${response.body}, ${response.statusCode}');
     }
     return Comment.fromMap(jsonDecode(response.body));
+  });
+}
+
+Future<Comment?> addReplyToComment(
+    final Event event, final String parentCommentId, final Comment reply, BuildContext context) {
+  return eventsApi.addReplyToCommentApi(event.id!, parentCommentId, reply).then((response) {
+    if (response.statusCode != 200) {
+      return Future.error(
+          'Failed to add reply: ${response.body}, ${response.statusCode}');
+    }
+    return Comment.fromMap(jsonDecode(response.body));
+  });
+}
+
+Future<Comment?> addReactionToComment(
+    final Event event, final String commentId, final String emoji, BuildContext context) {
+  return eventsApi.addReactionToCommentApi(event.id!, commentId, emoji).then((response) {
+    if (response.statusCode != 200) {
+      return Future.error(
+          'Failed to add reaction: ${response.body}, ${response.statusCode}');
+    }
+    // Response should contain the updated comment with reactions
+    // if (response.body.isNotEmpty) {
+    //   return Comment.fromMap(jsonDecode(response.body));
+    // }
+    return null;
+  });
+}
+
+Future<void> removeReactionFromComment(
+    final Event event, final String commentId, final String emoji, BuildContext context) {
+  return eventsApi.removeReactionFromCommentApi(event.id!, commentId, emoji).then((response) {
+    if (response.statusCode != 200) {
+      return Future.error(
+          'Failed to remove reaction: ${response.body}, ${response.statusCode}');
+    }
   });
 }

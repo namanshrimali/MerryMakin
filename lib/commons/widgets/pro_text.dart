@@ -32,7 +32,7 @@ class ProText extends StatelessWidget {
 
   TextStyle get textStyleForProText {
     return textStyle != null
-        ? textStyle!.copyWith(color: color)
+        ? textStyle!.copyWith(color: color, fontWeight: weight)
         : TextStyle(fontStyle: fontStyle, color: color, fontWeight: weight);
   }
 

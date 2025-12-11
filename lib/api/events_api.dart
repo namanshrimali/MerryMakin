@@ -174,4 +174,67 @@ class EventsApi {
     );
     return response;
   }
+
+  Future<Response> addReplyToCommentApi(
+    String eventId,
+    String commentId,
+    Comment reply,
+  ) async {
+    if (cookiesService.currentJwtToken == null) {
+      await cookiesService.initializeCookie();
+    }
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'access-token':
+          cookiesService.currentJwtToken ?? '',
+    };
+    Uri uri = Uri(
+        scheme: SCHEME,
+        host: DEV_HOST,
+        port: DEV_PORT,
+        path: "$DEV_PATH_EVENTS/$eventId/comment/$commentId/reply");
+    return await sendPostRequest(uri, headers, reply.toMap());
+  }
+
+  Future<Response> addReactionToCommentApi(
+    String eventId,
+    String commentId,
+    String emoji,
+  ) async {
+    if (cookiesService.currentJwtToken == null) {
+      await cookiesService.initializeCookie();
+    }
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'access-token':
+          cookiesService.currentJwtToken ?? '',
+    };
+    Uri uri = Uri(
+        scheme: SCHEME,
+        host: DEV_HOST,
+        port: DEV_PORT,
+        path: "$DEV_PATH_EVENTS/$eventId/comment/$commentId/reaction/${emoji}");
+    return await sendPostRequest(uri, headers, null);
+  }
+
+  Future<Response> removeReactionFromCommentApi(
+    String eventId,
+    String commentId,
+    String emoji,
+  ) async {
+    if (cookiesService.currentJwtToken == null) {
+      await cookiesService.initializeCookie();
+    }
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'access-token':
+          cookiesService.currentJwtToken ?? '',
+    };
+    Uri uri = Uri(
+        scheme: SCHEME,
+        host: DEV_HOST,
+        port: DEV_PORT,
+        path: "$DEV_PATH_EVENTS/$eventId/comment/$commentId/reaction/$emoji");
+    return await sendDeleteRequest(uri, headers);
+  }
 }

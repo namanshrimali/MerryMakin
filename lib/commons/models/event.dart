@@ -377,7 +377,7 @@ class Event {
       theme: theme,
       effect: effect,
       font: font,
-      comments: comments,
+      comments: [...(comments ?? [])],
     );
   }
 
