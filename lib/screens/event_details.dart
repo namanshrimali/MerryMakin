@@ -24,6 +24,7 @@ import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart';
 import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
+import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 import 'package:merrymakin/providers/events_provider.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
@@ -56,12 +57,12 @@ class EventDetailsScreen extends ConsumerStatefulWidget {
 
 class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
   late Future<Event?> _eventFuture;
+  late Future<List<Color>> _gradientColorsFuture;
   Event? event;
   ThemeData? eventTheme;
   ProThemeType themeType = ProThemeType.midnight;
   ProEffectType effectType = ProEffectType.none;
   CookiesService cookiesService = AppFactory().cookiesService;
-  Color? _gradientColor;
   List<Color> _gradientColors = [Colors.black, Colors.black, Colors.black];
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<double> _scrollOffsetNotifier =
@@ -181,11 +182,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 return;
               }
               Navigator.pop(context); // Close the bottom sheet
-              if (event.subEvents != null && event.subEvents!.isNotEmpty) {
-                context.push('/events/${event.id}/celebration/edit');
-              } else {
-                context.push('/events/${event.id}/edit');
-              }
+              AppRouter.goToEditEvent(context, event.id!);
             },
           ),
           const Divider(),
@@ -244,7 +241,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       ),
       themeData: eventTheme,
       themeType: themeType,
-      gradientColors: [_gradientColors[0],],
+      gradientColors: [
+        _gradientColors[0],
+      ],
     );
   }
 
@@ -566,7 +565,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             size: Size(width, height),
             child: ProScaffold(
               iosAppLink: IOS_APP_STORE_LINK,
-              backgroundColor: _gradientColor ?? Colors.black,
               body: ProCelebrationOverlay(
                 key: _celebrationKey,
                 config: _cachedCelebrationConfig ??
@@ -635,8 +633,10 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                   ]),
                 ),
               ),
-              floatingActionButton: receivedEvent.isHostedByMe(
-                              cookiesService.locallyAvailableUserInfo) ? buildActionButtonForHosts(context, event!) : null,
+              floatingActionButton: receivedEvent
+                      .isHostedByMe(cookiesService.locallyAvailableUserInfo)
+                  ? buildActionButtonForHosts(context, event!)
+                  : null,
             ),
           );
         },
@@ -670,7 +670,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         event.getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding),
-      
       child: ProCard(
         elevation: 10,
         surfaceTintColor: Colors.white.withOpacity(0.1),
@@ -708,7 +707,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 ),
                 themeData: eventTheme,
                 themeType: themeType,
-        gradientColors: [_gradientColors[0]],
+                gradientColors: [_gradientColors[0]],
               );
             }),
       ),
@@ -720,7 +719,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         event.getRsvpStatusForUser(cookiesService.locallyAvailableUserInfo);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding),
-      
       child: ProCard(
         elevation: 10,
         surfaceTintColor: Colors.white.withOpacity(0.1),
@@ -758,7 +756,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 ),
                 themeData: eventTheme,
                 themeType: themeType,
-        gradientColors: [_gradientColors[0]],
+                gradientColors: [_gradientColors[0]],
               );
             }),
       ),
@@ -784,32 +782,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       }
     });
     _eventFuture = findEventWithId(widget.eventId!);
-  }
-
-  void _initializeGradient(Event? eventData) {
-    if (eventData != null && eventData.imageUrl.isNotEmpty) {
-      // Extract multiple colors for gradient
-      extractSectionDominantColors(
-        eventData.imageUrl,
-        mounted,
-      ).then((colors) {
-        setState(() {
-          _gradientColors = colors;
-          _gradientColor = colors.isNotEmpty ? colors.last : Colors.black;
-        });
-      });
-      // Also extract single color for backward compatibility
-      extractGradientFromImage(eventData.imageUrl, mounted).then((value) {
-        setState(() {
-          _gradientColor = value;
-        });
-      });
-    } else {
-      setState(() {
-        _gradientColor = Colors.black;
-        _gradientColors = [Colors.black, Colors.black, Colors.black];
-      });
-    }
+    _gradientColorsFuture = getGradientColorsForEvent(widget.eventId!);
   }
 
   @override
@@ -821,14 +794,6 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
       platform.removeMetaTags();
     }
     super.dispose();
-  }
-
-  void updateGradient() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _initializeGradient(event);
-      }
-    });
   }
 
   @override
@@ -887,22 +852,20 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     });
 
     return FutureBuilder(
-        future: _eventFuture,
-        builder: (context, AsyncSnapshot<Event?> snapshot) {
+        future: Future.wait([_eventFuture, _gradientColorsFuture]),
+        builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting &&
               event == null) {
             return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasData) {
-            final newEvent = snapshot.data!;
+            final newEvent = snapshot.data![0];
             // Initialize gradient when event is loaded or changed
             if (event == null ||
                 event!.updatedAt.compareTo(newEvent.updatedAt) < 0) {
               event = newEvent;
-              if (event != null) {
-                updateGradient();
-              }
+              _gradientColors = snapshot.data![1];
             }
             return _buildEvent(context, event, ref);
           }

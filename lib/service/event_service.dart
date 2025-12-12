@@ -8,6 +8,7 @@ import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/user_service.dart';
+import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 
@@ -35,6 +36,14 @@ Future<List<Event>> get allEvents async {
           'Failed to get events ${response.body}, ${response.statusCode}');
     }
   });
+}
+
+Future<List<Color>> getGradientColorsForEvent(final String eventId) async {
+  final Event? event = await findEventWithId(eventId);
+  if (event != null) {
+    return extractSectionDominantColors(event.imageUrl, true);
+  }
+  return [Colors.black, Colors.black, Colors.black];
 }
 
 Future<Event?> findEventWithId(final String eventId) async {
