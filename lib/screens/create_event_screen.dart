@@ -273,6 +273,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   void _handleImageSelection() {
     openProBottomModalSheet(
       context,
+      themeData: defaultTheme,
+      themeType: defaultThemeType,
+      gradientColors: [_gradientColors[0]],
       SizedBox(
         height: MediaQuery.of(context).size.height * 0.8,
         child: ProImagePicker(
@@ -331,6 +334,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     final dynamic result = await openProBottomModalSheet(
       context,
       isFullScreen: true,
+      themeData: defaultTheme,
+      themeType: defaultThemeType,
+      gradientColors: [_gradientColors[0]],
       AIEnabledDescription(
         event: event,
         animateAgain: true,
@@ -1369,6 +1375,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                     await openProBottomModalSheet(
                                   context,
                                   isFullScreen: true,
+                                  themeData: defaultTheme,
+                                  themeType: defaultThemeType,
+                                  gradientColors: [_gradientColors[0]],
                                   AIEnabledDescription(
                                     event: event,
                                     controller: _descriptionController,

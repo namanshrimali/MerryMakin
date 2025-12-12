@@ -31,8 +31,8 @@ class _ProEmojiKeyboardState extends State<ProEmojiKeyboard> {
     '🔥': [
       // top 15 emojis which are popular happy occasions and celebrations
       '😃', 
-      '🤩', '😘', '😝', '🥵', '🥶', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐',
-      '🤮','😕', '😟', '🙁', '😳', '🥺', '😦', '😥', '😢',
+      '🤩', '😘', '😝', '🥵', '👅', '🥶', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐',
+      '🤮','😕', '😟', '🙁', '😳', '🥺', '😦', '😥',
       '😭', '😱', '😖','🤬', '👿', '🎉', '🎊', '🎈', '🎁', '💩', 
       '👍', '👎', '👏', '🙌', '🙏',
       '🤌', '🤏', '✌️', '🤘', '🤙', 
@@ -134,7 +134,29 @@ class _ProEmojiKeyboardState extends State<ProEmojiKeyboard> {
     '🐶': ['dog', 'puppy', 'pet', 'canine'],
     '🐱': ['cat', 'kitten', 'pet', 'feline'],
     '🍕': ['pizza', 'slice', 'food'],
-    '❤️': ['red', 'heart', 'love', 'like'],
+    '❤️': ['love', 'like', 'heart', 'red heart', 'red',   ],
+    '💔': ['broken', 'heart', 'sad', 'broken heart', 'broken heart'],
+    '💕': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '💞': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '💓': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '💗': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '💖': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '💘': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '💝': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '💟': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '☮️': ['peace', 'peace sign', 'peace symbol'],
+    '✝️': ['cross', 'christian', 'christianity'],
+    '☪️': ['muslim', 'muslim', 'islam'],
+    '🕉️': ['hindu', 'hinduism'],
+    '☸️': ['buddhist', 'buddhistism'],
+    '✡️': ['jewish', 'jewish'],
+    '🔯': ['jewish star', 'jewish star'],
+    '🕎': ['hanukkah', 'hanukkah'],
+    '☯️': ['tao', 'taoism'],
+    '☦️': ['sikh', 'sikhism'],
+    '🛐': ['pray', 'pray', 'pray'],
+    '⛎': ['scorpio', 'scorpio'],
+    '♈': ['aries', 'aries'],
     '👍': ['thumbs', 'up', 'like', 'good', 'yes'],
     '🔥': ['fire', 'flame', 'hot', 'lit'],
     '💯': ['hundred', 'points', 'perfect', '100'],
@@ -143,7 +165,59 @@ class _ProEmojiKeyboardState extends State<ProEmojiKeyboard> {
     '🇬🇧': ['united', 'kingdom', 'uk', 'britain', 'british'],
     '🇯🇵': ['japan', 'japanese'],
     '🇮🇳': ['india', 'indian'],
-    // Add more keywords as needed - this is a representative sample
+    '🇨🇳': ['china', 'chinese'],
+    '🇫🇷': ['france', 'french'],
+    '🇩🇪': ['germany', 'german'],
+    '🇮🇩': ['indonesia', 'indonesian'],
+    '🇱🇦': ['laos', 'lao'],
+    '🇲🇾': ['malaysia', 'malaysian'],
+    '🇲🇽': ['mexico', 'mexican'],
+    '🇳🇱': ['netherlands', 'dutch'],
+    '🇳🇴': ['norway', 'norwegian'],
+    '🇵🇭': ['philippines', 'filipino'],
+    '🇷🇴': ['romania', 'romanian'],
+    '🇸🇦': ['saudi', 'saudi arabia'],
+    '🇸🇬': ['singapore', 'singaporean'],
+    '🇸🇪': ['sweden', 'swedish'],
+    '😘': ['kiss', 'kissing', 'kisses', 'kissing', 'kissing'],
+    '😍': ['love', 'like', 'heart', 'red heart', 'red heart'],
+    '😊': ['smile', 'happy', 'joy', 'joyful', 'joyful'],
+    '😋': ['eat', 'eating', 'food', 'foodie', 'foodie'],
+    '😎': ['cool', 'cool', 'cool', 'cool', 'cool'],
+    '😭': ['cry', 'crying', 'sad', 'sad', 'sad'],
+    '😡': ['angry', 'angry', 'angry', 'angry', 'angry'],
+    '😠': ['angry', 'angry', 'angry', 'angry', 'angry'],
+    '😈': ['devil', 'devil', 'devil', 'devil', 'devil'],
+    '😐': ['neutral', 'neutral', 'neutral', 'neutral', 'neutral'],
+    '😑': ['neutral', 'neutral', 'neutral', 'neutral', 'neutral'],
+    '😶': ['neutral', 'neutral', 'neutral', 'neutral', 'neutral'],
+    '😏': ['smirk', 'smirk', 'smirk', 'smirk', 'smirk'],
+    '😒': ['disappointed', 'disappointed', 'disappointed', 'disappointed', 'disappointed'],
+    '😞': ['disappointed', 'disappointed', 'disappointed', 'disappointed', 'disappointed'],
+    '😔': ['sad', 'sad', 'sad', 'sad', 'sad'],
+    '😟': ['anxious', 'anxious', 'anxious', 'anxious', 'anxious'],
+    '😕': ['confused', 'confused', 'confused', 'confused', 'confused'],
+    '🙁': ['sad', 'sad', 'sad', 'sad', 'sad'],
+    '🙂': ['smile', 'happy', 'joy', 'joyful', 'joyful'],
+    '🙃': ['smile', 'happy', 'joy', 'joyful', 'joyful'],
+    '🤔': ['think', 'thinking', 'think', 'thinking', 'thinking'],
+    '🤨': ['doubt', 'doubtful', 'doubt', 'doubtful', 'doubtful'],
+    '🤯': ['shock', 'shocked', 'shock', 'shocked', 'shocked'],
+    '🤠': ['cowboy', 'cowboy', 'cowboy', 'cowboy', 'cowboy'],
+    '🤡': ['clown', 'clown', 'clown', 'clown', 'clown'],
+    '🎈': ['balloon', 'balloon', 'balloon', 'balloon', 'balloon'],
+    '🎉': ['celebrate', 'celebration', 'celebrate', 'celebration', 'celebration'],
+    '🎊': ['celebrate', 'celebration', 'celebrate', 'celebration', 'celebration'],
+    '🎁': ['gift', 'gift', 'gift', 'gift', 'gift'],
+    '🎄': ['christmas', 'christmas tree', 'christmas tree', 'christmas tree', 'christmas tree'],
+    '🎆': ['fireworks', 'fireworks', 'fireworks', 'fireworks', 'fireworks'],
+    '🎇': ['fireworks', 'fireworks', 'fireworks', 'fireworks', 'fireworks'],
+    '💩': ['poop', 'poop', 'poop', 'poop', 'poop'],
+    '👅': ['tongue', 'tongue', 'tongue', 'tongue', 'tongue'],
+    '👀': ['eyes', 'eye', 'eyes', 'eye', 'eye'],
+    '👁️': ['eyes', 'eye', 'eyes', 'eye', 'eye'],
+    '👁️‍🗨️': ['eyes', 'eye', 'eyes', 'eye', 'eye'],
+        // Add more keywords as needed - this is a representative sample
   };
 
   @override
@@ -274,26 +348,24 @@ class _ProEmojiKeyboardState extends State<ProEmojiKeyboard> {
               ),
             ),
           ),
-          Expanded(
-            child: allFilteredEmojis.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(generalAppLevelPadding * 2),
-                      child: ProText(
-                        'No emojis found for "$_searchQuery"',
-                        textStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                        ),
+          allFilteredEmojis.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(generalAppLevelPadding * 2),
+                    child: ProText(
+                      'No emojis found for "$_searchQuery"',
+                      textStyle: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
-                  )
-                : SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding),
-                      child: _buildEmojiGrid(allFilteredEmojis),
-                    ),
                   ),
-          ),
+                )
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding),
+                    child: _buildEmojiGrid(allFilteredEmojis),
+                  ),
+                ),
         ],
       );
     }

@@ -6,7 +6,6 @@ import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:merrymakin/commons/widgets/pro_list_item.dart';
 import 'package:merrymakin/commons/widgets/pro_add_reply.dart';
 import 'package:merrymakin/commons/widgets/pro_emoji_keyboard.dart';
-import 'package:merrymakin/commons/widgets/pro_comment_delete_dialog.dart';
 import 'package:merrymakin/commons/widgets/pro_comment_reaction_button.dart';
 import 'package:merrymakin/commons/widgets/pro_comment_reaction_picker_overlay.dart';
 import 'package:merrymakin/commons/widgets/pro_comment_gif_widget.dart';
@@ -28,7 +27,6 @@ import 'pro_user_avatar.dart';
 class ProUserComment extends StatefulWidget {
   final Comment comment;
   final bool hideNames;
-  final bool canDelete;
   final Function(Comment)? onDelete;
   final Function(Comment, Comment)? onReply;
   final Function(Comment, String)? onReaction;
@@ -41,7 +39,6 @@ class ProUserComment extends StatefulWidget {
     super.key,
     required this.comment,
     this.hideNames = false,
-    this.canDelete = false,
     this.onDelete,
     this.onReply,
     this.onReaction,
@@ -79,53 +76,6 @@ class _ProUserCommentState extends State<ProUserComment> {
   User? get _currentUser =>
       widget.currentUser ?? AppFactory().cookiesService.currentUser;
 
-  /// Shows the delete comment options modal.
-  void _showDeleteCommentModal(BuildContext context) {
-    if (!widget.canDelete || widget.onDelete == null) return;
-
-    openProBottomModalSheet(
-      context,
-      Column(
-        children: [
-          ProListItem(
-            key: const Key("delete-comment"),
-            isThreeLine: false,
-            leading: Icon(
-              Icons.delete,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            title: ProText(
-              ProUserCommentConstants.deleteCommentTitle,
-              textStyle: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
-            onTap: () async {
-              Navigator.pop(context);
-              await _handleDeleteConfirmation(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Handles the delete confirmation dialog.
-  Future<void> _handleDeleteConfirmation(BuildContext context) async {
-    final confirmed = await ProCommentDeleteDialog.show(
-      context,
-      comment: widget.comment,
-      onConfirm: () {
-        if (widget.onDelete != null) {
-          widget.onDelete!(widget.comment);
-        }
-      },
-    );
-
-    if (confirmed == true && context.mounted) {
-      Navigator.pop(context);
-    }
-  }
 
   /// Creates or gets the reaction picker overlay instance.
   ProCommentReactionPickerOverlay _getReactionPickerOverlay() {
@@ -242,6 +192,7 @@ class _ProUserCommentState extends State<ProUserComment> {
     // Detect removed reactions (reactions that went from non-empty to empty)
     // and add them to animating out set
     final removedReactions = _previousReactionKeys.difference(currentReactionKeys);
+
     for (final emoji in removedReactions) {
       if (!_animatingOutReactions.contains(emoji)) {
         _animatingOutReactions.add(emoji);
@@ -323,9 +274,7 @@ class _ProUserCommentState extends State<ProUserComment> {
           return ProUserComment(
             comment: reply,
             hideNames: widget.hideNames,
-            canDelete: widget.canDelete,
             onDelete: widget.onDelete,
-      
             onReaction: widget.onReaction,
             isReply: true,
             nestingLevel: widget.nestingLevel + 1,
@@ -469,8 +418,8 @@ class _ProUserCommentState extends State<ProUserComment> {
             ),
             listTitleAlignment: ListTileTitleAlignment.top,
             leading: _buildCommentAvatar(),
-            onLongPress: widget.canDelete
-                ? () => _showDeleteCommentModal(context)
+            onLongPress: widget.onDelete != null
+                ? () => widget.onDelete!(widget.comment)
                 : null,
             title: _buildCommentTitle(context),
             subtitle: _buildSubtitle(context),

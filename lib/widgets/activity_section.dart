@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart' show ProThemeType;
+import 'package:merrymakin/commons/widgets/pro_comment_delete_dialog.dart';
+import 'package:merrymakin/commons/widgets/pro_list_item.dart';
 import 'package:merrymakin/commons/widgets/pro_theme_effects.dart'
     show ProEffectType;
+import 'package:merrymakin/commons/widgets/pro_user_comment_constants.dart';
 
 import '../commons/models/comment.dart';
 import '../commons/models/event.dart';
@@ -110,6 +113,62 @@ class _CommentSectionState extends State<CommentSection> {
     return updatedReactions;
   }
 
+  /// Shows the delete comment options modal.
+  void _showDeleteCommentModal(BuildContext context, Comment comment) {
+    openProBottomModalSheet(
+      context,
+      Column(
+        children: [
+          ProListItem(
+            key: const Key("delete-comment"),
+            isThreeLine: false,
+            leading: Icon(
+              Icons.delete,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: ProText(
+              ProUserCommentConstants.deleteCommentTitle,
+              textStyle: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            onTap: () async {
+              await _handleDeleteConfirmation(context, comment);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Handles the delete confirmation dialog.
+  Future<void> _handleDeleteConfirmation(BuildContext context, Comment comment) async {
+    final confirmed = await ProCommentDeleteDialog.show(
+      context,
+      comment: comment,
+      onConfirm: () {
+        deleteCommentFromEvent(widget.event, comment, context).then((value) {
+          setState(() {
+            widget.event.comments?.remove(comment);
+          });
+        });
+      },
+    );
+
+    if (confirmed == true && context.mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  bool _canDeleteComment(Comment comment, CookiesService cookiesService) {
+    return (cookiesService.locallyAvailableUserInfo != null &&
+            comment.user.email ==
+                cookiesService
+                    .locallyAvailableUserInfo!.email) ||
+        widget.event.isHostedByMe(
+            cookiesService.locallyAvailableUserInfo);
+  }
+
   List<Widget> _buildComments(Event event, BuildContext context,
       CookiesService cookiesService, final bool hideNames) {
     event.comments?.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -118,15 +177,11 @@ class _CommentSectionState extends State<CommentSection> {
                   padding:
                       const EdgeInsets.only(bottom: generalAppLevelPadding),
                   child: ProUserComment(
+                      key: Key(comment.id ?? ''),
                       comment: comment,
-                      onDelete: (comment) {
-                        deleteCommentFromEvent(event, comment, context)
-                            .then((value) {
-                          setState(() {
-                            event.comments?.remove(comment);
-                          });
-                        });
-                      },
+                      onDelete: _canDeleteComment(comment, cookiesService) ? (comment) {
+                        _showDeleteCommentModal(context, comment);
+                      } : null,
                       onReply: (parentComment, reply) {
                         if (parentComment.id == null) return;
                         addReplyToComment(
@@ -231,13 +286,7 @@ class _CommentSectionState extends State<CommentSection> {
                           });
                         }
                       },
-                      canDelete:
-                          (cookiesService.locallyAvailableUserInfo != null &&
-                                  comment.user.email ==
-                                      cookiesService
-                                          .locallyAvailableUserInfo!.email) ||
-                              event.isHostedByMe(
-                                  cookiesService.locallyAvailableUserInfo),
+                          
                       hideNames: event.isGuestListHidden || hideNames),
                 ))
             .toList() ??
