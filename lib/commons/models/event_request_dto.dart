@@ -1,4 +1,5 @@
 import 'comment.dart';
+import 'chip_in.dart';
 
 class EventRequestDTO {
   String? id;
@@ -24,6 +25,7 @@ class EventRequestDTO {
   String? theme;
   String? effect;
   String? font;
+  ChipIn? chipIn;
 
   EventRequestDTO({
     this.id,
@@ -49,6 +51,7 @@ class EventRequestDTO {
     this.theme,
     this.effect,
     this.font,
+    this.chipIn,
   });
 
   @override
@@ -76,7 +79,8 @@ class EventRequestDTO {
       subEvents: ${subEvents.map((e) => e.toString()).toList()},
       theme: $theme,
       effect: $effect,
-      font: $font
+      font: $font,
+      chipIn: $chipIn
     }''';
   }
 
@@ -124,6 +128,7 @@ class EventRequestDTO {
       'theme': theme,
       'effect': effect,
       'font': font,
+      'chipIn': chipIn?.toMap(),
     };
   }
 }

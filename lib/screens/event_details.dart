@@ -10,7 +10,6 @@ import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/models/user.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
-import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_segmented_button.dart';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../utils/date_time.dart';
 
-class ProDateTimePicker extends StatefulWidget {
+class ProDateTimePicker extends StatelessWidget {
   final DateTime? initialValue;
   final DateTime firstDate;
   final DateTime lastDate;
@@ -18,6 +17,7 @@ class ProDateTimePicker extends StatefulWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final TextAlign? textAlign;
+  final TextEditingController? textEditingController;
   const ProDateTimePicker({
     super.key,
     this.initialValue,
@@ -36,33 +36,15 @@ class ProDateTimePicker extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.textAlign,
+    this.textEditingController,
   });
-
-  @override
-  State<ProDateTimePicker> createState() => _ProDateTimePickerState();
-}
-
-class _ProDateTimePickerState extends State<ProDateTimePicker> {
-  late TextEditingController _controller;
-  DateTime? _selectedDateTime;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedDateTime = widget.initialValue;
-    _controller = TextEditingController(
-      text: widget.initialValue == null
-          ? ''
-          : fullDateWithTimeString(widget.initialValue!),
-    );
-  }
 
   Future<void> _selectDateTime(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _selectedDateTime ?? DateTime.now(),
-      firstDate: widget.firstDate,
-      lastDate: widget.lastDate,
+      initialDate: initialValue ?? DateTime.now(),
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
 
     if (pickedDate == null) return;
@@ -71,8 +53,8 @@ class _ProDateTimePickerState extends State<ProDateTimePicker> {
 
     final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: _selectedDateTime != null
-          ? TimeOfDay.fromDateTime(_selectedDateTime!)
+      initialTime: initialValue != null
+          ? TimeOfDay.fromDateTime(initialValue!)
           : TimeOfDay.now(),
     );
 
@@ -86,14 +68,8 @@ class _ProDateTimePickerState extends State<ProDateTimePicker> {
       pickedTime.minute,
     );
 
-    if (pickedDateTime == _selectedDateTime) return;
-
-    setState(() {
-      _selectedDateTime = pickedDateTime;
-      _controller.text = fullDateWithTimeString(_selectedDateTime!);
-    });
-
-    widget.onDateTimeSelected?.call(pickedDateTime);
+    if (pickedDateTime == initialValue) return;
+    onDateTimeSelected?.call(pickedDateTime);
   }
 
   @override
@@ -101,39 +77,33 @@ class _ProDateTimePickerState extends State<ProDateTimePicker> {
 
         final OutlineInputBorder overlayBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(color: widget.fillColor ?? Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+      borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary.withOpacity(0.5)),
     );
 
     final OutlineInputBorder overlayFocusedBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(color: widget.fillColor ?? Theme.of(context).colorScheme.primary),
+      borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary),
     );
 
 
     return TextFormField(
-      controller: _controller,
+      controller: textEditingController,
       readOnly: true,
-      style: widget.style,
-      textAlign: widget.textAlign ?? TextAlign.start,
+      style: style,
+      textAlign: textAlign ?? TextAlign.start,
       decoration: InputDecoration(
-        hintText: widget.hintText,
-        hintStyle: widget.hintStyle,
-        border: widget.border ?? overlayBorder,
-        focusedBorder: widget.focusedBorder ?? overlayFocusedBorder,
-        enabledBorder: widget.enabledBorder ?? overlayBorder,
-        prefixIcon: widget.prefixIcon,
-        suffixIcon: widget.suffixIcon ?? const Icon(Icons.event),
-        filled: widget.filled,
-        fillColor: widget.fillColor,
-        contentPadding: widget.contentPadding,
+        hintText: hintText,
+        hintStyle: hintStyle,
+        border: border ?? overlayBorder,
+        focusedBorder: focusedBorder ?? overlayFocusedBorder,
+        enabledBorder: enabledBorder ?? overlayBorder,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon ?? const Icon(Icons.event),
+        filled: filled,
+        fillColor: fillColor,
+        contentPadding: contentPadding,
       ),
       onTap: () => _selectDateTime(context),
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

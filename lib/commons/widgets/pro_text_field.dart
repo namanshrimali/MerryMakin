@@ -16,6 +16,7 @@ class ProTextField extends StatelessWidget {
   final double? width;
   final double? height;
   final bool multiline;
+  final bool prefixWidgetPadded;
   final int? maxLines;
   final TextStyle? style;
   final TextAlign? textAlign;
@@ -57,6 +58,7 @@ class ProTextField extends StatelessWidget {
     this.enabledBorder,
     this.contentPadding,
     this.onTap,
+    this.prefixWidgetPadded = true,
   });
 
   Widget buildNewType(context) {
@@ -99,7 +101,7 @@ class ProTextField extends StatelessWidget {
               const BoxConstraints(minHeight: 0, minWidth: 0),
           prefixIcon: prefixWidget != null
               ? Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: prefixWidgetPadded ? const EdgeInsets.symmetric(horizontal: 8) : EdgeInsets.zero,
                   child: prefixWidget,
                 )
               : null,

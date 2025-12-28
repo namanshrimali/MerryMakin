@@ -15,12 +15,13 @@ const int _contentAnimationDuration = 200;
 
 Future openProBottomModalSheet(BuildContext context, Widget childWidget,
     {bool isFullScreen = false,
+    bool isScrollControlled = true,
     ThemeData? themeData,
     ProThemeType? themeType,
     List<Color>? gradientColors}) {
   return showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      isScrollControlled: isScrollControlled,
       backgroundColor: Colors.transparent,
       enableDrag: true,
       isDismissible: true,
@@ -40,6 +41,8 @@ Future openProBottomModalSheet(BuildContext context, Widget childWidget,
 }
 
 void closeProBottomModalSheet(BuildContext context) {
+  // remove focus from text fields if there's one
+  FocusScope.of(context).unfocus();
   Navigator.of(context).pop();
 }
 

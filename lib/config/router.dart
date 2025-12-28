@@ -4,7 +4,6 @@ import 'package:merrymakin/commons/models/spryly_services.dart';
 import 'package:merrymakin/commons/screen/profile_screen.dart';
 import 'package:merrymakin/commons/screen/settings_screen.dart';
 import 'package:merrymakin/factory/app_factory.dart';
-import 'package:merrymakin/screens/create_celebration.dart';
 import 'package:merrymakin/screens/create_event_screen.dart';
 import 'package:merrymakin/screens/event_details.dart';
 import 'package:merrymakin/screens/base_screen.dart';
@@ -77,17 +76,9 @@ class AppRouter {
         },
       ),
       GoRoute(
-        path: newCelebration,
-        name: 'newCelebration',
-        builder: (context, state) => AddOrEditCelebration(),
-      ),
-      GoRoute(
         path: editCelebration,
         name: 'editCelebration',
-        builder: (context, state) {
-          final String celebrationId = state.pathParameters['id'] ?? '';
-          return AddOrEditCelebration(eventId: celebrationId);
-        },
+        builder: (context, state) => AddOrEditEvent(eventId: state.pathParameters['id']),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
+import 'package:merrymakin/commons/models/chip_in.dart';
+import 'package:merrymakin/commons/models/country_currency.dart';
+import 'package:merrymakin/commons/widgets/chip_in_modal.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
@@ -70,6 +73,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   void initState() {
     super.initState();
     event = Event(
+        chipIn: ChipIn(
+          amount: 0,
+          currency: cookiesService.locallyStoredCountryCurrency,
+        ),
         name: 'Untitled Event',
         startDateTime: getNextSaturdayAt7pmUtc(),
         hosts: cookiesService.currentUser != null
@@ -99,7 +106,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
       eventFuture = findEventWithId(widget.eventId!);
     }
     _future = Future.wait([eventFuture]);
-    
+
     // Initialize gradient from initial image
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -210,49 +217,6 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     }
   }
 
-  List<Widget> _buildEditableField(String fieldName, String hintText) {
-    if (_visibleFields[fieldName]!) {
-      return [
-        const SizedBox(height: generalAppLevelPadding),
-        ProTextField(
-          hintText: hintText,
-          initialValue: _getInitialValue(fieldName),
-          onValidationCallback: (String? value) =>
-              _validateField(fieldName, value),
-          onSaved: (value) {
-            setState(() {
-              _updateEventField(fieldName, value);
-              _visibleFields[fieldName] = false;
-            });
-          },
-          width: double.infinity,
-        ),
-      ];
-    }
-    return [const SizedBox.shrink()];
-  }
-
-  String? _getInitialValue(
-    String fieldName,
-  ) {
-    switch (fieldName) {
-      case 'spots':
-        return event.spots == null || event.spots! > 0
-            ? event.spots?.toString()
-            : null;
-      case 'costPerSpot':
-        return event.costPerSpot == null || event.costPerSpot! > 0
-            ? event.costPerSpot?.toString()
-            : null;
-      case 'dressCode':
-        return event.dressCode;
-      case 'food':
-        return event.foodSituation;
-      default:
-        return '';
-    }
-  }
-
   void _updateEventField(String fieldName, String value) {
     switch (fieldName) {
       case 'spots':
@@ -309,14 +273,14 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     final String currentHash = _getEventDetailsHash();
 
     // If details changed and prompt hasn't been dismissed, show it
-    if (_lastEventDetailsHash != null && 
-        _lastEventDetailsHash != currentHash && 
+    if (_lastEventDetailsHash != null &&
+        _lastEventDetailsHash != currentHash &&
         !_hasDismissedPrompt) {
       setState(() {
         _showRegeneratePrompt = true;
       });
     }
-    
+
     _lastEventDetailsHash = currentHash;
   }
 
@@ -330,7 +294,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   Future<void> _handleRegenerateDescription() async {
     _dismissRegeneratePrompt();
     FocusScope.of(context).unfocus();
-    
+
     final dynamic result = await openProBottomModalSheet(
       context,
       isFullScreen: true,
@@ -345,17 +309,16 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         initialFoodSelections: event.foodSituation?.split(','),
       ),
     );
-    
+
     FocusScope.of(context).unfocus();
     if (!mounted) {
       return;
     }
-    
+
     if (result is String) {
       final String trimmed = result.trim();
       setState(() {
-        _descriptionController.value =
-            _descriptionController.value.copyWith(
+        _descriptionController.value = _descriptionController.value.copyWith(
           text: trimmed,
           selection: TextSelection.collapsed(
             offset: trimmed.length,
@@ -375,7 +338,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     }
 
     final ThemeData theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: generalAppLevelPadding),
       decoration: BoxDecoration(
@@ -447,7 +410,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     if (event.imageUrl.isNotEmpty && event.imageUrl != _lastImageUrl) {
       _lastImageUrl = event.imageUrl;
       // Extract multiple colors for gradient
-      extractSectionDominantColors(event.imageUrl, mounted,).then((colors) {
+      extractSectionDominantColors(
+        event.imageUrl,
+        mounted,
+      ).then((colors) {
         if (mounted && event.imageUrl == _lastImageUrl) {
           setState(() {
             _gradientColors = colors;
@@ -649,11 +615,11 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               });
               _checkAndShowRegeneratePrompt();
             },
-            // style: whiteTextStyle,
-            // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
-            // filled: true,
-            // fillColor: Colors.white.withOpacity(0.08),
-
+            textEditingController: TextEditingController(
+              text: event.startDateTime == null
+                  ? ''
+                  : fullDateWithTimeString(event.startDateTime!),
+            ),
             suffixIcon: const Icon(Icons.access_time),
           ),
           const SizedBox(height: generalAppLevelPadding),
@@ -894,69 +860,6 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         ),
       ),
     );
-  }
-
-  List<Widget> _buildEventOptions() {
-    return [
-      ..._buildEditableField('spots', 'Enter number of spots'),
-      ..._buildEditableField('costPerSpot', 'Enter cost per spot'),
-      ..._buildEditableField(
-          'dressCode', 'Enter dress code. Casual, black tie, etc.'),
-      ..._buildEditableField(
-          'food', 'Enter food situation. BYOB, potluck, etc.'),
-      const SizedBox(
-        height: generalAppLevelPadding,
-      ),
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            if (!_visibleFields['dressCode']!)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ProOutlinedButton(
-                  child: ProText('Dress code'),
-                  onPressed: () =>
-                      setState(() => _visibleFields['dressCode'] = true),
-                ),
-              ),
-            if (!_visibleFields['food']!)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ProOutlinedButton(
-                  child: ProText('Food situation'),
-                  onPressed: () =>
-                      setState(() => _visibleFields['food'] = true),
-                ),
-              ),
-            if (!_visibleFields['spots']!)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ProOutlinedButton(
-                  child: ProText('Spots'),
-                  onPressed: () =>
-                      setState(() => _visibleFields['spots'] = true),
-                ),
-              ),
-            if (!_visibleFields['costPerSpot']!)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: ProOutlinedButton(
-                  child: ProText('Cost per spot'),
-                  onPressed: () =>
-                      setState(() => _visibleFields['costPerSpot'] = true),
-                ),
-              ),
-          ],
-        ),
-      ),
-      if (!_visibleFields['spots']! ||
-          !_visibleFields['costPerSpot']! ||
-          !_visibleFields['dressCode']! ||
-          !_visibleFields['food']!)
-        const SizedBox(height: generalAppLevelPadding),
-      // const SizedBox(height: generalAppLevelPadding / 2),
-    ];
   }
 
   void _openThemeSelector() {
@@ -1282,6 +1185,25 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     );
   }
 
+  void _openChipInModal(BuildContext context) {
+    openProBottomModalSheet(
+      context,
+      isFullScreen: true,
+      themeData: defaultTheme,
+      themeType: defaultThemeType,
+      gradientColors: [_gradientColors[0]],
+      ChipInModal(
+        initialChipIn: event.chipIn,
+        onSave: (ChipIn? chipIn) {
+          setState(() {
+            event.chipIn = chipIn;
+          });
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
   IconData _getEffectIcon(ProEffectType? effectType) {
     if (effectType == null) {
       return Icons.block;
@@ -1309,6 +1231,113 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
 
   bool isKeyboardVisible(BuildContext context) {
     return MediaQuery.of(context).viewInsets.bottom > 0;
+  }
+
+  String? _getInitialValue(
+    String fieldName,
+  ) {
+    switch (fieldName) {
+      case 'spots':
+        return event.spots == null || event.spots! > 0
+            ? event.spots?.toString()
+            : null;
+      case 'costPerSpot':
+        return event.costPerSpot == null || event.costPerSpot! > 0
+            ? event.costPerSpot?.toString()
+            : null;
+      case 'dressCode':
+        return event.dressCode;
+      case 'food':
+        return event.foodSituation;
+      default:
+        return '';
+    }
+  }
+
+
+  List<Widget> _buildEditableField(String fieldName, String hintText) {
+    if (_visibleFields[fieldName]!) {
+      return [
+        const SizedBox(height: generalAppLevelPadding),
+        ProTextField(
+          hintText: hintText,
+          initialValue: _getInitialValue(fieldName),
+          onValidationCallback: (String? value) =>
+              _validateField(fieldName, value),
+          onSaved: (value) {
+            setState(() {
+              _updateEventField(fieldName, value);
+              _visibleFields[fieldName] = false;
+            });
+          },
+          width: double.infinity,
+        ),
+      ];
+    }
+    return [const SizedBox.shrink()];
+  }
+
+  List<Widget> _buildEventOptions() {
+    return [
+      ..._buildEditableField('spots', 'Enter number of spots'),
+      ..._buildEditableField('costPerSpot', 'Enter cost per spot'),
+      ..._buildEditableField(
+          'dressCode', 'Enter dress code. Casual, black tie, etc.'),
+      ..._buildEditableField(
+          'food', 'Enter food situation. BYOB, potluck, etc.'),
+      const SizedBox(
+        height: generalAppLevelPadding,
+      ),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            if (!_visibleFields['dressCode']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Dress code'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['dressCode'] = true),
+                ),
+              ),
+            if (!_visibleFields['food']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Food situation'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['food'] = true),
+                ),
+              ),
+            if (!_visibleFields['spots']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Spots'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['spots'] = true),
+                ),
+              ),
+            if (!_visibleFields['costPerSpot']!)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ProOutlinedButton(
+                  child: ProText('Cost per spot'),
+                  onPressed: () =>
+                      setState(() => _visibleFields['costPerSpot'] = true),
+                ),
+              ),
+          ],
+        ),
+      ),
+      if (!_visibleFields['spots']! ||
+          !_visibleFields['costPerSpot']! ||
+          !_visibleFields['dressCode']! ||
+          !_visibleFields['food']!)
+        const SizedBox(height: generalAppLevelPadding),
+      // const SizedBox(height: generalAppLevelPadding / 2),
+    ];
   }
 
   Widget buildFormWidget(
@@ -1354,116 +1383,135 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                             : generalAppLevelPadding * 4,
                       ),
                       child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildHeroSection(context),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: generalAppLevelPadding,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildRegenerateDescriptionBanner(context),
-                            ProTextField(
-                              textAlign: TextAlign.center,
-                              multiline: true,
-                              maxLines: 5,
-                              onTap: () async {
-                                FocusScope.of(context).unfocus();
-                                final dynamic result =
-                                    await openProBottomModalSheet(
-                                  context,
-                                  isFullScreen: true,
-                                  themeData: defaultTheme,
-                                  themeType: defaultThemeType,
-                                  gradientColors: [_gradientColors[0]],
-                                  AIEnabledDescription(
-                                    event: event,
-                                    controller: _descriptionController,
-                                    initialDressCodeSelection: event.dressCode,
-                                    initialFoodSelections: event.foodSituation?.split(','),
-                                  ),
-                                );
-                                FocusScope.of(context).unfocus();
-                                if (!mounted) {
-                                  return;
-                                }
-                                if (result is String) {
-                                  final String trimmed = result.trim();
-                                  setState(() {
-                                    _descriptionController.value =
-                                        _descriptionController.value.copyWith(
-                                      text: trimmed,
-                                      selection: TextSelection.collapsed(
-                                        offset: trimmed.length,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildHeroSection(context),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: generalAppLevelPadding,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ProTextField(
+                                  key: const Key('chip-in-description'),
+                                  textAlign: TextAlign.center,
+                                  multiline: true,
+                                  onTap: () => _openChipInModal(context),
+                                  textEditingController: TextEditingController(text: event.chipIn?.getEventChipInDescriptionString()),
+                                  hintText:
+                                      'Ask Guests to Chip In',
+                                  suffixWidget: const Icon(Icons.account_balance_wallet),
+                                ),
+                                // ..._buildEventOptions(),
+                                _buildRegenerateDescriptionBanner(context),
+                                ProTextField(
+                                  textAlign: TextAlign.center,
+                                  multiline: true,
+                                  maxLines: 5,
+                                  onTap: () async {
+                                    FocusScope.of(context).unfocus();
+                                    final dynamic result =
+                                        await openProBottomModalSheet(
+                                      context,
+                                      isFullScreen: true,
+                                      themeData: defaultTheme,
+                                      themeType: defaultThemeType,
+                                      gradientColors: [_gradientColors[0]],
+                                      AIEnabledDescription(
+                                        event: event,
+                                        controller: _descriptionController,
+                                        initialDressCodeSelection:
+                                            event.dressCode,
+                                        initialFoodSelections:
+                                            event.foodSituation?.split(','),
                                       ),
                                     );
-                                    event.description = trimmed;
-                                    // Reset dismiss flag after regeneration
-                                    _hasDismissedPrompt = false;
-                                    _lastEventDetailsHash = _getEventDetailsHash();
-                                  });
-                                }
-                              },
-                              hintText: 'Tap and let AI write your party description! 🤖✨',
-                              textEditingController: _descriptionController,
-                              onValidationCallback: validateDescriptionField,
-                              onChanged: (value) {
-                                event.description = value;
-                              },
-                              onSaved: (value) {
-                                event.description = value.toString().trim();
-                              },
+                                    FocusScope.of(context).unfocus();
+                                    if (!mounted) {
+                                      return;
+                                    }
+                                    if (result is String) {
+                                      final String trimmed = result.trim();
+                                      setState(() {
+                                        _descriptionController.value =
+                                            _descriptionController.value
+                                                .copyWith(
+                                          text: trimmed,
+                                          selection: TextSelection.collapsed(
+                                            offset: trimmed.length,
+                                          ),
+                                        );
+                                        event.description = trimmed;
+                                        // Reset dismiss flag after regeneration
+                                        _hasDismissedPrompt = false;
+                                        _lastEventDetailsHash =
+                                            _getEventDetailsHash();
+                                      });
+                                    }
+                                  },
+                                  hintText:
+                                      'Tap and let AI write your party description! 🤖✨',
+                                  textEditingController: _descriptionController,
+                                  onValidationCallback:
+                                      validateDescriptionField,
+                                  onChanged: (value) {
+                                    event.description = value;
+                                  },
+                                  onSaved: (value) {
+                                    event.description = value.toString().trim();
+                                  },
+                                ),
+                                const SizedBox(height: generalAppLevelPadding),
+                                ProListItem(
+                                  swipeForEditAndDelete: false,
+                                  key: const Key('hide-guest-list'),
+                                  title: const ProText('Hide Guest List'),
+                                  subtitle: const ProText(
+                                    'Hide the guest names to RSVP\'d guests',
+                                    maxLines: 2,
+                                  ),
+                                  trailing: Switch(
+                                    value: event.isGuestListHidden,
+                                    onChanged: (bool selected) {
+                                      setState(() {
+                                        event.isGuestListHidden = selected;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(
+                                    height: generalAppLevelPadding / 2),
+                                ProListItem(
+                                  key: const Key('hide-guest-count'),
+                                  title: const ProText('Hide Guest Count'),
+                                  subtitle: const ProText(
+                                    'Hide number of guests to RSVP\'d guests',
+                                  ),
+                                  swipeForEditAndDelete: false,
+                                  trailing: Switch(
+                                    value: event.isGuestCountHidden,
+                                    onChanged: (bool selected) {
+                                      setState(() {
+                                        event.isGuestCountHidden = selected;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(
+                                    height: generalAppLevelPadding / 2),
+                              ],
                             ),
-                            const SizedBox(height: generalAppLevelPadding),
-                            // ..._buildEventOptions(),
-                            ProListItem(
-                              swipeForEditAndDelete: false,
-                              key: const Key('hide-guest-list'),
-                              title: const ProText('Hide Guest List'),
-                              subtitle: const ProText(
-                                'Hide the guest names to RSVP\'d guests',
-                                maxLines: 2,
-                              ),
-                              trailing: Switch(
-                                value: event.isGuestListHidden,
-                                onChanged: (bool selected) {
-                                  setState(() {
-                                    event.isGuestListHidden = selected;
-                                  });
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: generalAppLevelPadding / 2),
-                            ProListItem(
-                              key: const Key('hide-guest-count'),
-                              title: const ProText('Hide Guest Count'),
-                              subtitle: const ProText(
-                                'Hide number of guests to RSVP\'d guests',
-                              ),
-                              swipeForEditAndDelete: false,
-                              trailing: Switch(
-                                value: event.isGuestCountHidden,
-                                onChanged: (bool selected) {
-                                  setState(() {
-                                    event.isGuestCountHidden = selected;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          SizedBox(height: generalAppLevelPadding * 5),
+                        ],
                       ),
-                      SizedBox(height: generalAppLevelPadding * 5),
-                    ],
-                  ),
                     ),
                   ),
                 ),
-              _buildFontSelectorOverlay(context),
-              _buildTopActionBar(context),
-            ],
+                _buildFontSelectorOverlay(context),
+                _buildTopActionBar(context),
+              ],
             ),
           ),
         ),
@@ -1537,10 +1585,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               );
               _hasSyncedDescription = true;
             }
-            
+
             // Initialize event details hash when event is loaded
             _lastEventDetailsHash = _getEventDetailsHash();
-            
+
             // Initialize gradient when event is loaded
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) {

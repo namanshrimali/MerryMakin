@@ -122,8 +122,12 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
     if (response.statusCode == 200) {
       final Event updatedEvent = Event.fromMap(jsonDecode(response.body));
       if (eventsCache != null && eventsCache!.isNotEmpty) {
-        eventsCache!.removeWhere((event) => event.id == event.id);
-        eventsCache!.add(updatedEvent);
+        eventsCache!.map((event) {
+          if (event.id == updatedEvent.id) {
+            return updatedEvent;
+          }
+          return event;
+        });
       }
       return updatedEvent;
     } else {

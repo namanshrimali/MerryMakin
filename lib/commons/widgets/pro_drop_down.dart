@@ -80,7 +80,10 @@ class ProDropDown extends StatelessWidget {
       },
       child: InputDecorator(
         decoration: InputDecoration(
-          border: const OutlineInputBorder(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(32),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+          ),
           labelText: currentValueIndex != null || currentValueIndex == -1 ? labelText : null,
           contentPadding:
               const EdgeInsets.only(left: 8, right: 8, bottom: 18, top: 18),

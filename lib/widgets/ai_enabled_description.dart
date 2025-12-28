@@ -51,7 +51,6 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
   late final AiTypingEngine _typingEngine;
-
   final Set<String> _selectedFood = <String>{};
   String? _selectedDress = null;
 
@@ -62,7 +61,9 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
   String? _lastDressLine;
   bool _foodLineLockedByUser = false;
   bool _dressLineLockedByUser = false;
-
+  String? _lastChipInLine;
+  bool _chipInLineLockedByUser = false;
+  
   @override
   void initState() {
     super.initState();
@@ -118,12 +119,17 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
   }
 
   void _startInitialGeneration() {
+    // if event has description, use it and don't add anything else
+    if (widget.event.description != null && widget.event.description!.isNotEmpty) {
+      _typingEngine.setTextImmediately(widget.event.description!);
+      return;
+    }
     final String baseText = _buildBaseDescription(widget.event);
     final String? foodLine =
         _selectedFood.isNotEmpty ? _buildFoodLine() : null;
     final String? dressLine =
         _selectedDress != null && _selectedDress!.isNotEmpty ? _buildDressLine() : null;
-
+    final String? chipInLine = _buildChipInLine();
     _lastFoodLine = foodLine;
     _lastDressLine = dressLine;
     _foodLineLockedByUser = false;
@@ -131,7 +137,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     _pendingContextRefresh = false;
 
     final String composed =
-        _composeFullText(baseText, foodLine, dressLine);
+        _composeFullText(baseText, foodLine, dressLine, chipInLine);
     _typingEngine.animateTo(composed, animateAgain: widget.animateAgain);
   }
 
@@ -193,6 +199,19 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
 
     return 'Dress Code: ${descriptions[_selectedDress!] ?? _selectedDress!}';
   }
+  String _buildChipInLine() {
+    String chipInLine = 'Chip In: 💰 We\'re asking guests to chip in an amount of ${widget.event.chipIn?.getChipInAmountString()} for the event.';
+    if (widget.event.chipIn?.hasAnyPaymentMethod ?? false) {
+      for (final String paymentMethod in widget.event.chipIn?.getPaymentMethodLabelsList() ?? []) {
+        final String? userId = widget.event.chipIn?.getPaymentMethodUserIdViaLabel(paymentMethod);
+        if (userId != null && userId.trim().isNotEmpty && userId.trim().toLowerCase() != 'null') {
+          chipInLine += '\n${paymentMethod}: ${userId}';
+        }
+      }
+    }
+
+    return chipInLine;
+  }
 
   String _applyEventDetails(String template, Event event) {
     // final String rawLocation = (event.location ?? '').trim();
@@ -253,6 +272,7 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     String base,
     String? foodLine,
     String? dressLine,
+    String? chipInLine,
   ) {
     final List<String> resultLines = base.split('\n');
     while (resultLines.isNotEmpty && resultLines.last.trim().isEmpty) {
@@ -276,6 +296,9 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     }
     if (dressLine != null && dressLine.isNotEmpty) {
       appendContextLine(dressLine);
+    }
+    if (chipInLine != null && chipInLine.isNotEmpty) {
+      appendContextLine(chipInLine);
     }
 
     return resultLines.join('\n');

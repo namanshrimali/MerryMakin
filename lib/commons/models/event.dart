@@ -10,6 +10,7 @@ import '../utils/constants.dart';
 
 import './country_currency.dart';
 import './user.dart';
+import './chip_in.dart';
 
 class Event {
   String? id;
@@ -36,6 +37,7 @@ class Event {
   String? theme;
   String? effect;
   String? font;
+  ChipIn? chipIn;
   
   Event({
     this.id,
@@ -62,6 +64,7 @@ class Event {
     this.theme,
     this.effect,
     this.font,
+    this.chipIn,
   });
 
   @override
@@ -90,6 +93,7 @@ class Event {
       theme: $theme,
       effect: $effect,
       font: $font,
+      chipIn: $chipIn,
     }''';
     //       eventToAttendees: ${eventToAttendees?.map((a) => a.toString()).toList()},
 
@@ -141,6 +145,7 @@ class Event {
       theme: map['theme'],
       effect: map['effect'],
       font: map['font'],
+      chipIn: ChipIn.fromMap(map['chipIn']),
       // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
       //         null
       //     ? []
@@ -201,6 +206,7 @@ class Event {
       'theme': theme,
       'effect': effect,
       'font': font,
+      'chipIn': chipIn?.toMap(),
     };
   }
 
@@ -247,6 +253,7 @@ class Event {
       theme: theme,
       effect: effect,
       font: font,
+      chipIn: chipIn,
     );
   }
 
@@ -377,6 +384,14 @@ class Event {
       theme: theme,
       effect: effect,
       font: font,
+      chipIn: chipIn != null ? ChipIn(
+        amount: chipIn!.amount,
+        currency: chipIn!.currency,
+        venmoUserId: chipIn!.venmoUserId,
+        paypalUserId: chipIn!.paypalUserId,
+        zelleUserId: chipIn!.zelleUserId,
+        cashappUserId: chipIn!.cashappUserId,
+      ) : null,
       comments: [...(comments ?? [])],
     );
   }

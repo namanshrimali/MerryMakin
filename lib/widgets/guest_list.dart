@@ -108,6 +108,7 @@ class GuestList extends StatelessWidget {
                     return;
                   }
                   openProBottomModalSheet(
+                    isScrollControlled: false,
                     gradientColors: [gradientColors[0]],
                     buildContext,
                     _buildAllAttendeesWithStatus(maxHeight * 0.4, buildContext),
@@ -367,7 +368,7 @@ class GuestList extends StatelessWidget {
 
   Widget _buildAllAttendeesWithStatus(double? height, BuildContext context) {
     return ProTabView(
-      height: height,
+      // height: height,
       childrenTabTitle: [
         'Going (${event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING).length})',
         'Maybe (${event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.MAYBE).length})',

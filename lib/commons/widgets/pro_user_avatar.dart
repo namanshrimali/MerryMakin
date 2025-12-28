@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import '../models/user.dart';
@@ -64,9 +65,8 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
     // have gradient background color
     return Stack(children: [
       CircleAvatar(
-        
           radius: widget.radius,
-          backgroundImage: NetworkImage(widget.user.photoUrl != null && !widget.hideMode ? widget.user.photoUrl! : ''),
+          backgroundImage: CachedNetworkImageProvider(widget.user.photoUrl != null && !widget.hideMode ? widget.user.photoUrl! : ''),
           onBackgroundImageError: (_, __) {},
           child: childWidget),
       if (widget.canEdit)
