@@ -4,7 +4,6 @@ import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/utils/share_utils.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_outlined_button.dart';
-import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/user.dart';
 import '../service/user_service.dart';

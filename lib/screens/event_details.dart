@@ -586,7 +586,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                               receivedEvent, height * _heroImageHeight, width),
                           const SizedBox(height: generalAppLevelPadding),
                           // Inline RSVP options for guests (non-hosts)
-                          if (!receivedEvent.isHostedByMe(
+                          if (receivedEvent.isHostedByMe(
                               cookiesService.locallyAvailableUserInfo)) ...[
                             _buildRsvpButtons(receivedEvent),
                             const SizedBox(height: generalAppLevelPadding),

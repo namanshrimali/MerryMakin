@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
+import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/models/user.dart';
 import 'package:merrymakin/commons/models/user_request_dto.dart';
@@ -22,6 +23,14 @@ import 'package:merrymakin/commons/models/comment.dart';
 import '../commons/utils/validators.dart';
 import '../commons/widgets/cards/pro_card.dart';
 import '../commons/widgets/pro_user_avatar.dart';
+import '../commons/widgets/pro_bottom_modal_sheet.dart';
+import '../widgets/chip_in_verification.dart';
+
+enum RsvpModalStep {
+  rsvpForm,
+  chipInVerification,
+  // Add more steps here as needed for future components
+}
 
 class RsvpModal extends ConsumerStatefulWidget {
   final Event event;
@@ -40,7 +49,8 @@ class RsvpModal extends ConsumerStatefulWidget {
   ConsumerState<RsvpModal> createState() => _ProRsvpModalState();
 }
 
-class _ProRsvpModalState extends ConsumerState<RsvpModal> {
+class _ProRsvpModalState extends ConsumerState<RsvpModal>
+    with SingleTickerProviderStateMixin {
   late RSVPStatus _selectedRsvpStatus;
   final List<TextEditingController> _plusOneControllers = [];
   final TextEditingController _nameController = TextEditingController();
@@ -49,11 +59,28 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
   String? commentText;
   String? gifUrl;
   final _formKey = GlobalKey<FormState>();
+  RsvpModalStep _currentStep = RsvpModalStep.rsvpForm;
+  bool _isExiting = false;
+  late AnimationController _exitController;
+  late Animation<Offset> _exitAnimation;
 
   @override
   void initState() {
     super.initState();
     _selectedRsvpStatus = widget.initialRsvpStatus;
+
+    _exitController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _exitAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(-1.0, 0),
+    ).animate(CurvedAnimation(
+      parent: _exitController,
+      curve: Curves.easeInCubic,
+    ));
 
     // Add one empty plus one field by default
     final plusOneNames = widget.event.getPlusOneNamesForUser(widget.user);
@@ -69,6 +96,7 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
     }
     _nameController.dispose();
     _emailController.dispose();
+    _exitController.dispose();
     super.dispose();
   }
 
@@ -92,11 +120,23 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
         .toList();
   }
 
-  Future<void> _handleContinue() async {
-    if (_isSubmitting) {
-      return;
+  /// Determines the next step after Continue is clicked
+  RsvpModalStep? _getNextStep() {
+    // Check if we should show chip-in verification
+    if (_selectedRsvpStatus == RSVPStatus.GOING &&
+        widget.event.chipIn != null &&
+        widget.event.chipIn!.amount != null &&
+        widget.event.chipIn!.amount! > 0 &&
+        widget.event.chipIn!.hasAnyPaymentMethod) {
+      return RsvpModalStep.chipInVerification;
     }
-    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+    // Add more step conditions here for future components
+    return null; // null means no next step, proceed with RSVP
+  }
+
+  /// Submits the RSVP and comment to the API
+  Future<void> _submitRsvp() async {
+    if (_isSubmitting) {
       return;
     }
 
@@ -105,17 +145,6 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
     });
 
     try {
-      if (widget.user == null) {
-        await userService.addOrUpdateUser(
-            UserRequestDTO(
-                givenName: _nameController.text.trim(),
-                email: _emailController.text.trim().isNotEmpty
-                    ? _emailController.text.trim()
-                    : null,
-                sprylyServices: SprylyServices.MerryMakin),
-            '',
-            SprylyServices.MerryMakin.name);
-      }
       // Handle plus ones (for future API extension)
       final plusOnes = _getPlusOnes();
 
@@ -140,8 +169,6 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
               RSVPStatus.UNDECIDED
           ? "rsvped $rsvpStatusText${plusOnesText}"
           : "updated their rsvp to $rsvpStatusText${plusOnesText}";
-
-      // Update event attendees list
 
       await Future.wait([
         rsvpForEvent(
@@ -171,13 +198,14 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
 
           ref.read(eventProvider.notifier).rsvpEvent(widget.event);
 
-          Navigator.pop(context);
-
           showSnackBar(context, 'RSVP updated successfully!');
           if (plusOnes.isNotEmpty) {
             // For now, just show a message. You can extend the API later to support these
             showSnackBar(context, 'Plus ones noted: ${plusOnes.join(", ")}');
           }
+
+          // Close the modal
+          closeProBottomModalSheet(context);
         }
       });
     } catch (error) {
@@ -191,6 +219,62 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
         });
       }
     }
+  }
+
+  Future<void> _handleContinue() async {
+    if (_isSubmitting) {
+      return;
+    }
+    if (_formKey.currentState != null && !_formKey.currentState!.validate()) {
+      return;
+    }
+
+    try {
+      // Create user if not logged in
+      if (widget.user == null) {
+        await userService.addOrUpdateUser(
+            UserRequestDTO(
+                givenName: _nameController.text.trim(),
+                email: _emailController.text.trim().isNotEmpty
+                    ? _emailController.text.trim()
+                    : null,
+                sprylyServices: SprylyServices.MerryMakin),
+            '',
+            SprylyServices.MerryMakin.name);
+      }
+
+      // Check if there's a next step to show
+      final nextStep = _getNextStep();
+      if (nextStep != null) {
+        // First, trigger exit animation for current screen
+        setState(() {
+          _isExiting = true;
+        });
+        // Animate old screen out to the left
+        await _exitController.forward();
+        if (mounted) {
+          // Then show the new screen
+          setState(() {
+            _currentStep = nextStep;
+            _isExiting = false;
+          });
+          // Reset exit controller for next transition
+          _exitController.reset();
+        }
+      } else {
+        // No next step, submit RSVP directly
+        await _submitRsvp();
+      }
+    } catch (error) {
+      if (mounted) {
+        showSnackBar(context, error.toString());
+      }
+    }
+  }
+
+  /// Handles the onAlreadyPaid callback from ChipInVerification
+  Future<void> _handleAlreadyPaid() async {
+    await _submitRsvp();
   }
 
   Widget buildUserInfoSectionForNonLoggedInUsers(theme) {
@@ -340,13 +424,13 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget buildRSVPOptionsWidget() {
     final isLoggedIn = widget.user != null;
     final theme =
         ProThemes.themes[widget.themeType]?.theme ?? Theme.of(context);
 
     return SafeArea(
+      key: const ValueKey('rsvpForm'),
       child: Theme(
         data: theme,
         child: SingleChildScrollView(
@@ -422,5 +506,84 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal> {
         ),
       ),
     );
+  }
+
+  Widget _buildChipInVerificationView() {
+    final theme =
+        ProThemes.themes[widget.themeType]?.theme ?? Theme.of(context);
+    final plusOnes = _getPlusOnes();
+    final user = widget.user ?? AppFactory().cookiesService.currentUser!;
+
+    return SafeArea(
+      key: const ValueKey('chipInVerification'),
+      child: Theme(
+        data: theme,
+        child: ChipInVerification(
+          event: widget.event,
+          attendee: Attendee(
+            user: user,
+            rsvpStatus: _selectedRsvpStatus,
+            rsvpDate: DateTime.now(),
+            plusOnes: plusOnes,
+          ),
+          onAlreadyPaid: _handleAlreadyPaid,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrentStepWidget() {
+    switch (_currentStep) {
+      case RsvpModalStep.rsvpForm:
+        return buildRSVPOptionsWidget();
+      case RsvpModalStep.chipInVerification:
+        return _buildChipInVerificationView();
+      // Add more cases here for future steps
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Old screen sliding out to the left (when exiting)
+        if (_isExiting)
+          SlideTransition(
+            position: _exitAnimation,
+            child: _buildStepWidget(_currentStep),
+          ),
+        // New screen sliding in from the right (when not exiting)
+        if (!_isExiting)
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 1000),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1.0, 0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ),
+                ),
+                child: child,
+              );
+            },
+            child: _buildCurrentStepWidget(),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStepWidget(RsvpModalStep step) {
+    switch (step) {
+      case RsvpModalStep.rsvpForm:
+        return buildRSVPOptionsWidget();
+      case RsvpModalStep.chipInVerification:
+        return _buildChipInVerificationView();
+      // Add more cases here for future steps
+    }
   }
 }

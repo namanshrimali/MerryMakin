@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:merrymakin/commons/models/chip_in.dart';
-import 'package:merrymakin/commons/models/country_currency.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/currency_selector_dropdown.dart';
