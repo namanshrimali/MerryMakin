@@ -13,6 +13,7 @@ enum TextPosition {
 class ProImageCard extends StatefulWidget {
   final String imageUrl;
   final String title;
+  final TextStyle? titleStyle;
   final Widget? subtitle;
   final Widget? thirdRow;
   final double width;
@@ -25,6 +26,7 @@ class ProImageCard extends StatefulWidget {
     super.key,
     required this.imageUrl,
     required this.title,
+    this.titleStyle,
     this.subtitle,
     this.width = 280,
     this.imageHeight,
@@ -113,7 +115,7 @@ class _ProImageCardState extends State<ProImageCard> {
           ProText(
             textAlign: TextAlign.center,
             widget.title,
-            textStyle: const TextStyle(
+            textStyle: widget.titleStyle?.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24) ?? TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,

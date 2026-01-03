@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
+import 'package:merrymakin/commons/widgets/pro_font_selector.dart';
 import 'package:merrymakin/commons/widgets/pro_image_card.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:merrymakin/commons/widgets/pro_user_avatar.dart';
@@ -19,6 +20,12 @@ class EventCard extends StatelessWidget {
 
   Widget buildImageCard(context) {
     return ProImageCard(
+      titleStyle: TextStyle(
+          fontFamily: event.font != null
+              ? ProFontType.values
+                  .firstWhere((type) => type.toString() == event.font)
+                  .fontFamily
+              : null),
       imageUrl: event.imageUrl,
       imageHeight: height,
       width: width,

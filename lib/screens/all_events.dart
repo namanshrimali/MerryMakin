@@ -45,22 +45,20 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
 
   void sortEvents(List<Event> events) {
     events.sort((a, b) {
-                  if (a.startDateTime != null && b.startDateTime != null) {
-                    int comparison =  b.startDateTime!.compareTo(a.startDateTime!);
-                      if (comparison != 0) {
-                        return comparison;
-                    }
-                  }
+      if (a.startDateTime != null && b.startDateTime != null) {
+        int comparison = b.startDateTime!.compareTo(a.startDateTime!);
+        if (comparison != 0) {
+          return comparison;
+        }
+      }
 
+      // If only one has startDateTime, put the non-null one first
+      if (a.startDateTime == null) return -1;
+      if (b.startDateTime == null) return 1;
 
-
-                  // If only one has startDateTime, put the non-null one first
-                  if (a.startDateTime == null) return -1;
-                  if (b.startDateTime == null) return 1;
-
-                  // If both are null, compare createdAt
-                  return a.createdAt.compareTo(b.createdAt);
-                });
+      // If both are null, compare createdAt
+      return a.createdAt.compareTo(b.createdAt);
+    });
   }
 
   List<Event> getFilteredEvents() {
@@ -79,7 +77,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
         filteredEvents = widget.events
             .where((event) =>
                 event.startDateTime != null &&
-                event.startDateTime!.isBefore(now ))
+                event.startDateTime!.isBefore(now))
             .toList();
 
       case 'hosting':
@@ -99,7 +97,9 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
                     attendee.user.id ==
                     widget.cookiesService.currentUser?.id) &&
                 event.startDateTime != null &&
-                event.startDateTime!.isBefore(now))
+                event.startDateTime!.isBefore(now) &&
+                event.getRsvpStatusForUser(widget.cookiesService.currentUser) ==
+                    RSVPStatus.GOING)
             .toList();
 
       default:
@@ -184,7 +184,9 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
           thirdRow: selectedFilter == "attended"
               ? null
               : ProPrimaryButton(
-                  Padding(padding: EdgeInsets.all(generalAppLevelPadding), child: ProText("Create Event")),
+                  Padding(
+                      padding: EdgeInsets.all(generalAppLevelPadding),
+                      child: ProText("Create Event")),
                   onPressed: () {
                     AppRouter.goToNewEvent(context);
                   },
@@ -308,7 +310,11 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
       child: Row(children: [
         ProText(
           // capitalize the first letter of every word of the selected filter
-          selectedFilter.split(' ').map((word) => word.substring(0, 1).toUpperCase() + word.substring(1)).join(' '),
+          selectedFilter
+              .split(' ')
+              .map((word) =>
+                  word.substring(0, 1).toUpperCase() + word.substring(1))
+              .join(' '),
           textStyle: TextStyle(fontSize: 36, fontWeight: FontWeight.w500),
         ),
         SizedBox(width: generalAppLevelPadding / 4),
@@ -327,7 +333,9 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(right: generalAppLevelPadding / 2, top: generalAppLevelPadding / 2),
+              padding: const EdgeInsets.only(
+                  right: generalAppLevelPadding / 2,
+                  top: generalAppLevelPadding / 2),
               child: InkWell(
                   onTap: () {
                     AppRouter.goToProfile(context);
@@ -369,7 +377,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
           onPressed: () {
             AppRouter.goToNewEvent(context);
           },
-        ),        
+        ),
         body: buildEvents(context));
   }
 }
