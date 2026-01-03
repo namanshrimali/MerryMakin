@@ -49,7 +49,7 @@ class _ChipInVerificationState extends State<ChipInVerification> {
       case 'PayPal':
         // PayPal.me format: https://paypal.me/USERNAME/AMOUNT
         return 'https://paypal.me/$userId/$amountStr';
-      case 'CashApp':
+      case 'Cash App':
         // Cash App deep link format: https://cash.app/\$USERNAME/AMOUNT
         return 'https://cash.app/\$$userId/$amountStr';
       default:
@@ -94,7 +94,7 @@ class _ChipInVerificationState extends State<ChipInVerification> {
       case 'Zelle':
         icon = Icons.account_balance;
         break;
-      case 'CashApp':
+      case 'Cash App':
         icon = Icons.money;
         break;
       default:

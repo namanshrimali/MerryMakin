@@ -201,7 +201,7 @@ class _ChipInModalState extends State<ChipInModal> {
               _buildPaymentMethodToggle(
                 theme: theme,
                 method: PaymentMethod.cashapp,
-                label: 'CashApp',
+                label: 'Cash App',
                 icon: Icons.money,
               ),
             ],
@@ -240,7 +240,7 @@ class _ChipInModalState extends State<ChipInModal> {
             _buildPaymentMethodField(
               context: context,
               theme: theme,
-              label: 'CashApp User ID',
+              label: 'Cash App User ID',
               icon: Icons.money,
             ),
           ],
@@ -350,7 +350,7 @@ class _ChipInModalState extends State<ChipInModal> {
           case 'Zelle User ID':
             _chipIn!.zelleUserId = value.toString().trim();
             break;
-          case 'CashApp User ID':
+          case 'Cash App User ID':
             _chipIn!.cashappUserId = value.toString().trim();
             break;
         }

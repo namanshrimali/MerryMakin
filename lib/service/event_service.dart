@@ -122,12 +122,12 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
     if (response.statusCode == 200) {
       final Event updatedEvent = Event.fromMap(jsonDecode(response.body));
       if (eventsCache != null && eventsCache!.isNotEmpty) {
-        eventsCache!.map((event) {
+        eventsCache =  eventsCache!.map((event) {
           if (event.id == updatedEvent.id) {
             return updatedEvent;
           }
           return event;
-        });
+        }).toList();
       }
       return updatedEvent;
     } else {

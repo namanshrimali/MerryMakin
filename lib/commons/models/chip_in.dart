@@ -44,7 +44,7 @@ class ChipIn {
       if (venmoUserId != null && venmoUserId!.isNotEmpty) 'Venmo',
       if (paypalUserId != null && paypalUserId!.isNotEmpty) 'PayPal',
       if (zelleUserId != null && zelleUserId!.isNotEmpty) 'Zelle',
-      if (cashappUserId != null && cashappUserId!.isNotEmpty) 'CashApp',
+      if (cashappUserId != null && cashappUserId!.isNotEmpty) 'Cash App',
     ];
   }
 
@@ -71,7 +71,7 @@ class ChipIn {
         return paypalUserId;
     case 'Zelle':
       return zelleUserId;
-    case 'CashApp':
+    case 'Cash App':
       return cashappUserId;
     default:
       return null;
@@ -85,7 +85,7 @@ class ChipIn {
         return paypalUserId;
       case 'Zelle User ID':
         return zelleUserId;
-      case 'CashApp User ID':
+      case 'Cash App User ID':
         return cashappUserId;
       default:
         return null;

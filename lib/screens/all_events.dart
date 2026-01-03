@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:merrymakin/commons/models/event.dart';
+import 'package:merrymakin/commons/models/rsvp.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_primary_button.dart';
@@ -42,19 +43,40 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     super.initState();
   }
 
+  void sortEvents(List<Event> events) {
+    events.sort((a, b) {
+                  if (a.startDateTime != null && b.startDateTime != null) {
+                    int comparison =  b.startDateTime!.compareTo(a.startDateTime!);
+                      if (comparison != 0) {
+                        return comparison;
+                    }
+                  }
+
+
+
+                  // If only one has startDateTime, put the non-null one first
+                  if (a.startDateTime == null) return -1;
+                  if (b.startDateTime == null) return 1;
+
+                  // If both are null, compare createdAt
+                  return a.createdAt.compareTo(b.createdAt);
+                });
+  }
+
   List<Event> getFilteredEvents() {
     final now = DateTime.now();
+    List<Event> filteredEvents = [];
 
     switch (selectedFilter) {
       case 'upcoming':
-        return widget.events
+        filteredEvents = widget.events
             .where((event) =>
                 event.startDateTime == null ||
                 event.startDateTime!.isAfter(now.subtract(Duration(hours: 6))))
             .toList();
 
       case 'past events':
-        return widget.events
+        filteredEvents = widget.events
             .where((event) =>
                 event.startDateTime != null &&
                 event.startDateTime!.isBefore(now ))
@@ -62,7 +84,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
 
       case 'hosting':
         String? currentUserId = widget.cookiesService.currentUser?.id;
-        return widget.events
+        filteredEvents = widget.events
             .where((event) => event.hosts.any((host) =>
                 host.id == currentUserId &&
                 (event.startDateTime == null ||
@@ -70,7 +92,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             .toList();
 
       case 'attended':
-        return widget.events
+        filteredEvents = widget.events
             .where((event) =>
                 event.attendees != null &&
                 event.attendees!.any((attendee) =>
@@ -81,8 +103,10 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
             .toList();
 
       default:
-        return widget.events;
+        filteredEvents = widget.events;
     }
+    sortEvents(filteredEvents);
+    return filteredEvents;
   }
 
   Map<String, int> getEventCounts() {
@@ -191,7 +215,6 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
 
   Widget buildEvents(BuildContext context) {
     final filteredEvents = getFilteredEvents();
-
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
