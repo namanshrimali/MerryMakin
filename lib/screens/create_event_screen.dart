@@ -1403,6 +1403,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                       'Ask Guests to Chip In',
                                   suffixWidget: const Icon(Icons.account_balance_wallet),
                                 ),
+                                const SizedBox(height: generalAppLevelPadding),
                                 // ..._buildEventOptions(),
                                 _buildRegenerateDescriptionBanner(context),
                                 ProTextField(
