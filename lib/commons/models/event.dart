@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:merrymakin/commons/models/comment.dart';
+import 'package:merrymakin/commons/models/questionnaire_question.dart';
 import 'package:merrymakin/commons/utils/date_time.dart';
 import '../models/event_attendee.dart';
 import '../models/event_request_dto.dart';
@@ -38,6 +39,8 @@ class Event {
   String? effect;
   String? font;
   ChipIn? chipIn;
+  bool questionnaireEnabled;
+  Map<String, QuestionnaireQuestion>? questionnaireQuestions;
   
   Event({
     this.id,
@@ -65,6 +68,8 @@ class Event {
     this.effect,
     this.font,
     this.chipIn,
+    this.questionnaireEnabled = false,
+    this.questionnaireQuestions = null,
   });
 
   @override
@@ -146,13 +151,10 @@ class Event {
       effect: map['effect'],
       font: map['font'],
       chipIn: ChipIn.fromMap(map['chipIn']),
-      // eventToAttendees: List<EventToAttendee>.from(map['eventToAttendees'] ==
-      //         null
-      //     ? []
-      //     : map['eventToAttendees']
-      //         .map(
-      //             (eventToAttendee) => EventToAttendee.fromMap(eventToAttendee))
-      //         .toList()),
+      questionnaireEnabled: map['questionnaireEnabled'] != null && map['questionnaireEnabled'],
+      questionnaireQuestions: map['questionnaireQuestions'] != null
+          ? Map<String, QuestionnaireQuestion>.from(map['questionnaireQuestions'].map((key, value) => MapEntry(key, QuestionnaireQuestion.fromMap(value))))
+          : null,
     );
     return event;
   }
@@ -207,6 +209,8 @@ class Event {
       'effect': effect,
       'font': font,
       'chipIn': chipIn?.toMap(),
+      'questionnaireEnabled': questionnaireEnabled,
+      'questionnaireQuestions': questionnaireQuestions?.map((key, value) => MapEntry(key, value.toMap())),
     };
   }
 
@@ -254,6 +258,8 @@ class Event {
       effect: effect,
       font: font,
       chipIn: chipIn,
+      questionnaireEnabled: questionnaireEnabled,
+      questionnaireQuestions: questionnaireQuestions ?? <String, QuestionnaireQuestion>{},
     );
   }
 
@@ -393,6 +399,8 @@ class Event {
         cashappUserId: chipIn!.cashappUserId,
       ) : null,
       comments: [...(comments ?? [])],
+      questionnaireEnabled: questionnaireEnabled,
+      questionnaireQuestions: questionnaireQuestions,
     );
   }
 

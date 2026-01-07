@@ -200,6 +200,9 @@ class _AIEnabledDescriptionState extends State<AIEnabledDescription> {
     return 'Dress Code: ${descriptions[_selectedDress!] ?? _selectedDress!}';
   }
   String _buildChipInLine() {
+    if (widget.event.chipIn == null || widget.event.chipIn!.amount == null || widget.event.chipIn!.amount! <= 0) {
+      return '';
+    }
     String chipInLine = 'Chip In: 💰 We\'re asking guests to chip in an amount of ${widget.event.chipIn?.getChipInAmountString()} for the event.';
     if (widget.event.chipIn?.hasAnyPaymentMethod ?? false) {
       for (final String paymentMethod in widget.event.chipIn?.getPaymentMethodLabelsList() ?? []) {

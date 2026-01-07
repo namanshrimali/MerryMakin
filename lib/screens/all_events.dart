@@ -43,27 +43,33 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     super.initState();
   }
 
-  void sortEvents(List<Event> events) {
+  void sortEvents(List<Event> events, {int sortMultiplier = 1}) {
     events.sort((a, b) {
+
+      // if an event has yet to be rsvped, show it first
+      if (a.getRsvpStatusForUser(widget.cookiesService.currentUser) == RSVPStatus.UNDECIDED) return -1;
+      if (b.getRsvpStatusForUser(widget.cookiesService.currentUser) == RSVPStatus.UNDECIDED) return 1;
+
       if (a.startDateTime != null && b.startDateTime != null) {
         int comparison = b.startDateTime!.compareTo(a.startDateTime!);
         if (comparison != 0) {
-          return comparison;
+          return sortMultiplier * comparison;
         }
       }
 
       // If only one has startDateTime, put the non-null one first
-      if (a.startDateTime == null) return -1;
-      if (b.startDateTime == null) return 1;
+      if (a.startDateTime == null) return -1 * sortMultiplier;
+      if (b.startDateTime == null) return 1 * sortMultiplier;
 
       // If both are null, compare createdAt
-      return a.createdAt.compareTo(b.createdAt);
+      return sortMultiplier * a.createdAt.compareTo(b.createdAt);
     });
   }
 
   List<Event> getFilteredEvents() {
     final now = DateTime.now();
     List<Event> filteredEvents = [];
+    int sortMultiplier = 1;
 
     switch (selectedFilter) {
       case 'upcoming':
@@ -72,6 +78,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
                 event.startDateTime == null ||
                 event.startDateTime!.isAfter(now.subtract(Duration(hours: 6))))
             .toList();
+        sortMultiplier = -1;
 
       case 'past events':
         filteredEvents = widget.events
@@ -88,6 +95,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
                 (event.startDateTime == null ||
                     event.startDateTime!.isAfter(now))))
             .toList();
+        sortMultiplier = -1;
 
       case 'attended':
         filteredEvents = widget.events
@@ -105,7 +113,7 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
       default:
         filteredEvents = widget.events;
     }
-    sortEvents(filteredEvents);
+    sortEvents(filteredEvents, sortMultiplier: sortMultiplier);
     return filteredEvents;
   }
 

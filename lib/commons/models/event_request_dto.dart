@@ -1,3 +1,5 @@
+import 'package:merrymakin/commons/models/questionnaire_question.dart';
+
 import 'comment.dart';
 import 'chip_in.dart';
 
@@ -26,6 +28,8 @@ class EventRequestDTO {
   String? effect;
   String? font;
   ChipIn? chipIn;
+  bool questionnaireEnabled;
+  Map<String, QuestionnaireQuestion>? questionnaireQuestions;
 
   EventRequestDTO({
     this.id,
@@ -52,6 +56,8 @@ class EventRequestDTO {
     this.effect,
     this.font,
     this.chipIn,
+    this.questionnaireEnabled = false,
+    this.questionnaireQuestions = const {},
   });
 
   @override
@@ -81,6 +87,8 @@ class EventRequestDTO {
       effect: $effect,
       font: $font,
       chipIn: $chipIn
+      questionnaireEnabled: $questionnaireEnabled
+      questionnaireQuestions: ${questionnaireQuestions?.entries.map((entry) => '${entry.key}: ${entry.value.toString()}').toList()}
     }''';
   }
 
@@ -129,6 +137,8 @@ class EventRequestDTO {
       'effect': effect,
       'font': font,
       'chipIn': chipIn?.toMap(),
+      'questionnaireEnabled': questionnaireEnabled,
+      'questionnaireQuestions': questionnaireQuestions?.map((key, value) => MapEntry(key, value.toMap())),
     };
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/chip_in.dart';
-import 'package:merrymakin/commons/models/country_currency.dart';
+import 'package:merrymakin/commons/models/questionnaire_question.dart';
 import 'package:merrymakin/commons/widgets/chip_in_modal.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
@@ -28,6 +28,7 @@ import 'package:merrymakin/utils/event_gradient_helper.dart';
 import 'package:merrymakin/widgets/ai_enabled_description.dart';
 import '../commons/service/cookie_service.dart';
 import '../commons/widgets/pro_font_selector.dart';
+import '../../widgets/questionnaire_widget.dart';
 
 class AddOrEditEvent extends ConsumerStatefulWidget {
   final String? eventId;
@@ -87,7 +88,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
         updatedAt: DateTime.now().toUtc(),
         imageUrl: imageService.getRandomImage(),
         effect: defaultEffect.toString(),
-        theme: defaultThemeType.toString());
+        theme: defaultThemeType.toString(),
+      );
     _eventNameFocusNode = FocusNode();
     _eventNameFocusNode.addListener(() {
       if (mounted) {
@@ -1254,7 +1256,6 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     }
   }
 
-
   List<Widget> _buildEditableField(String fieldName, String hintText) {
     if (_visibleFields[fieldName]!) {
       return [
@@ -1340,6 +1341,30 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     ];
   }
 
+  void _openQuestionnaireModal(BuildContext context) {
+    openProBottomModalSheet(
+      context,
+      isFullScreen: true,
+      themeData: defaultTheme,
+      themeType: defaultThemeType,
+      gradientColors: [_gradientColors[0]],
+      QuestionnaireWidget(
+        isEnabled: event.questionnaireEnabled,
+        questions: event.questionnaireQuestions ?? new Map<String, QuestionnaireQuestion>(),
+        onIsEnabledChanged: (isEnabled) {
+          setState(() {
+            event.questionnaireEnabled = isEnabled;
+          });
+        },
+        onQuestionsChanged: (questions) {
+          setState(() {
+            event.questionnaireQuestions = questions;
+          });
+        },
+      ),
+    );
+  }
+
   Widget buildFormWidget(
     BuildContext context,
   ) {
@@ -1398,10 +1423,12 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                   textAlign: TextAlign.center,
                                   multiline: true,
                                   onTap: () => _openChipInModal(context),
-                                  textEditingController: TextEditingController(text: event.chipIn?.getEventChipInDescriptionString()),
-                                  hintText:
-                                      'Ask Guests to Chip In',
-                                  suffixWidget: const Icon(Icons.account_balance_wallet),
+                                  textEditingController: TextEditingController(
+                                      text: event.chipIn
+                                          ?.getEventChipInDescriptionString()),
+                                  hintText: 'Ask Guests to Chip In',
+                                  suffixWidget:
+                                      const Icon(Icons.account_balance_wallet),
                                 ),
                                 const SizedBox(height: generalAppLevelPadding),
                                 // ..._buildEventOptions(),
@@ -1466,39 +1493,71 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                                 const SizedBox(height: generalAppLevelPadding),
                                 ProListItem(
                                   swipeForEditAndDelete: false,
-                                  key: const Key('hide-guest-list'),
-                                  title: const ProText('Hide Guest List'),
-                                  subtitle: const ProText(
-                                    'Hide the guest names to RSVP\'d guests',
+                                  onTap: () {
+                                    _openQuestionnaireModal(context);
+                                  },
+                                  key: const Key('is-questionnaire-enabled'),
+                                  title: ProText('Enable Questionnaire'),
+                                  subtitle: ProText(
+                                    event.questionnaireEnabled
+                                        ? 'Questionnaire is enabled. Tap to update the questions to ask guests when they RSVP'
+                                        : 'Ask guests questions when they RSVP. Collect dietary restrictions, potluck items, anything!',
                                     maxLines: 2,
                                   ),
                                   trailing: Switch(
-                                    value: event.isGuestListHidden,
+                                    value: event.questionnaireEnabled,
                                     onChanged: (bool selected) {
-                                      setState(() {
-                                        event.isGuestListHidden = selected;
-                                      });
+                                      if (selected) {
+                                        setState(() {
+                                          event.questionnaireEnabled = true;
+                                        });
+                                        _openQuestionnaireModal(context);
+                                      } else {
+                                        setState(() {
+                                          event.questionnaireEnabled = false;
+                                        });
+                                      }
                                     },
                                   ),
                                 ),
+                                // ProListItem(
+                                //   swipeForEditAndDelete: false,
+                                //   key: const Key('hide-guest-list'),
+                                //   title: const ProText('Hide Guest List'),
+                                //   subtitle: const ProText(
+                                //     'Hide the guest names to RSVP\'d guests',
+                                //     maxLines: 2,
+                                //   ),
+                                //   trailing: Switch(
+                                //     value: event.isGuestListHidden,
+                                //     onChanged: (bool selected) {
+                                //       setState(() {
+                                //         event.isGuestListHidden = selected;
+                                //       });
+                                //     },
+                                //   ),
+                                // ),
+                                // const SizedBox(
+                                //     height: generalAppLevelPadding / 2),
+                                // ProListItem(
+                                //   key: const Key('hide-guest-count'),
+                                //   title: const ProText('Hide Guest Count'),
+                                //   subtitle: const ProText(
+                                //     'Hide number of guests to RSVP\'d guests',
+                                //   ),
+                                //   swipeForEditAndDelete: false,
+                                //   trailing: Switch(
+                                //     value: event.isGuestCountHidden,
+                                //     onChanged: (bool selected) {
+                                //       setState(() {
+                                //         event.isGuestCountHidden = selected;
+                                //       });
+                                //     },
+                                //   ),
+                                // ),
                                 const SizedBox(
                                     height: generalAppLevelPadding / 2),
-                                ProListItem(
-                                  key: const Key('hide-guest-count'),
-                                  title: const ProText('Hide Guest Count'),
-                                  subtitle: const ProText(
-                                    'Hide number of guests to RSVP\'d guests',
-                                  ),
-                                  swipeForEditAndDelete: false,
-                                  trailing: Switch(
-                                    value: event.isGuestCountHidden,
-                                    onChanged: (bool selected) {
-                                      setState(() {
-                                        event.isGuestCountHidden = selected;
-                                      });
-                                    },
-                                  ),
-                                ),
+
                                 const SizedBox(
                                     height: generalAppLevelPadding / 2),
                               ],
