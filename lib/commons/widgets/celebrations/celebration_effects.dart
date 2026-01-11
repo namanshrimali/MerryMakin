@@ -137,13 +137,29 @@ class ConfettiEffect extends CelebrationEffect {
     final baseDirection = config.blastDirection;
     final spread = config.spreadAngle;
     final totalControllers = _controllers.length;
+    final verticalPos = verticalPositionOverride ?? config.verticalPosition;
     
     // If no spread or only one controller, return base direction
     if (spread == 0.0 || totalControllers == 1) {
       return baseDirection;
     }
     
-    // Calculate spread for each controller
+    // Special case: 2 controllers at bottom edges should converge toward center
+    // Left edge (index 0) should shoot up-right, right edge (index 1) should shoot up-left
+    if (totalControllers == 2 && verticalPos == ConfettiVerticalPosition.bottom) {
+      // Left edge shoots up-right toward center: angle ≈ -π/4
+      // Right edge shoots up-left toward center: angle ≈ -3π/4
+      if (index == 0) {
+        // also need to account for spread angle
+        // Left edge: shoot up-right (-π/4 radians = -45°)
+        return -1.308997;
+      } else {
+        // Right edge: shoot up-left (-3π/4 radians = -135°)
+        return -1.832596;
+      }
+    }
+    
+    // Default spread logic for other cases
     final centerIndex = (totalControllers - 1) / 2.0;
     if (centerIndex == 0.0) {
       return baseDirection;

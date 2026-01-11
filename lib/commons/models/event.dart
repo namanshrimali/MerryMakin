@@ -6,7 +6,6 @@ import '../models/event_attendee.dart';
 import '../models/event_request_dto.dart';
 import '../models/rsvp.dart';
 
-// import '../models/event_to_attendee.dart';
 import '../utils/constants.dart';
 
 import './country_currency.dart';
@@ -224,6 +223,10 @@ class Event {
         .isNotEmpty;
   }
 
+  bool hasEditPermissions(final User? user) {
+    return isHostedByMe(user) || (user != null && user.authorities != null && user.authorities!.contains('ROLE_ADMIN'));
+  }
+
   // bool isUserAttendee(final User user) {
   //   if (eventToAttendees == null || user.id == null) {
   //     return false;
@@ -409,5 +412,31 @@ class Event {
       return [RSVPStatus.GOING.getDisplayForPastInfo().$2, RSVPStatus.NOT_GOING.getDisplayForPastInfo().$2, RSVPStatus.MAYBE.getDisplayInfo().$2];
     }
     return [RSVPStatus.GOING.getDisplayInfo().$2, RSVPStatus.MAYBE.getDisplayInfo().$2, RSVPStatus.NOT_GOING.getDisplayInfo().$2];
+  }
+
+  String getAnswerForQuestionForUser(final User? user, final String questionId) {
+    if (attendees == null || attendees!.isEmpty || user == null || user.id == null) {
+      return '';
+    }
+    final attendee = attendees!.where((attendee) => attendee.user.id == user.id).firstOrNull;
+    if (attendee == null) {
+      return '';
+    }
+    return attendee.questionnaireAnswers?[questionId] ?? '';
+  }
+
+  void setQuestionnaireAnswersForUser(final User? user, final Map<String, String> answers) {
+    if (attendees == null || attendees!.isEmpty || user == null || user.id == null) {
+      return;
+    }
+    final attendee = attendees!.where((attendee) => attendee.user.id == user.id).firstOrNull;
+    if (attendee == null) {
+      return;
+    }
+    attendee.questionnaireAnswers = answers;
+  }
+
+  bool hasQuestionnaireAnswersForGoingAttendees() {
+    return questionnaireEnabled && questionnaireQuestions != null && questionnaireQuestions!.isNotEmpty && getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING).length > 0;
   }
 }

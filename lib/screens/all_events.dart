@@ -47,8 +47,8 @@ class _DashboardScreenState extends ConsumerState<AllEventsScreen> {
     events.sort((a, b) {
 
       // if an event has yet to be rsvped, show it first
-      if (a.getRsvpStatusForUser(widget.cookiesService.currentUser) == RSVPStatus.UNDECIDED) return -1;
-      if (b.getRsvpStatusForUser(widget.cookiesService.currentUser) == RSVPStatus.UNDECIDED) return 1;
+      if (a.getRsvpStatusForUser(widget.cookiesService.currentUser) == RSVPStatus.UNDECIDED && !a.isHostedByMe(widget.cookiesService.currentUser)) return -1;
+      if (b.getRsvpStatusForUser(widget.cookiesService.currentUser) == RSVPStatus.UNDECIDED && !b.isHostedByMe(widget.cookiesService.currentUser)) return 1;
 
       if (a.startDateTime != null && b.startDateTime != null) {
         int comparison = b.startDateTime!.compareTo(a.startDateTime!);

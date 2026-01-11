@@ -177,7 +177,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
             title: ProText('Edit ${eventType}'),
             onTap: () {
               if (!event
-                  .isHostedByMe(cookiesService.locallyAvailableUserInfo)) {
+                  .hasEditPermissions(cookiesService.locallyAvailableUserInfo)) {
                 return;
               }
               Navigator.pop(context); // Close the bottom sheet
@@ -320,7 +320,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 ),
               ],
               if (receivedEvent
-                  .isHostedByMe(cookiesService.locallyAvailableUserInfo)) ...[
+                  .hasEditPermissions(cookiesService.locallyAvailableUserInfo)) ...[
                 const SizedBox(width: generalAppLevelPadding / 2),
                 Container(
                   decoration: BoxDecoration(
@@ -470,7 +470,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
     );
   }
 
-  Widget buildEventDetails(receivedEvent, constraints) {
+  Widget buildEventDetails(Event receivedEvent, constraints) {
     return Padding(
       padding: const EdgeInsets.only(
           left: generalAppLevelPadding, right: generalAppLevelPadding),
@@ -480,21 +480,13 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const ProText('Hosted by ', textStyle: TextStyle(fontSize: 16)),
-                Row(
-                  children: [
-                    ...receivedEvent.hosts
-                        .map((final User host) =>
-                            ProUserAvatar(user: host, radius: 20))
-                        .toList()
-                  ],
-                ),
-              ],
-            ),
+            ...receivedEvent.hosts
+                .map((final User host) =>
+                    ProUserAvatar(user: host, radius: 24, showNameInTooltip: true))
+                .toList(),
             const SizedBox(height: generalAppLevelPadding),
+            ProText('Hosted by ${receivedEvent.hosts.map((host) => host.getFirstAndLastName()).join(', ')}', textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: generalAppLevelPadding / 4),
             ProText(
               textAlign: TextAlign.center,
               receivedEvent.description!,

@@ -41,6 +41,7 @@ class UserService {
   Future<User?> updateUser(
       User user) async {
     try {
+      print(user.authorities);
       final String? jwtToken = cookiesService.currentJwtToken;
       Response response = await patchUser(UserRequestDTO(email: user.email, givenName: user.givenName, familyName: user.familyName, photoUrl: user.photoUrl, sprylyServices: SprylyServices.MerryMakin), jwtToken);
 

@@ -67,9 +67,7 @@ class _QuestionnaireWidgetState extends State<QuestionnaireWidget> {
   }
 
   void _updateQuestion(String questionId, QuestionnaireQuestion question) {
-    setState(() {
-      _questions[questionId] = question;
-    });
+    _questions[questionId] = question;
     _notifyChanges();
   }
 
@@ -139,7 +137,10 @@ class _QuestionnaireWidgetState extends State<QuestionnaireWidget> {
         ProPrimaryButton(
           ProText('Save'),
           isBig: true,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            _notifyChanges();
+            Navigator.pop(context);
+          },
         ),
       ],
     );
@@ -211,7 +212,7 @@ class _QuestionBlockState extends State<_QuestionBlock> {
       _question = _question.copyWith(
         type: type,
         options: type == QuestionnaireQuestionType.dropdown
-            ? (_question.options.isEmpty ? ['Option 1'] : _question.options)
+            ? (_question.options.isEmpty ? [''] : _question.options)
             : [],
       );
       if (type == QuestionnaireQuestionType.dropdown) {
@@ -250,11 +251,9 @@ class _QuestionBlockState extends State<_QuestionBlock> {
   }
 
   void _updateOption(int index, String value) {
-    setState(() {
-      final newOptions = List<String>.from(_question.options);
-      newOptions[index] = value;
-      _question = _question.copyWith(options: newOptions);
-    });
+    final newOptions = List<String>.from(_question.options);
+    newOptions[index] = value;
+    _question = _question.copyWith(options: newOptions);
     _updateQuestion();
   }
 
@@ -399,6 +398,7 @@ class _QuestionBlockState extends State<_QuestionBlock> {
                       Expanded(
                         child: ProTextField(
                           hintText: 'Option ${index + 1}',
+                          autofocus: false,
                           textEditingController: _optionControllers[index],
                           onChanged: (value) =>
                               _updateOption(index, value as String),

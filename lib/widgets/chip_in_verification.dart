@@ -5,7 +5,6 @@ import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/country_currency.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/cards/pro_card.dart';
-import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 

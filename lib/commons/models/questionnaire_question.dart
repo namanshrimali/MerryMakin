@@ -20,7 +20,7 @@ class QuestionnaireQuestion {
 
   QuestionnaireQuestion({
     required this.type,
-    this.required = false,
+    this.required = true,
     required this.question,
     this.options = const [],
   });

@@ -5,12 +5,14 @@ import 'package:http/http.dart';
 import 'package:merrymakin/api/events_api.dart';
 import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/event.dart';
-import 'package:merrymakin/commons/models/rsvp.dart';
+import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/user_service.dart';
 import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/factory/app_factory.dart';
+
+import '../commons/models/rsvp_selection.dart';
 
 final UserService userService = AppFactory().userService;
 final EventsApi eventsApi = AppFactory().eventsApi;
@@ -50,7 +52,10 @@ Future<Event?> findEventWithId(final String eventId) async {
   // Get event from database
   if (eventsCache != null && eventsCache!.isNotEmpty) {
     // return deep copy of event
-    return eventsCache!.map((event) => event).firstWhere((event) => event.id == eventId).deepCopy();
+    return eventsCache!
+        .map((event) => event)
+        .firstWhere((event) => event.id == eventId)
+        .deepCopy();
   }
   final Response response = await eventsApi.getEventById(eventId);
   if (response.statusCode == 200) {
@@ -67,17 +72,47 @@ Future<Event?> findEventWithId(final String eventId) async {
 
 Future<void> rsvpForEvent(
   final Event event,
-  final List<String> plusOnes,
-  final RSVPStatus rsvpStatus,
-) {
-  return eventsApi.sendRsvpForEvent(event.id!, plusOnes, rsvpStatus).then((response) {
+  final RsvpSelection rsvpSelection, {
+  final String? forUserId,
+}) {
+  return eventsApi
+      .sendRsvpForEventV2(event.id!, rsvpSelection, forUserId)
+      .then((response) {
+
     if (response.statusCode != 200) {
-      if (eventsCache != null && eventsCache!.isNotEmpty) {
-        eventsCache!.removeWhere((event) => event.id == event.id);
-        eventsCache!.add(event);
-      }
       return Future.error(
           'Failed to RSVP: ${response.body}, ${response.statusCode}');
+    } else {
+      if (eventsCache != null && eventsCache!.isNotEmpty) {
+        // update the event in cache by updating the rsvpselection for the attendee which is either locallystoreduserinfo or one that matches forUserId
+        final String userId = forUserId != null
+            ? forUserId
+            : AppFactory().cookiesService.locallyAvailableUserInfo?.id ?? '';
+        Attendee? attendee = event.attendees
+                ?.where((attendee) => attendee.user.id == userId)
+                .firstOrNull ??
+            Attendee(
+                user: AppFactory().cookiesService.locallyAvailableUserInfo!,
+                rsvpStatus: rsvpSelection.rsvpStatus,
+                rsvpDate: DateTime.now(),
+                plusOnes: rsvpSelection.plusOnes,
+                questionnaireAnswers: rsvpSelection.questionnaireAnswers);
+
+        final Attendee updatedAttendee = Attendee(
+            user: attendee.user,
+            rsvpStatus: rsvpSelection.rsvpStatus,
+            rsvpDate: attendee.rsvpDate,
+            plusOnes: rsvpSelection.plusOnes,
+            questionnaireAnswers: rsvpSelection.questionnaireAnswers);
+
+        event.attendees?.removeWhere((attendee) => attendee.user.id == userId);
+        event.attendees?.add(updatedAttendee);
+
+        eventsCache = eventsCache!
+            .map((eventIter) => eventIter.id == event.id ? event : eventIter)
+            .toList();
+        return event;
+      }
     }
   });
 }
@@ -93,14 +128,20 @@ Future<Comment?> addCommentToEvent(
   });
 }
 
-Future<void> deleteCommentFromEvent(final Event event, final Comment comment, BuildContext context) {
-  return eventsApi.deleteCommentFromEventApi(event.id!, comment.id!).then((response) {
+Future<void> deleteCommentFromEvent(
+    final Event event, final Comment comment, BuildContext context) {
+  return eventsApi
+      .deleteCommentFromEventApi(event.id!, comment.id!)
+      .then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to delete comment: ${response.body}, ${response.statusCode}');
     }
     if (eventsCache != null && eventsCache!.isNotEmpty) {
-      eventsCache!.firstWhere((e) => e.id == event.id).comments?.removeWhere((c) => c.id == comment.id);
+      eventsCache!
+          .firstWhere((e) => e.id == event.id)
+          .comments
+          ?.removeWhere((c) => c.id == comment.id);
     }
   });
 }
@@ -122,7 +163,7 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
     if (response.statusCode == 200) {
       final Event updatedEvent = Event.fromMap(jsonDecode(response.body));
       if (eventsCache != null && eventsCache!.isNotEmpty) {
-        eventsCache =  eventsCache!.map((event) {
+        eventsCache = eventsCache!.map((event) {
           if (event.id == updatedEvent.id) {
             return updatedEvent;
           }
@@ -170,9 +211,16 @@ Future<void> deleteEvent(String eventId) async {
   }
 }
 
-Future<void> sendTextBlastForEvent(final Event event, final String? gifUrl, final String message, final List<String> rsvpStatuses, BuildContext context) {
+Future<void> sendTextBlastForEvent(
+    final Event event,
+    final String? gifUrl,
+    final String message,
+    final List<String> rsvpStatuses,
+    BuildContext context) {
   // response is a comment that was posted to the event
-  return eventsApi.sendTextBlast(event.id!, message, gifUrl, rsvpStatuses).then((response) {
+  return eventsApi
+      .sendTextBlast(event.id!, message, gifUrl, rsvpStatuses)
+      .then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to send text blast: ${response.body}, ${response.statusCode}');
@@ -181,9 +229,11 @@ Future<void> sendTextBlastForEvent(final Event event, final String? gifUrl, fina
   });
 }
 
-Future<Comment?> addReplyToComment(
-    final Event event, final String parentCommentId, final Comment reply, BuildContext context) {
-  return eventsApi.addReplyToCommentApi(event.id!, parentCommentId, reply).then((response) {
+Future<Comment?> addReplyToComment(final Event event,
+    final String parentCommentId, final Comment reply, BuildContext context) {
+  return eventsApi
+      .addReplyToCommentApi(event.id!, parentCommentId, reply)
+      .then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to add reply: ${response.body}, ${response.statusCode}');
@@ -192,9 +242,11 @@ Future<Comment?> addReplyToComment(
   });
 }
 
-Future<Comment?> addReactionToComment(
-    final Event event, final String commentId, final String emoji, BuildContext context) {
-  return eventsApi.addReactionToCommentApi(event.id!, commentId, emoji).then((response) {
+Future<Comment?> addReactionToComment(final Event event, final String commentId,
+    final String emoji, BuildContext context) {
+  return eventsApi
+      .addReactionToCommentApi(event.id!, commentId, emoji)
+      .then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to add reaction: ${response.body}, ${response.statusCode}');
@@ -207,9 +259,11 @@ Future<Comment?> addReactionToComment(
   });
 }
 
-Future<void> removeReactionFromComment(
-    final Event event, final String commentId, final String emoji, BuildContext context) {
-  return eventsApi.removeReactionFromCommentApi(event.id!, commentId, emoji).then((response) {
+Future<void> removeReactionFromComment(final Event event,
+    final String commentId, final String emoji, BuildContext context) {
+  return eventsApi
+      .removeReactionFromCommentApi(event.id!, commentId, emoji)
+      .then((response) {
     if (response.statusCode != 200) {
       return Future.error(
           'Failed to remove reaction: ${response.body}, ${response.statusCode}');

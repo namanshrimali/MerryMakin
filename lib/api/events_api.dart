@@ -3,6 +3,7 @@ import 'package:merrymakin/commons/api/http.dart';
 import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/event_request_dto.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
+import 'package:merrymakin/commons/models/rsvp_selection.dart';
 import 'package:merrymakin/commons/resources.dart';
 
 import '../commons/models/event.dart';
@@ -99,6 +100,25 @@ class EventsApi {
         port: DEV_PORT,
         path: "$DEV_PATH_EVENTS/$eventId/comment");
     return await sendPostRequest(uri, headers, comment.toMap());
+  }
+
+  Future<Response> sendRsvpForEventV2(
+    String eventId,
+    RsvpSelection rsvpSelection,
+    String? forUserId,
+  ) async {
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'access-token':
+          cookiesService.currentJwtToken ?? '',
+      'for-user-id': forUserId ?? '',
+    };
+    Uri uri = Uri(
+        scheme: SCHEME,
+        host: DEV_HOST,
+        port: DEV_PORT,
+        path: "$DEV_PATH_EVENTS/$eventId/rsvpv2");
+    return await sendPostRequest(uri, headers, rsvpSelection.toMap());
   }
 
   Future<Response> sendRsvpForEvent(

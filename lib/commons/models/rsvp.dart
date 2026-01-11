@@ -19,7 +19,7 @@ enum RSVPStatus {
     }
   }
 
-    (IconData, String) getDisplayForPastInfo() {
+  (IconData, String) getDisplayForPastInfo() {
     switch (this) {
       case RSVPStatus.GOING:
         return (Icons.thumb_up, 'Went');

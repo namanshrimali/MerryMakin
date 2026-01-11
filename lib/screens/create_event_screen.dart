@@ -28,7 +28,7 @@ import 'package:merrymakin/utils/event_gradient_helper.dart';
 import 'package:merrymakin/widgets/ai_enabled_description.dart';
 import '../commons/service/cookie_service.dart';
 import '../commons/widgets/pro_font_selector.dart';
-import '../../widgets/questionnaire_widget.dart';
+import '../widgets/questionnaire_creation_widget.dart';
 
 class AddOrEditEvent extends ConsumerStatefulWidget {
   final String? eventId;

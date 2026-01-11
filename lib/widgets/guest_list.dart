@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/models/rsvp_selection.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
-import 'package:merrymakin/commons/widgets/oauth_login.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
+import 'package:merrymakin/commons/widgets/pro_list_item.dart';
+import 'package:merrymakin/service/event_service.dart';
+import 'package:merrymakin/widgets/rsvp_questionnaire_widget.dart';
 
 import '../commons/models/event.dart';
 import '../commons/models/event_attendee.dart';
 import '../commons/models/rsvp.dart';
-import '../commons/models/spryly_services.dart';
 import '../commons/models/user.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/buttons/pro_outlined_button.dart';
@@ -36,6 +38,17 @@ class GuestList extends StatelessWidget {
       required this.themeType,
       required this.gradientColors,
       this.effectType});
+
+  void openGuestList(BuildContext buildContext) {
+    openProBottomModalSheet(
+      isFullScreen: true,
+      gradientColors: [gradientColors[0]],
+      buildContext,
+      _buildAllAttendeesWithStatus(maxHeight * 0.8, buildContext),
+      themeData: eventTheme,
+      themeType: themeType,
+    );
+  }
 
   Widget _buildGuestList(
     BuildContext buildContext,
@@ -73,14 +86,7 @@ class GuestList extends StatelessWidget {
                 if (isUserAuthorized)
                   ProOutlinedButton(
                     onPressed: () {
-                      openProBottomModalSheet(
-                        gradientColors: [gradientColors[0]],
-                        buildContext,
-                        _buildAllAttendeesWithStatus(
-                            maxHeight * 0.4, buildContext),
-                        themeData: eventTheme,
-                        themeType: themeType,
-                      );
+                      openGuestList(buildContext);
                     },
                     child: ProText('View All'),
                   ),
@@ -107,12 +113,7 @@ class GuestList extends StatelessWidget {
                   if (!isUserAuthorized) {
                     return;
                   }
-                  openProBottomModalSheet(
-                    isScrollControlled: false,
-                    gradientColors: [gradientColors[0]],
-                    buildContext,
-                    _buildAllAttendeesWithStatus(maxHeight * 0.4, buildContext),
-                  );
+                  openGuestList(buildContext);
                 },
                 child: _buildStackedAvatars(
                     goingAttendees + maybeAttendees,
@@ -125,6 +126,18 @@ class GuestList extends StatelessWidget {
             ] else if (event.isGuestCountHidden && hasGuests) ...[
               // Show avatars but hide counts
               _buildHiddenCountGuestAvatars(goingAttendees, maybeAttendees),
+            ],
+            if (event.hasQuestionnaireAnswersForGoingAttendees()) ...[
+            const SizedBox(height: generalAppLevelPadding),
+            ProPrimaryButton(ProText('View Guest Answers'), onPressed: () {
+                openProBottomModalSheet(buildContext,
+                  isFullScreen: true,
+                  _buildComingAttendeesWithQuestionnaireAnswers(event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING), buildContext),
+                  themeData: eventTheme,
+                  themeType: themeType,
+                  gradientColors: [gradientColors[0]]
+                );
+              }),
             ],
           ],
         ),
@@ -185,11 +198,7 @@ class GuestList extends StatelessWidget {
               ProPrimaryButton(
                 ProText("Sign Up"),
                 onPressed: () {
-                  openProBottomModalSheet(
-                      buildContext,
-                      OAuthLogin(
-                          userService: AppFactory().userService,
-                          sprylyService: SprylyServices.MerryMakin.name));
+                  openGuestList(buildContext);
                 },
               ),
             ],
@@ -366,9 +375,30 @@ class GuestList extends StatelessWidget {
     );
   }
 
+  Widget _buildComingAttendeesWithQuestionnaireAnswers(List<Attendee> attendees, BuildContext context) {
+    List<String> questionIds = event.questionnaireQuestions?.keys.toList() ?? [];
+    List<String> questionTitles = [];
+    List<List<(Attendee, String)>> questionsToAttendeeAnswers = [];
+    
+    for (var questionId in questionIds) {
+      List<(Attendee, String)> questionToAttendeeAnswers = [];
+      questionTitles.add(event.questionnaireQuestions?[questionId]?.question ?? '');
+      for (var attendee in attendees) {
+        questionToAttendeeAnswers.add((attendee, attendee.questionnaireAnswers?[questionId] ?? ''));
+      }
+      questionsToAttendeeAnswers.add(questionToAttendeeAnswers);
+    }
+
+    return ProTabView(
+      height: maxHeight * 0.7,
+      children: questionsToAttendeeAnswers.map((question) => _buildAttendeeAnswersList(question, context)).toList(),
+      childrenTabTitle: questionTitles,
+    );
+  }
+
   Widget _buildAllAttendeesWithStatus(double? height, BuildContext context) {
     return ProTabView(
-      // height: height,
+      height: height,
       childrenTabTitle: [
         'Going (${event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING).length})',
         'Maybe (${event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.MAYBE).length})',
@@ -377,8 +407,10 @@ class GuestList extends StatelessWidget {
         'All (${event.attendees!.length})',
       ],
       children: [
-        _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING),
-            RSVPStatus.GOING, context),
+        // event.questionnaireEnabled && event.questionnaireQuestions != null && event.questionnaireQuestions!.isNotEmpty ? _buildComingAttendeesWithQuestionnaireAnswers(event.attendees!, context) : _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING),
+        //     RSVPStatus.GOING, context),
+        _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING), RSVPStatus.GOING, context),
+        
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE),
             RSVPStatus.MAYBE, context),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING),
@@ -396,7 +428,7 @@ class GuestList extends StatelessWidget {
       return _buildEmptyAttendeeState(status, context);
     }
     return ProListView(
-      height: 300,
+      height: maxHeight * 0.7,
       listItems: attendees
           .map((attendee) => ListTile(
                 leading: ProUserAvatar(user: attendee.user),
@@ -408,6 +440,101 @@ class GuestList extends StatelessWidget {
                         "${attendee.plusOnes!.length} Plus Ones: ${attendee.plusOnes!.join(', ')}")
                     : null,
               ))
+          .toList(),
+    );
+  }
+
+  Widget _buildAttendeeAnswersList(
+      List<(Attendee, String)> attendeesAndAnswers, BuildContext context) {
+    if (attendeesAndAnswers.isEmpty) {
+      return _buildEmptyAttendeeState(null, context);
+    }
+
+    attendeesAndAnswers.sort((a, b) {
+      if (a.$2 == null ||a.$2.isEmpty ) {
+        return 1;
+      }
+      if (b.$2 == null || b.$2.isEmpty) {
+        return -1;
+      }
+      return 0;
+    });
+
+    final primaryColor = eventTheme?.colorScheme.onSurface ??
+        Theme.of(context).colorScheme.onSurface;
+    final secondaryColor = eventTheme?.colorScheme.onSurface.withOpacity(0.7) ??
+        Theme.of(context).colorScheme.onSurface.withOpacity(0.7);
+
+    return ProListView(
+      height: 300,
+      listItems: attendeesAndAnswers
+          .map((attendeeAndAnswer) {
+            final attendee = attendeeAndAnswer.$1;
+            final answer = attendeeAndAnswer.$2;
+            final hasPlusOnes = attendee.plusOnes != null && attendee.plusOnes!.isNotEmpty;
+            final isEmptyAnswer = answer.isEmpty;
+
+            return ProListItem(
+              key: Key(attendee.user.id ?? ''),
+              leading: ProUserAvatar(user: attendee.user),
+              swipeForEditAndDelete: false,
+              trailing: event.hasEditPermissions(AppFactory().cookiesService.currentUser) || AppFactory().cookiesService.currentUser?.id == attendee.user.id ? IconButton(onPressed: () {
+                Navigator.of(context).pop();
+                openProBottomModalSheet(context,
+                  RsvpQuestionnaireWidget(event: event, user: attendee.user, onComplete: (answers) {
+                    final currentRSVPStatus = event.getRsvpStatusForUser(attendee.user);
+                    Navigator.of(context).pop();
+                    rsvpForEvent(event, RsvpSelection(
+                      rsvpStatus: currentRSVPStatus,
+                      plusOnes: attendee.plusOnes ?? [],
+                      questionnaireAnswers: answers,
+                    ), forUserId: attendee.user.id).then((value) {
+                      showSnackBar(context, 'RSVP updated for ${attendee.user.getFirstAndLastName()} successfully!');
+                    });
+                  }),
+                  themeData: eventTheme,
+                  themeType: themeType,
+                  gradientColors: [gradientColors[0]],
+                );
+              }, icon: Icon(Icons.edit)) : null,
+              title: ProText(
+                attendee.user.getFirstAndLastName(),
+                textStyle: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
+                ),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 4),
+                  ProText(
+                    isEmptyAnswer ? 'No answer provided' : answer,
+                    textStyle: TextStyle(
+                      fontSize: 14,
+                      fontStyle: isEmptyAnswer ? FontStyle.italic : FontStyle.normal,
+                      color: isEmptyAnswer ? secondaryColor : primaryColor.withOpacity(0.85),
+                      height: 1.4,
+                    ),
+                    maxLines: 3,
+                  ),
+                  if (hasPlusOnes) ...[
+                    const SizedBox(height: 4),
+                    ProText(
+                      "${attendee.plusOnes!.length} Plus One${attendee.plusOnes!.length > 1 ? 's' : ''}: ${attendee.plusOnes!.join(', ')}",
+                      textStyle: TextStyle(
+                        fontSize: 12,
+                        color: secondaryColor,
+                      ),
+                      maxLines: 1,
+                    ),
+                  ],
+                ],
+              ),
+            );
+          })
           .toList(),
     );
   }
@@ -461,12 +588,12 @@ class GuestList extends StatelessWidget {
         vertical: generalAppLevelPadding * 0,
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Animated icon container with gradient-like effect
           Container(
-            padding: const EdgeInsets.all(generalAppLevelPadding * 1.5),
+            padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding * 1.5),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [

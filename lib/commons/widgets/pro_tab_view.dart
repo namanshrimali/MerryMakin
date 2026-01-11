@@ -9,8 +9,10 @@ class ProTabView extends StatefulWidget {
   final double? height;
   final bool isTabsAtBottom;
   final int? initialTabIndex;
+  final String? title;
   const ProTabView({
     super.key, 
+    this.title,
     required this.children, 
     required this.childrenTabTitle,
     this.showDivider = true,
@@ -80,46 +82,52 @@ class _ProTabViewState extends State<ProTabView> with SingleTickerProviderStateM
     final isDark = theme.brightness == Brightness.dark;
 
     Widget tabBar = Container(
-          child: TabBar(
-            controller: _tabController,
-            tabs: myTabs,
-            tabAlignment: TabAlignment.start,
-            // physics: const BouncingScrollPhysics(),
-            isScrollable: true,
-            indicator: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
-              color: colorScheme.primaryContainer.withOpacity(isDark ? 0.4 : 0.3),
-              border: Border.all(
-                color: colorScheme.primary.withOpacity(0.6),
-                width: 1.5,
+          child: Column(
+            children: [
+              if (widget.title != null)
+                Padding(padding: const EdgeInsets.all(8.0), child: ProText(widget.title!, textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+              TabBar(
+                controller: _tabController,
+                tabs: myTabs,
+                tabAlignment: TabAlignment.start,
+                // physics: const BouncingScrollPhysics(),
+                isScrollable: true,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: colorScheme.primaryContainer.withOpacity(isDark ? 0.4 : 0.3),
+                  border: Border.all(
+                    color: colorScheme.primary.withOpacity(0.6),
+                    width: 1.5,
+                  ),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicatorPadding: EdgeInsets.zero,
+                indicatorWeight: 0,
+                dividerColor: Colors.transparent,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.pressed)) {
+                      return colorScheme.primary.withOpacity(0.1);
+                    }
+                    return null;
+                  },
+                ),
+                labelColor: colorScheme.primary,
+                unselectedLabelColor: colorScheme.onSurface.withOpacity(0.7),
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  letterSpacing: 0.2,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  letterSpacing: 0.2,
+                ),
               ),
-            ),
-            indicatorSize: TabBarIndicatorSize.tab,
-            indicatorPadding: EdgeInsets.zero,
-            indicatorWeight: 0,
-            dividerColor: Colors.transparent,
-            labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            overlayColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.pressed)) {
-                  return colorScheme.primary.withOpacity(0.1);
-                }
-                return null;
-              },
-            ),
-            labelColor: colorScheme.primary,
-            unselectedLabelColor: colorScheme.onSurface.withOpacity(0.7),
-            labelStyle: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-              letterSpacing: 0.2,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              letterSpacing: 0.2,
-            ),
+            ],
           ),
         );
     

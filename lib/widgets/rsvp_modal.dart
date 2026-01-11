@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/event_attendee.dart';
 import 'package:merrymakin/commons/models/rsvp.dart';
+import 'package:merrymakin/commons/models/rsvp_selection.dart';
 import 'package:merrymakin/commons/models/user.dart';
 import 'package:merrymakin/commons/models/user_request_dto.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
@@ -25,9 +26,12 @@ import '../commons/widgets/cards/pro_card.dart';
 import '../commons/widgets/pro_user_avatar.dart';
 import '../commons/widgets/pro_bottom_modal_sheet.dart';
 import '../widgets/chip_in_verification.dart';
+import '../widgets/rsvp_questionnaire_widget.dart';
+import 'rsvping_as.dart';
 
 enum RsvpModalStep {
   rsvpForm,
+  questionnaire,
   chipInVerification,
   // Add more steps here as needed for future components
 }
@@ -63,6 +67,9 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
   bool _isExiting = false;
   late AnimationController _exitController;
   late Animation<Offset> _exitAnimation;
+  // Questionnaire answers stored for future API integration
+  // TODO: Pass _questionnaireAnswers to rsvpForEvent when API supports it
+  Map<String, String> _questionnaireAnswers = {};
 
   @override
   void initState() {
@@ -122,7 +129,15 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
 
   /// Determines the next step after Continue is clicked
   RsvpModalStep? _getNextStep() {
-    // Check if we should show chip-in verification
+    // Check if we should show questionnaire first (only for GOING status)
+    if (_selectedRsvpStatus == RSVPStatus.GOING &&
+        widget.event.questionnaireEnabled &&
+        widget.event.questionnaireQuestions != null &&
+        widget.event.questionnaireQuestions!.isNotEmpty) {
+      return RsvpModalStep.questionnaire;
+    }
+    
+    // Then check if we should show chip-in verification
     if (_selectedRsvpStatus == RSVPStatus.GOING &&
         widget.event.chipIn != null &&
         widget.event.chipIn!.amount != null &&
@@ -131,6 +146,19 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
       return RsvpModalStep.chipInVerification;
     }
     // Add more step conditions here for future components
+    return null; // null means no next step, proceed with RSVP
+  }
+
+  /// Determines the next step after questionnaire is completed
+  RsvpModalStep? _getNextStepAfterQuestionnaire() {
+    // Check if we should show chip-in verification
+    if (_selectedRsvpStatus == RSVPStatus.GOING &&
+        widget.event.chipIn != null &&
+        widget.event.chipIn!.amount != null &&
+        widget.event.chipIn!.amount! > 0 &&
+        widget.event.chipIn!.hasAnyPaymentMethod) {
+      return RsvpModalStep.chipInVerification;
+    }
     return null; // null means no next step, proceed with RSVP
   }
 
@@ -147,6 +175,10 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
     try {
       // Handle plus ones (for future API extension)
       final plusOnes = _getPlusOnes();
+      
+      // Questionnaire answers are stored in _questionnaireAnswers
+      // TODO: Pass questionnaire answers to API when backend supports it
+
 
       // Handle comment - post it via API if there's any comment
       final plusOnesText =
@@ -159,6 +191,8 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
         AppFactory().cookiesService.currentUser,
         _selectedRsvpStatus,
       );
+
+      widget.event.setQuestionnaireAnswersForUser(AppFactory().cookiesService.currentUser, _questionnaireAnswers);
 
       // Update event comments list
       if (widget.event.comments == null) {
@@ -173,8 +207,11 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
       await Future.wait([
         rsvpForEvent(
           widget.event,
-          plusOnes,
-          _selectedRsvpStatus,
+          RsvpSelection(
+            rsvpStatus: _selectedRsvpStatus,
+            plusOnes: plusOnes,
+            questionnaireAnswers: _questionnaireAnswers,
+          ),
         ),
         addCommentToEvent(
             widget.event,
@@ -277,6 +314,33 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
     await _submitRsvp();
   }
 
+  /// Handles questionnaire completion
+  Future<void> _handleQuestionnaireComplete(Map<String, String> answers) async {
+    _questionnaireAnswers = answers;
+    // Check if there's a next step (chip-in verification)
+    final nextStep = _getNextStepAfterQuestionnaire();
+    if (nextStep != null) {
+      // First, trigger exit animation for current screen
+      setState(() {
+        _isExiting = true;
+      });
+      // Animate old screen out to the left
+      await _exitController.forward();
+      if (mounted) {
+        // Then show the new screen
+        setState(() {
+          _currentStep = nextStep;
+          _isExiting = false;
+        });
+        // Reset exit controller for next transition
+        _exitController.reset();
+      }
+    } else {
+      // No next step, submit RSVP directly
+      await _submitRsvp();
+    }
+  }
+
   Widget buildUserInfoSectionForNonLoggedInUsers(theme) {
     return ProCard(
       elevation: 10,
@@ -312,30 +376,6 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
                 fontSize: 12,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildRsvpingAsSectionForLoggedInUsers(theme) {
-    return ProCard(
-      elevation: 10,
-      surfaceTintColor: Colors.white.withOpacity(0.1),
-      child: SizedBox(
-        height: 40,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ProText('RSVPing as'),
-            SizedBox(width: generalAppLevelPadding / 2),
-            ProUserAvatar(
-              user: widget.user!,
-              radius: 20,
-              canEdit: false,
-            ),
-            SizedBox(width: generalAppLevelPadding / 2),
-            ProText(widget.user!.getFirstAndLastName()),
           ],
         ),
       ),
@@ -475,7 +515,7 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
 
               // Name and Email fields for non-logged-in users
               if (!isLoggedIn) buildUserInfoSectionForNonLoggedInUsers(theme),
-              if (isLoggedIn) buildRsvpingAsSectionForLoggedInUsers(theme),
+              if (isLoggedIn) RSVPingAsWidget(user: widget.user!),
               const SizedBox(height: generalAppLevelPadding),
 
               if (_selectedRsvpStatus != RSVPStatus.NOT_GOING) ...[
@@ -508,6 +548,21 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
     );
   }
 
+  Widget _buildQuestionnaireView() {
+    final theme =
+        ProThemes.themes[widget.themeType]?.theme ?? Theme.of(context);
+
+    return Theme(
+      data: theme,
+      child: RsvpQuestionnaireWidget(
+        event: widget.event,
+        user: widget.user!,
+        themeType: widget.themeType,
+        onComplete: _handleQuestionnaireComplete,
+      ),
+    );
+  }
+
   Widget _buildChipInVerificationView() {
     final theme =
         ProThemes.themes[widget.themeType]?.theme ?? Theme.of(context);
@@ -536,6 +591,8 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
     switch (_currentStep) {
       case RsvpModalStep.rsvpForm:
         return buildRSVPOptionsWidget();
+      case RsvpModalStep.questionnaire:
+        return _buildQuestionnaireView();
       case RsvpModalStep.chipInVerification:
         return _buildChipInVerificationView();
       // Add more cases here for future steps
@@ -581,6 +638,8 @@ class _ProRsvpModalState extends ConsumerState<RsvpModal>
     switch (step) {
       case RsvpModalStep.rsvpForm:
         return buildRSVPOptionsWidget();
+      case RsvpModalStep.questionnaire:
+        return _buildQuestionnaireView();
       case RsvpModalStep.chipInVerification:
         return _buildChipInVerificationView();
       // Add more cases here for future steps

@@ -8,6 +8,7 @@ import 'pro_image_picker.dart';
 
 class ProUserAvatar extends StatefulWidget {
   final User user;
+  final bool showNameInTooltip;
   final double radius;
   final bool canEdit;
   final Function? onTap;
@@ -15,6 +16,7 @@ class ProUserAvatar extends StatefulWidget {
   final bool hideMode;
   ProUserAvatar({
     super.key,
+    this.showNameInTooltip = false,
     required this.user,
     this.imageService,
     this.radius = 12,
@@ -99,6 +101,9 @@ class _ProUserAvatarState extends State<ProUserAvatar> {
         },
       );
     }
-    return avatar;
+    return widget.showNameInTooltip ? Tooltip(
+      message: widget.user.getFirstAndLastName(),
+      child: avatar,
+    ) : avatar;
   }
 }

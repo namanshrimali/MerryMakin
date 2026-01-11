@@ -90,12 +90,13 @@ class CelebrationConfig {
 
     switch (status) {
       case RSVPStatus.GOING:
-        // Festive confetti with theme colors + festive accents
-        // Confetti launches from bottom, goes up, then falls down
-
+        // 2 confetti controllers at bottom edges, both popping towards the center of the screen with enough force to get to middle to top of screen
+        // The ConfettiEffect._getBlastDirectionForIndex method handles edge-to-center convergence:
+        //   - Left edge (index 0) shoots up-right at -π/4 radians (-45°) toward center
+        //   - Right edge (index 1) shoots up-left at -3π/4 radians (-135°) toward center
         return CelebrationConfig(
           type: CelebrationType.confetti,
-          duration: const Duration(seconds: 1),
+          duration: const Duration(milliseconds: 500),
           colors: [
             primaryColor,
             secondaryColor,
@@ -106,17 +107,17 @@ class CelebrationConfig {
             Colors.yellow,
             Colors.green,
           ],
-          blastDirection: -math.pi / 2,
-          emissionFrequency: 0.05,
-          numberOfParticles: 50,
+          blastDirection: -math.pi * 4, // Base direction (used for non-edge cases)
+          emissionFrequency: 0.5,
+          numberOfParticles: 30,
           gravity: 0.5, // Pulls confetti down after it goes up
-          minBlastForce: 0.1, // Increased force to go higher
-          maxBlastForce: 100, // Increased force to go higher
+          minBlastForce: 400, // Increased force to reach middle to top of screen
+          maxBlastForce: 500, // Increased force to reach middle to top of screen
           verticalPosition:
-              ConfettiVerticalPosition.top, // Controllers at absolute bottom
-          numberOfControllers: 20, // More controllers for fuller effect
+              ConfettiVerticalPosition.bottom, // Controllers at absolute bottom edges
+          numberOfControllers: 2, // 2 controllers: one at left edge, one at right edge
           spreadAngle:
-              math.pi / 4, // 45 degrees spread (π/4 radians) for wide cone
+              math.pi, // Spread angle (used for non-edge cases)
         );
 
       case RSVPStatus.MAYBE:

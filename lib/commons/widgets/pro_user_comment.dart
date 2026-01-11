@@ -418,6 +418,12 @@ class _ProUserCommentState extends State<ProUserComment> {
             ),
             listTitleAlignment: ListTileTitleAlignment.top,
             leading: _buildCommentAvatar(),
+            trailing: IconButton(
+              icon: Icon(Icons.more_vert),
+              onPressed: widget.onDelete != null
+                  ? () => widget.onDelete!(widget.comment)
+                  : null,
+            ),
             onLongPress: widget.onDelete != null
                 ? () => widget.onDelete!(widget.comment)
                 : null,
