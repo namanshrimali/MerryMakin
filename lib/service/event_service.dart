@@ -52,10 +52,11 @@ Future<Event?> findEventWithId(final String eventId) async {
   // Get event from database
   if (eventsCache != null && eventsCache!.isNotEmpty) {
     // return deep copy of event
-    return eventsCache!
-        .map((event) => event)
-        .firstWhere((event) => event.id == eventId)
-        .deepCopy();
+    Event? event = eventsCache?.where((event) => event.id == eventId).firstOrNull;
+    if (event != null) {
+      return event.deepCopy();
+    }
+    // if not found, get event from backend.
   }
   final Response response = await eventsApi.getEventById(eventId);
   if (response.statusCode == 200) {
@@ -63,6 +64,8 @@ Future<Event?> findEventWithId(final String eventId) async {
     if (eventsCache != null && eventsCache!.isNotEmpty) {
       eventsCache!.removeWhere((event) => event.id == event.id);
       eventsCache!.add(event);
+    } else {
+      eventsCache = [event];
     }
     return event.deepCopy();
   }
