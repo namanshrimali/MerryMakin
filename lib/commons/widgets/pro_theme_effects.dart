@@ -90,6 +90,32 @@ class _ProThemeEffectsState extends State<ProThemeEffects>
       snowflakeType = types[random.nextInt(types.length)];
     }
     
+    // Add rotation speed for snowflakes - each rotates at different rate
+    double rotationSpeed = 0;
+    if (widget.effectType == ProEffectType.snowflake) {
+      // Random rotation speed between 0.5 and 2.0 radians per full cycle
+      rotationSpeed = 5 + random.nextDouble() * 1.5;
+    }
+    
+    // Determine wind sensitivity based on effect type
+    double windSensitivity = 0.0;
+    if (widget.effectType == ProEffectType.fall_leaves) {
+      // Leaves are most affected by wind
+      windSensitivity = 20 + random.nextDouble() * 10; // 0.8 to 1.2
+    } else if (widget.effectType == ProEffectType.snowflake) {
+      // Snowflakes drift with wind but less than leaves
+      windSensitivity = 10 + random.nextDouble() * 10; // 0.3 to 0.6
+    } else if (widget.effectType == ProEffectType.confetti) {
+      // Confetti is affected by wind
+      windSensitivity = 0.5 + random.nextDouble() * 0.3; // 0.5 to 0.8
+    } else if (widget.effectType == ProEffectType.balloons) {
+      // Balloons drift with wind
+      windSensitivity = 0.4 + random.nextDouble() * 0.3; // 0.4 to 0.7
+    }
+    
+    // Random phase offset for each effect to create varied wind patterns
+    final windPhase = random.nextDouble() * 2 * pi;
+    
     return EffectItem(
       position: Offset(
         random.nextDouble() * widget.size.width,
@@ -98,7 +124,10 @@ class _ProThemeEffectsState extends State<ProThemeEffects>
       size: initialSize + 10 + random.nextDouble() * 20,
       speed: 5 + random.nextDouble(),
       angle: random.nextDouble() * pi * 2,
+      rotationSpeed: rotationSpeed,
       snowflakeType: snowflakeType,
+      windSensitivity: windSensitivity,
+      windPhase: windPhase,
     );
   }
 
@@ -140,14 +169,20 @@ class EffectItem {
   final double size;
   final double speed;
   final double angle;
+  final double rotationSpeed;
   final SnowflakeType? snowflakeType;
+  final double windSensitivity;
+  final double windPhase;
 
   EffectItem({
     required this.position,
     required this.size,
     required this.speed,
     this.angle = 0,
+    this.rotationSpeed = 0,
     this.snowflakeType,
+    this.windSensitivity = 0.0,
+    this.windPhase = 0.0,
   });
 }
 
@@ -199,19 +234,53 @@ class EffectPainter extends CustomPainter {
 
       final direction = (effectType == ProEffectType.balloons || effectType == ProEffectType.bubbles) ? -1 : 1;
 
+      // Calculate wind effect - creates a swaying motion
+      // Use multiple sine waves for more natural wind patterns
+      final windStrength = 0.15; // Base wind strength
+      final windSpeed1 = 0.3; // Primary wind oscillation speed
+      final windSpeed2 = 0.5; // Secondary wind oscillation speed
+      
+      // Combine multiple sine waves for realistic wind patterns
+      final wind1 = sin(progress * 2 * pi * windSpeed1 + effect.windPhase);
+      final wind2 = sin(progress * 2 * pi * windSpeed2 + effect.windPhase * 1.3);
+      final wind3 = sin(progress * 2 * pi * 0.2 + effect.windPhase * 0.7);
+      
+      // Combine wind components with different weights for natural variation
+      final combinedWind = (wind1 * 0.5 + wind2 * 0.3 + wind3 * 0.2);
+      
+      // Calculate horizontal wind drift
+      final windDrift = combinedWind * windStrength * effect.windSensitivity * size.width;
+      
       // Update position based on progress
       final yOffset = direction * ((progress * effect.speed * size.height) % size.height);
+      
+      // Calculate horizontal position with wind effect
+      final baseX = effect.position.dx;
+      final windX = (baseX + windDrift) % size.width;
+      // Handle wrapping for negative values
+      final finalX = windX < 0 ? windX + size.width : windX;
+      
       final currentPosition = Offset(
-        effect.position.dx % size.width,
+        finalX,
         (effect.position.dy + yOffset) % size.height,
       );
+      
+      // For leaves, update angle based on wind for realistic tilting
+      double currentAngle = effect.angle;
+      if (effectType == ProEffectType.fall_leaves) {
+        // Leaves tilt more when wind is stronger
+        final windTilt = combinedWind * 0.3; // Max tilt of 0.3 radians (~17 degrees)
+        currentAngle = effect.angle + windTilt;
+      }
 
       switch (effectType) {
         case ProEffectType.none:
           break;
         case ProEffectType.snowflake:
+          // Add rotation based on progress and rotation speed
+          final rotatedAngle = effect.angle + (progress * 2 * pi * effect.rotationSpeed);
           _drawSnowflake(
-              canvas, currentPosition, effect.size, effect.angle, paint,
+              canvas, currentPosition, effect.size, rotatedAngle, paint,
               snowflakeType: effect.snowflakeType ?? SnowflakeType.classic);
           break;
         case ProEffectType.stars:
@@ -231,7 +300,7 @@ class EffectPainter extends CustomPainter {
           break;
         case ProEffectType.fall_leaves:
           _drawMapleLeaf(
-              canvas, currentPosition, effect.size, effect.angle, paint);
+              canvas, currentPosition, effect.size, currentAngle, paint);
           break;
       }
     }
