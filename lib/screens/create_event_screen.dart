@@ -79,7 +79,6 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           currency: cookiesService.locallyStoredCountryCurrency,
         ),
         name: 'Untitled Event',
-        startDateTime: getNextSaturdayAt7pmUtc(),
         hosts: cookiesService.currentUser != null
             ? [cookiesService.currentUser!]
             : [],
@@ -1133,7 +1132,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               itemCount: ProEffectType.values.length,
               itemBuilder: (context, index) {
                 final effectType = ProEffectType.values[index];
-                final isSelected = selectedEffect == effectType;
+                final isSelected = selectedEffect == effectType || defaultEffect == effectType;
 
                 return InkWell(
                   onTap: () {

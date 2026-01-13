@@ -4,8 +4,8 @@ import '../themes/pro_themes.dart';
 
 enum ProEffectType {
   none,
-  fall_leaves,
   snowflake,
+  fall_leaves,
   stars,
   balloons,
 
@@ -13,6 +13,12 @@ enum ProEffectType {
   confetti,
   hearts,
   // lanterns,
+}
+
+enum SnowflakeType {
+  classic, // 6-branched recursive snowflake
+  star, // 8-pointed star-like snowflake
+  hexagonal, // Hexagonal center with detailed branches
 }
 
 extension ProEffectTypeExtension on ProEffectType {
@@ -77,6 +83,13 @@ class _ProThemeEffectsState extends State<ProThemeEffects>
   }
 
   EffectItem _createEffect({int initialSize = 0}) {
+    // Randomly assign snowflake type if effect is snowflake
+    SnowflakeType? snowflakeType;
+    if (widget.effectType == ProEffectType.snowflake) {
+      final types = SnowflakeType.values;
+      snowflakeType = types[random.nextInt(types.length)];
+    }
+    
     return EffectItem(
       position: Offset(
         random.nextDouble() * widget.size.width,
@@ -85,6 +98,7 @@ class _ProThemeEffectsState extends State<ProThemeEffects>
       size: initialSize + 10 + random.nextDouble() * 20,
       speed: 5 + random.nextDouble(),
       angle: random.nextDouble() * pi * 2,
+      snowflakeType: snowflakeType,
     );
   }
 
@@ -126,12 +140,14 @@ class EffectItem {
   final double size;
   final double speed;
   final double angle;
+  final SnowflakeType? snowflakeType;
 
   EffectItem({
     required this.position,
     required this.size,
     required this.speed,
     this.angle = 0,
+    this.snowflakeType,
   });
 }
 
@@ -164,10 +180,7 @@ class EffectPainter extends CustomPainter {
       ];
     }
     if (effectType == ProEffectType.fall_leaves) {
-      effectColors = [
-        Colors.orangeAccent,
-        Colors.red
-      ];
+      effectColors = [Colors.orangeAccent, Colors.red];
     }
 
     for (var effect in effects) {
@@ -184,8 +197,10 @@ class EffectPainter extends CustomPainter {
         paint.color = theme.primaryColor.withOpacity(0.2);
       }
 
+      final direction = (effectType == ProEffectType.balloons || effectType == ProEffectType.bubbles) ? -1 : 1;
+
       // Update position based on progress
-      final yOffset = (progress * effect.speed * size.height) % size.height;
+      final yOffset = direction * ((progress * effect.speed * size.height) % size.height);
       final currentPosition = Offset(
         effect.position.dx % size.width,
         (effect.position.dy + yOffset) % size.height,
@@ -196,7 +211,8 @@ class EffectPainter extends CustomPainter {
           break;
         case ProEffectType.snowflake:
           _drawSnowflake(
-              canvas, currentPosition, effect.size, effect.angle, paint);
+              canvas, currentPosition, effect.size, effect.angle, paint,
+              snowflakeType: effect.snowflakeType ?? SnowflakeType.classic);
           break;
         case ProEffectType.stars:
           _drawStar(canvas, currentPosition, effect.size, paint);
@@ -461,45 +477,540 @@ class EffectPainter extends CustomPainter {
 
   void _drawSnowflake(
       Canvas canvas, Offset center, double size, double angle, Paint paint,
+      {SnowflakeType snowflakeType = SnowflakeType.classic}) {
+    switch (snowflakeType) {
+      case SnowflakeType.classic:
+        _drawClassicSnowflake(canvas, center, size, angle, paint);
+        break;
+      case SnowflakeType.star:
+        _drawStarSnowflake(canvas, center, size, angle, paint);
+        break;
+      case SnowflakeType.hexagonal:
+        _drawHexagonalSnowflake(canvas, center, size, angle, paint);
+        break;
+    }
+  }
+
+  void _drawClassicSnowflake(
+      Canvas canvas, Offset center, double size, double angle, Paint paint,
       {int branches = 6, int depth = 3}) {
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(angle);
 
+    final double radius = size / 2;
     final double angleStep = (2 * pi) / branches;
 
-    // Draw each arm with recursive branches
+    // Draw beautiful hexagonal center with inner detail
+    final hexRadius = radius * 0.12;
+    final hexPath = Path();
+    for (int i = 0; i < 6; i++) {
+      final double hexAngle = i * pi / 3;
+      final double x = cos(hexAngle) * hexRadius;
+      final double y = sin(hexAngle) * hexRadius;
+      if (i == 0) {
+        hexPath.moveTo(x, y);
+      } else {
+        hexPath.lineTo(x, y);
+      }
+    }
+    hexPath.close();
+    
+    // Draw center hexagon with gradient effect
+    final centerPaint = Paint()
+      ..color = paint.color
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(hexPath, centerPaint);
+    
+    // Inner hexagon for depth
+    final innerHexPath = Path();
+    final innerHexRadius = hexRadius * 0.6;
+    for (int i = 0; i < 6; i++) {
+      final double hexAngle = i * pi / 3;
+      final double x = cos(hexAngle) * innerHexRadius;
+      final double y = sin(hexAngle) * innerHexRadius;
+      if (i == 0) {
+        innerHexPath.moveTo(x, y);
+      } else {
+        innerHexPath.lineTo(x, y);
+      }
+    }
+    innerHexPath.close();
+    final innerPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.3)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(innerHexPath, innerPaint);
+
+    // Draw each arm with enhanced recursive branches
     for (int i = 0; i < branches; i++) {
       canvas.save();
       canvas.rotate(i * angleStep);
-      _drawFlakeBranch(canvas, size / 2, paint, depth);
+      _drawEnhancedFlakeBranch(canvas, radius * 0.85, paint, depth, hexRadius);
       canvas.restore();
     }
 
     canvas.restore();
   }
 
-// Recursive helper to draw a single arm with small side branches
-  void _drawFlakeBranch(Canvas canvas, double length, Paint paint, int depth) {
+  void _drawStarSnowflake(
+      Canvas canvas, Offset center, double size, double angle, Paint paint) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(angle);
+
+    // Create beautiful plate-style snowflake with lace-like circular patterns
+    final double radius = size / 2;
+    final int segments = 12; // More segments for smoother circular pattern
+    final double angleStep = (2 * pi) / segments;
+
+    // Draw beautiful circular center with intricate patterns
+    final centerRadius = radius * 0.16;
+    final centerPaint = Paint()
+      ..color = paint.color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset.zero, centerRadius, centerPaint);
+    
+    // Inner circle for depth
+    final innerPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.3)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset.zero, centerRadius * 0.6, innerPaint);
+    
+    // Decorative rings around center
+    final ringPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.5)
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+    canvas.drawCircle(Offset.zero, centerRadius * 1.2, ringPaint);
+    canvas.drawCircle(Offset.zero, centerRadius * 1.4, ringPaint);
+
+    // Create beautiful plate-style snowflake with lace-like patterns
+    final mainPatternPaint = Paint()
+      ..color = paint.color
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    final delicatePatternPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.8)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    final finePatternPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.65)
+      ..strokeWidth = 0.7
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    final ultraFinePaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.5)
+      ..strokeWidth = 0.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    // Draw radial patterns creating a lace-like plate effect
+    for (int i = 0; i < segments; i++) {
+      final double currentAngle = i * angleStep;
+      
+      canvas.save();
+      canvas.rotate(currentAngle);
+      
+      // Main radial pattern - elegant curved lines
+      final List<Map<String, dynamic>> radialPatterns = [
+        {'radius': 0.25, 'width': 0.08, 'style': 0},
+        {'radius': 0.40, 'width': 0.06, 'style': 1},
+        {'radius': 0.55, 'width': 0.05, 'style': 2},
+        {'radius': 0.70, 'width': 0.04, 'style': 3},
+        {'radius': 0.85, 'width': 0.03, 'style': 3},
+      ];
+      
+      for (final pattern in radialPatterns) {
+        final double patternRadius = radius * (pattern['radius'] as double);
+        final double patternWidth = radius * (pattern['width'] as double);
+        final int patternStyle = pattern['style'] as int;
+        
+        Paint currentPaint;
+        switch (patternStyle) {
+          case 0:
+            currentPaint = mainPatternPaint;
+            break;
+          case 1:
+            currentPaint = delicatePatternPaint;
+            break;
+          case 2:
+            currentPaint = finePatternPaint;
+            break;
+          default:
+            currentPaint = ultraFinePaint;
+        }
+        
+        // Create elegant curved radial lines
+        final path = Path();
+        path.moveTo(centerRadius * 1.5, 0);
+        
+        // Create a beautiful curve
+        final controlX = patternRadius * 0.3;
+        final controlY = -patternRadius * 0.4;
+        final endX = patternRadius;
+        final endY = -patternRadius * 0.2;
+        
+        path.quadraticBezierTo(controlX, controlY, endX, endY);
+        canvas.drawPath(path, currentPaint);
+        
+        // Add mirror curve on the other side
+        final mirrorPath = Path();
+        mirrorPath.moveTo(centerRadius * 1.5, 0);
+        mirrorPath.quadraticBezierTo(-controlX, controlY, -endX, endY);
+        canvas.drawPath(mirrorPath, currentPaint);
+        
+        // Add decorative elements at pattern points
+        if (patternStyle == 0 || patternStyle == 1) {
+          final decorPaint = Paint()
+            ..color = paint.color.withOpacity(paint.color.opacity * 0.4)
+            ..style = PaintingStyle.fill;
+          canvas.drawCircle(Offset(endX, endY), patternWidth * 0.3, decorPaint);
+          canvas.drawCircle(Offset(-endX, endY), patternWidth * 0.3, decorPaint);
+        }
+      }
+      
+      // Add intricate connecting patterns between radials
+      if (i % 2 == 0) {
+        final List<double> connectionRadii = [0.32, 0.48, 0.64, 0.78];
+        for (final connRadius in connectionRadii) {
+          final double connX = cos(angleStep / 2) * radius * connRadius;
+          final double connY = sin(angleStep / 2) * radius * connRadius;
+          
+          final connPath = Path();
+          connPath.moveTo(centerRadius * 1.3, 0);
+          connPath.quadraticBezierTo(
+            connX * 0.5,
+            connY * 0.5,
+            connX,
+            connY,
+          );
+          canvas.drawPath(connPath, finePatternPaint);
+        }
+      }
+      
+      canvas.restore();
+    }
+
+    // Add beautiful circular decorative rings
+    final List<double> ringRadii = [0.30, 0.50, 0.68, 0.82];
+    for (final ringRadius in ringRadii) {
+      final ringPaint = Paint()
+        ..color = paint.color.withOpacity(paint.color.opacity * 0.25)
+        ..strokeWidth = 0.8
+        ..style = PaintingStyle.stroke;
+      canvas.drawCircle(Offset.zero, radius * ringRadius, ringPaint);
+    }
+
+    // Add delicate dot patterns for texture
+    final dotPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.4)
+      ..style = PaintingStyle.fill;
+    
+    final List<double> dotRadii = [0.35, 0.52, 0.70];
+    for (final dotRadius in dotRadii) {
+      for (int i = 0; i < segments * 2; i++) {
+        final double dotAngle = i * pi / (segments);
+        final double dotX = cos(dotAngle) * radius * dotRadius;
+        final double dotY = sin(dotAngle) * radius * dotRadius;
+        canvas.drawCircle(Offset(dotX, dotY), radius * 0.006, dotPaint);
+      }
+    }
+
+    // Add outer edge decorative elements
+    final outerDecorPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.6)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    for (int i = 0; i < segments; i++) {
+      final double outerAngle = i * angleStep;
+      final double outerX = cos(outerAngle) * radius * 0.92;
+      final double outerY = sin(outerAngle) * radius * 0.92;
+      
+      canvas.save();
+      canvas.translate(outerX, outerY);
+      canvas.rotate(outerAngle + pi / 2);
+      
+      // Delicate outer decorations
+      for (final dir in [-1, 1]) {
+        canvas.save();
+        canvas.rotate(dir * pi / 6);
+        final outerPath = Path();
+        outerPath.moveTo(0, 0);
+        outerPath.quadraticBezierTo(
+          dir * radius * 0.03,
+          -radius * 0.04,
+          0,
+          -radius * 0.06,
+        );
+        canvas.drawPath(outerPath, outerDecorPaint);
+        canvas.restore();
+      }
+      
+      canvas.restore();
+    }
+
+    canvas.restore();
+  }
+
+  void _drawHexagonalSnowflake(
+      Canvas canvas, Offset center, double size, double angle, Paint paint) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(angle);
+
+    final int branches = 6;
+    final double angleStep = (2 * pi) / branches;
+    final double radius = size / 2;
+
+    // Draw beautiful multi-layered hexagonal center
+    final hexRadius = radius * 0.18;
+    final hexPath = Path();
+    for (int i = 0; i < 6; i++) {
+      final double currentAngle = i * pi / 3;
+      final double x = cos(currentAngle) * hexRadius;
+      final double y = sin(currentAngle) * hexRadius;
+      
+      if (i == 0) {
+        hexPath.moveTo(x, y);
+      } else {
+        hexPath.lineTo(x, y);
+      }
+    }
+    hexPath.close();
+    
+    // Outer hexagon
+    final centerPaint = Paint()
+      ..color = paint.color
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(hexPath, centerPaint);
+    
+    // Middle hexagon for depth
+    final midHexPath = Path();
+    final midHexRadius = hexRadius * 0.7;
+    for (int i = 0; i < 6; i++) {
+      final double currentAngle = i * pi / 3;
+      final double x = cos(currentAngle) * midHexRadius;
+      final double y = sin(currentAngle) * midHexRadius;
+      if (i == 0) {
+        midHexPath.moveTo(x, y);
+      } else {
+        midHexPath.lineTo(x, y);
+      }
+    }
+    midHexPath.close();
+    final midPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.4)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(midHexPath, midPaint);
+    
+    // Inner hexagon
+    final innerHexPath = Path();
+    final innerHexRadius = hexRadius * 0.4;
+    for (int i = 0; i < 6; i++) {
+      final double currentAngle = i * pi / 3;
+      final double x = cos(currentAngle) * innerHexRadius;
+      final double y = sin(currentAngle) * innerHexRadius;
+      if (i == 0) {
+        innerHexPath.moveTo(x, y);
+      } else {
+        innerHexPath.lineTo(x, y);
+      }
+    }
+    innerHexPath.close();
+    canvas.drawPath(innerHexPath, centerPaint);
+
+    // Draw main branches with intricate detailed side branches
+    final mainBranchPaint = Paint()
+      ..color = paint.color
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    final sideBranchPaint = Paint()
+      ..color = paint.color
+      ..strokeWidth = 1.3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    final thinBranchPaint = Paint()
+      ..color = paint.color.withOpacity(paint.color.opacity * 0.8)
+      ..strokeWidth = 0.9
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    for (int i = 0; i < branches; i++) {
+      final double currentAngle = i * angleStep;
+      final double branchLength = radius * 0.75;
+      
+      canvas.save();
+      canvas.rotate(currentAngle);
+      
+      // Main branch with tapered effect
+      canvas.drawLine(Offset(0, -hexRadius), Offset(0, -branchLength), mainBranchPaint);
+      
+      // Primary side branches at strategic positions
+      final List<Map<String, double>> sideBranches = [
+        {'pos': 0.25, 'length': 0.35, 'angle': pi / 3},
+        {'pos': 0.45, 'length': 0.28, 'angle': pi / 3.5},
+        {'pos': 0.65, 'length': 0.22, 'angle': pi / 4},
+        {'pos': 0.85, 'length': 0.15, 'angle': pi / 5},
+      ];
+      
+      for (final branch in sideBranches) {
+        final double yPos = -hexRadius - branchLength * branch['pos']!;
+        final double sideLength = branchLength * branch['length']!;
+        final double sideAngle = branch['angle']!;
+        
+        // Left side branch
+        canvas.save();
+        canvas.translate(0, yPos);
+        canvas.rotate(-sideAngle);
+        canvas.drawLine(Offset.zero, Offset(0, -sideLength), sideBranchPaint);
+        
+        // Secondary branches on left side
+        final List<double> secondaryPositions = [0.4, 0.7];
+        for (final secPos in secondaryPositions) {
+          canvas.save();
+          canvas.translate(0, -sideLength * secPos);
+          for (final dir in [-1, 1]) {
+            canvas.save();
+            canvas.rotate(dir * pi / 4);
+            canvas.drawLine(Offset.zero, Offset(0, -sideLength * 0.3), thinBranchPaint);
+            canvas.restore();
+          }
+          canvas.restore();
+        }
+        canvas.restore();
+        
+        // Right side branch
+        canvas.save();
+        canvas.translate(0, yPos);
+        canvas.rotate(sideAngle);
+        canvas.drawLine(Offset.zero, Offset(0, -sideLength), sideBranchPaint);
+        
+        // Secondary branches on right side
+        for (final secPos in secondaryPositions) {
+          canvas.save();
+          canvas.translate(0, -sideLength * secPos);
+          for (final dir in [-1, 1]) {
+            canvas.save();
+            canvas.rotate(dir * pi / 4);
+            canvas.drawLine(Offset.zero, Offset(0, -sideLength * 0.3), thinBranchPaint);
+            canvas.restore();
+          }
+          canvas.restore();
+        }
+        canvas.restore();
+      }
+      
+      // Elegant end branches with decorative elements
+      canvas.save();
+      canvas.translate(0, -branchLength);
+      
+      // Main end branches
+      for (final direction in [-1, 1]) {
+        canvas.save();
+        canvas.rotate(direction * pi / 4);
+        final endLength = branchLength * 0.18;
+        canvas.drawLine(Offset.zero, Offset(0, -endLength), sideBranchPaint);
+        
+        // Tiny decorative branches at end
+        canvas.save();
+        canvas.translate(0, -endLength);
+        for (final dir in [-1, 1]) {
+          canvas.save();
+          canvas.rotate(dir * pi / 3);
+          canvas.drawLine(Offset.zero, Offset(0, -endLength * 0.5), thinBranchPaint);
+          canvas.restore();
+        }
+        canvas.restore();
+        
+        canvas.restore();
+      }
+      
+      // Decorative circle at branch end
+      final decorPaint = Paint()
+        ..color = paint.color.withOpacity(paint.color.opacity * 0.6)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset.zero, radius * 0.015, decorPaint);
+      
+      canvas.restore();
+      
+      // Add small decorative dots along main branch
+      for (final pos in [0.3, 0.6]) {
+        final double dotY = -hexRadius - branchLength * pos;
+        final dotPaint = Paint()
+          ..color = paint.color.withOpacity(paint.color.opacity * 0.4)
+          ..style = PaintingStyle.fill;
+        canvas.drawCircle(Offset(0, dotY), radius * 0.01, dotPaint);
+      }
+      
+      canvas.restore();
+    }
+
+    canvas.restore();
+  }
+
+// Enhanced recursive helper to draw a single arm with beautiful fractal branches
+  void _drawEnhancedFlakeBranch(Canvas canvas, double length, Paint paint, int depth, double startOffset) {
     if (depth == 0) return;
 
-    // Draw main line
-    canvas.drawLine(Offset.zero, Offset(0, -length), paint);
+    // Draw main line with varying thickness
+    final mainPaint = Paint()
+      ..color = paint.color
+      ..strokeWidth = depth == 3 ? 1.8 : (depth == 2 ? 1.3 : 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    
+    canvas.drawLine(Offset(0, -startOffset), Offset(0, -length), mainPaint);
 
     // Position at intervals along the main branch to draw smaller arms
-    final int segments = 3;
+    final int segments = depth == 3 ? 4 : 3;
     for (int i = 1; i <= segments; i++) {
-      final double y = -length * (i / (segments + 1));
-      final double side = length * 0.4;
+      final double y = -startOffset - length * (i / (segments + 1));
+      final double side = length * (depth == 3 ? 0.45 : 0.4);
+      final double branchAngle = depth == 3 ? pi / 5.5 : pi / 6;
 
-      // Left and right side arms
+      // Left and right side arms with varied angles
       for (final direction in [-1, 1]) {
         canvas.save();
         canvas.translate(0, y);
-        canvas.rotate(direction * pi / 6);
-        _drawFlakeBranch(canvas, side, paint, depth - 1);
+        canvas.rotate(direction * branchAngle);
+        _drawEnhancedFlakeBranch(canvas, side, paint, depth - 1, 0);
         canvas.restore();
       }
+      
+      // Add tiny decorative branches for depth 3
+      if (depth == 3 && i == segments) {
+        final thinPaint = Paint()
+          ..color = paint.color.withOpacity(paint.color.opacity * 0.7)
+          ..strokeWidth = 0.6
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round;
+        
+        for (final direction in [-1, 1]) {
+          canvas.save();
+          canvas.translate(0, y);
+          canvas.rotate(direction * pi / 3);
+          canvas.drawLine(Offset.zero, Offset(0, -side * 0.3), thinPaint);
+          canvas.restore();
+        }
+      }
+    }
+    
+    // Add decorative element at branch end for top-level branches
+    if (depth == 3) {
+      final decorPaint = Paint()
+        ..color = paint.color.withOpacity(paint.color.opacity * 0.5)
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(0, -length), length * 0.03, decorPaint);
     }
   }
 

@@ -128,15 +128,18 @@ class GuestList extends StatelessWidget {
               _buildHiddenCountGuestAvatars(goingAttendees, maybeAttendees),
             ],
             if (event.hasQuestionnaireAnswersForGoingAttendees()) ...[
-            const SizedBox(height: generalAppLevelPadding),
-            ProPrimaryButton(ProText('View Guest Answers'), onPressed: () {
-                openProBottomModalSheet(buildContext,
-                  isFullScreen: true,
-                  _buildComingAttendeesWithQuestionnaireAnswers(event.getAttendeesAndPlusOnesByRsvpStatus(RSVPStatus.GOING), buildContext),
-                  themeData: eventTheme,
-                  themeType: themeType,
-                  gradientColors: [gradientColors[0]]
-                );
+              const SizedBox(height: generalAppLevelPadding),
+              ProPrimaryButton(ProText('View Guest Answers'), onPressed: () {
+                openProBottomModalSheet(
+                    buildContext,
+                    isFullScreen: true,
+                    _buildComingAttendeesWithQuestionnaireAnswers(
+                        event.getAttendeesAndPlusOnesByRsvpStatus(
+                            RSVPStatus.GOING),
+                        buildContext),
+                    themeData: eventTheme,
+                    themeType: themeType,
+                    gradientColors: [gradientColors[0]]);
               }),
             ],
           ],
@@ -209,67 +212,185 @@ class GuestList extends StatelessWidget {
   }
 
   Widget _buildEmptyGuestState(Event event, BuildContext buildContext) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: generalAppLevelPadding * 2),
-      child: Column(
-        children: [
-          // Fun icon with animation-ready container
-          Container(
-            padding: const EdgeInsets.all(generalAppLevelPadding),
+    final primaryColor =
+        ProThemes.themes[themeType]?.theme.colorScheme.primary ??
+            Theme.of(buildContext).colorScheme.primary;
+    final hasQuestionnaire = event.questionnaireEnabled &&
+        event.questionnaireQuestions != null &&
+        event.questionnaireQuestions!.isNotEmpty;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Enhanced icon with gradient background
+        Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: generalAppLevelPadding * 1.5),
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              colors: [
+                primaryColor.withOpacity(0.15),
+                primaryColor.withOpacity(0.05),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.6, 1.0],
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(generalAppLevelPadding * 1.2),
             decoration: BoxDecoration(
-              color: (ProThemes.themes[themeType]?.theme.colorScheme.primary ??
-                      Theme.of(buildContext).colorScheme.primary)
-                  .withOpacity(0.1),
+              color: primaryColor.withOpacity(0.12),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: primaryColor.withOpacity(0.25),
+                width: 2.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Icon(
               Icons.celebration_rounded,
-              size: 48,
-              color: ProThemes.themes[themeType]?.theme.colorScheme.primary ??
-                  Theme.of(buildContext).colorScheme.primary,
+              size: 56,
+              color: primaryColor,
             ),
           ),
-          const SizedBox(height: generalAppLevelPadding),
-          ProText(
-            'No guests yet',
-            textStyle: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+        ),
+        const SizedBox(height: generalAppLevelPadding * 1.5),
+
+        // Main title
+        ProText(
+          'No guests yet',
+          textStyle: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: eventTheme?.colorScheme.onSurface ??
+                Theme.of(buildContext).colorScheme.onSurface,
           ),
-          const SizedBox(height: generalAppLevelPadding / 2),
-          ProText(
-            "Don't party alone! Share the fun! 🎉",
-            textStyle: TextStyle(
-              fontSize: 14,
-            ),
-            textAlign: TextAlign.center,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: generalAppLevelPadding / 2),
+
+        // Subtitle
+        ProText(
+          "Share your event and watch the guest list grow! 🎉",
+          textStyle: TextStyle(
+            fontSize: 15,
+            height: 1.5,
+            color: eventTheme?.colorScheme.onSurface?.withOpacity(0.7) ??
+                Theme.of(buildContext).colorScheme.onSurface.withOpacity(0.7),
           ),
+          textAlign: TextAlign.center,
+        ),
+
+        // Questionnaire info card - prominently displayed
+        if (hasQuestionnaire) ...[
           const SizedBox(height: generalAppLevelPadding * 1.5),
-          ProPrimaryButton(
-            ProText("Share Event"),
-            onPressed: () {
-              openProBottomModalSheet(
-                buildContext,
-                ProShareSheet(
-                  message: 'RSVP to ${event.name}!',
-                  link: 'https://merrymakin.com/${event.id}',
-                  userService: AppFactory().userService,
-                  onShare: (value) {
-                    showSnackBar(buildContext, value);
-                  },
-                  event: event,
-                  themeType: themeType,
-                  effectType: effectType,
-                ),
-                themeData: eventTheme,
-                themeType: themeType,
-                gradientColors: [gradientColors[0]],
-              );
-            },
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(generalAppLevelPadding * 1.2),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: primaryColor.withOpacity(0.2),
+                width: 1.5,
+              ),
+            ),
+            child: GestureDetector(
+              onTap: () {
+                openProBottomModalSheet(
+                    buildContext,
+                    gradientColors: [gradientColors[0]],
+                    _buildComingAttendeesWithQuestionnaireAnswers(
+                        event.getAttendeesAndPlusOnesByRsvpStatus(
+                            RSVPStatus.GOING),
+                        buildContext),
+                    isFullScreen: true,
+                    themeData: eventTheme,
+                    themeType: themeType);
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          size: 20,
+                          color: primaryColor,
+                        ),
+                      ),
+                      const SizedBox(width: generalAppLevelPadding / 2),
+                      Expanded(
+                        child: ProText(
+                          'Guest Answers',
+                          textStyle: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: generalAppLevelPadding / 2),
+                  ProText(
+                    'Once guests RSVP and answer your questionnaire, their responses will appear here for you to view.',
+                    textStyle: TextStyle(
+                      fontSize: 13,
+                      height: 1.5,
+                      color:
+                          eventTheme?.colorScheme.onSurface?.withOpacity(0.8) ??
+                              Theme.of(buildContext)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
-      ),
+
+        const SizedBox(height: generalAppLevelPadding * 1.5),
+
+        // Share Event button
+        ProPrimaryButton(
+          ProText("Share Event"),
+          onPressed: () {
+            openProBottomModalSheet(
+              buildContext,
+              ProShareSheet(
+                message: 'RSVP to ${event.name}!',
+                link: 'https://merrymakin.com/${event.id}',
+                userService: AppFactory().userService,
+                onShare: (value) {
+                  showSnackBar(buildContext, value);
+                },
+                event: event,
+                themeType: themeType,
+                effectType: effectType,
+              ),
+              themeData: eventTheme,
+              themeType: themeType,
+              gradientColors: [gradientColors[0]],
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -375,23 +496,29 @@ class GuestList extends StatelessWidget {
     );
   }
 
-  Widget _buildComingAttendeesWithQuestionnaireAnswers(List<Attendee> attendees, BuildContext context) {
-    List<String> questionIds = event.questionnaireQuestions?.keys.toList() ?? [];
+  Widget _buildComingAttendeesWithQuestionnaireAnswers(
+      List<Attendee> attendees, BuildContext context) {
+    List<String> questionIds =
+        event.questionnaireQuestions?.keys.toList() ?? [];
     List<String> questionTitles = [];
     List<List<(Attendee, String)>> questionsToAttendeeAnswers = [];
-    
+
     for (var questionId in questionIds) {
       List<(Attendee, String)> questionToAttendeeAnswers = [];
-      questionTitles.add(event.questionnaireQuestions?[questionId]?.question ?? '');
+      questionTitles
+          .add(event.questionnaireQuestions?[questionId]?.question ?? '');
       for (var attendee in attendees) {
-        questionToAttendeeAnswers.add((attendee, attendee.questionnaireAnswers?[questionId] ?? ''));
+        questionToAttendeeAnswers
+            .add((attendee, attendee.questionnaireAnswers?[questionId] ?? ''));
       }
       questionsToAttendeeAnswers.add(questionToAttendeeAnswers);
     }
 
     return ProTabView(
       height: maxHeight * 0.7,
-      children: questionsToAttendeeAnswers.map((question) => _buildAttendeeAnswersList(question, context)).toList(),
+      children: questionsToAttendeeAnswers
+          .map((question) => _buildAttendeeAnswersList(question, context))
+          .toList(),
       childrenTabTitle: questionTitles,
     );
   }
@@ -409,8 +536,9 @@ class GuestList extends StatelessWidget {
       children: [
         // event.questionnaireEnabled && event.questionnaireQuestions != null && event.questionnaireQuestions!.isNotEmpty ? _buildComingAttendeesWithQuestionnaireAnswers(event.attendees!, context) : _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING),
         //     RSVPStatus.GOING, context),
-        _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING), RSVPStatus.GOING, context),
-        
+        _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.GOING),
+            RSVPStatus.GOING, context),
+
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.MAYBE),
             RSVPStatus.MAYBE, context),
         _buildAttendeeList(event.getAttendeesByRsvpStatus(RSVPStatus.NOT_GOING),
@@ -451,7 +579,7 @@ class GuestList extends StatelessWidget {
     }
 
     attendeesAndAnswers.sort((a, b) {
-      if (a.$2 == null ||a.$2.isEmpty ) {
+      if (a.$2 == null || a.$2.isEmpty) {
         return 1;
       }
       if (b.$2 == null || b.$2.isEmpty) {
@@ -467,75 +595,94 @@ class GuestList extends StatelessWidget {
 
     return ProListView(
       height: 300,
-      listItems: attendeesAndAnswers
-          .map((attendeeAndAnswer) {
-            final attendee = attendeeAndAnswer.$1;
-            final answer = attendeeAndAnswer.$2;
-            final hasPlusOnes = attendee.plusOnes != null && attendee.plusOnes!.isNotEmpty;
-            final isEmptyAnswer = answer.isEmpty;
+      listItems: attendeesAndAnswers.map((attendeeAndAnswer) {
+        final attendee = attendeeAndAnswer.$1;
+        final answer = attendeeAndAnswer.$2;
+        final hasPlusOnes =
+            attendee.plusOnes != null && attendee.plusOnes!.isNotEmpty;
+        final isEmptyAnswer = answer.isEmpty;
 
-            return ProListItem(
-              key: Key(attendee.user.id ?? ''),
-              leading: ProUserAvatar(user: attendee.user),
-              swipeForEditAndDelete: false,
-              trailing: event.hasEditPermissions(AppFactory().cookiesService.currentUser) || AppFactory().cookiesService.currentUser?.id == attendee.user.id ? IconButton(onPressed: () {
-                Navigator.of(context).pop();
-                openProBottomModalSheet(context,
-                  RsvpQuestionnaireWidget(event: event, user: attendee.user, onComplete: (answers) {
-                    final currentRSVPStatus = event.getRsvpStatusForUser(attendee.user);
+        return ProListItem(
+          key: Key(attendee.user.id ?? ''),
+          leading: ProUserAvatar(user: attendee.user),
+          swipeForEditAndDelete: false,
+          trailing: event.hasEditPermissions(
+                      AppFactory().cookiesService.currentUser) ||
+                  AppFactory().cookiesService.currentUser?.id ==
+                      attendee.user.id
+              ? IconButton(
+                  onPressed: () {
                     Navigator.of(context).pop();
-                    rsvpForEvent(event, RsvpSelection(
-                      rsvpStatus: currentRSVPStatus,
-                      plusOnes: attendee.plusOnes ?? [],
-                      questionnaireAnswers: answers,
-                    ), forUserId: attendee.user.id).then((value) {
-                      showSnackBar(context, 'RSVP updated for ${attendee.user.getFirstAndLastName()} successfully!');
-                    });
-                  }),
-                  themeData: eventTheme,
-                  themeType: themeType,
-                  gradientColors: [gradientColors[0]],
-                );
-              }, icon: Icon(Icons.edit)) : null,
-              title: ProText(
-                attendee.user.getFirstAndLastName(),
+                    openProBottomModalSheet(
+                      context,
+                      RsvpQuestionnaireWidget(
+                          event: event,
+                          user: attendee.user,
+                          onComplete: (answers) {
+                            final currentRSVPStatus =
+                                event.getRsvpStatusForUser(attendee.user);
+                            Navigator.of(context).pop();
+                            rsvpForEvent(
+                                    event,
+                                    RsvpSelection(
+                                      rsvpStatus: currentRSVPStatus,
+                                      plusOnes: attendee.plusOnes ?? [],
+                                      questionnaireAnswers: answers,
+                                    ),
+                                    forUserId: attendee.user.id)
+                                .then((value) {
+                              showSnackBar(context,
+                                  'RSVP updated for ${attendee.user.getFirstAndLastName()} successfully!');
+                            });
+                          }),
+                      themeData: eventTheme,
+                      themeType: themeType,
+                      gradientColors: [gradientColors[0]],
+                    );
+                  },
+                  icon: Icon(Icons.edit))
+              : null,
+          title: ProText(
+            attendee.user.getFirstAndLastName(),
+            textStyle: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: primaryColor,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 4),
+              ProText(
+                isEmptyAnswer ? 'No answer provided' : answer,
                 textStyle: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: primaryColor,
+                  fontSize: 14,
+                  fontStyle:
+                      isEmptyAnswer ? FontStyle.italic : FontStyle.normal,
+                  color: isEmptyAnswer
+                      ? secondaryColor
+                      : primaryColor.withOpacity(0.85),
+                  height: 1.4,
                 ),
+                maxLines: 3,
               ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 4),
-                  ProText(
-                    isEmptyAnswer ? 'No answer provided' : answer,
-                    textStyle: TextStyle(
-                      fontSize: 14,
-                      fontStyle: isEmptyAnswer ? FontStyle.italic : FontStyle.normal,
-                      color: isEmptyAnswer ? secondaryColor : primaryColor.withOpacity(0.85),
-                      height: 1.4,
-                    ),
-                    maxLines: 3,
+              if (hasPlusOnes) ...[
+                const SizedBox(height: 4),
+                ProText(
+                  "${attendee.plusOnes!.length} Plus One${attendee.plusOnes!.length > 1 ? 's' : ''}: ${attendee.plusOnes!.join(', ')}",
+                  textStyle: TextStyle(
+                    fontSize: 12,
+                    color: secondaryColor,
                   ),
-                  if (hasPlusOnes) ...[
-                    const SizedBox(height: 4),
-                    ProText(
-                      "${attendee.plusOnes!.length} Plus One${attendee.plusOnes!.length > 1 ? 's' : ''}: ${attendee.plusOnes!.join(', ')}",
-                      textStyle: TextStyle(
-                        fontSize: 12,
-                        color: secondaryColor,
-                      ),
-                      maxLines: 1,
-                    ),
-                  ],
-                ],
-              ),
-            );
-          })
-          .toList(),
+                  maxLines: 1,
+                ),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -593,7 +740,8 @@ class GuestList extends StatelessWidget {
         children: [
           // Animated icon container with gradient-like effect
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: generalAppLevelPadding * 1.5),
+            padding: const EdgeInsets.symmetric(
+                horizontal: generalAppLevelPadding * 1.5),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [

@@ -52,7 +52,7 @@ class _QuestionnaireWidgetState extends State<QuestionnaireWidget> {
       _questions[newQuestionId] = QuestionnaireQuestion(
         type: QuestionnaireQuestionType.shortAnswer,
         question: '',
-        required: false,
+        required: true,
         options: [],
       );
     });

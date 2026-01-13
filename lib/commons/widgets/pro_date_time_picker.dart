@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/utils/date_time.dart';
 
 class ProDateTimePicker extends StatelessWidget {
   final DateTime? initialValue;
@@ -18,6 +19,7 @@ class ProDateTimePicker extends StatelessWidget {
   final Widget? suffixIcon;
   final TextAlign? textAlign;
   final TextEditingController? textEditingController;
+  final Function? onTap;
   const ProDateTimePicker({
     super.key,
     this.initialValue,
@@ -37,12 +39,13 @@ class ProDateTimePicker extends StatelessWidget {
     this.suffixIcon,
     this.textAlign,
     this.textEditingController,
+    this.onTap,
   });
 
   Future<void> _selectDateTime(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: initialValue ?? DateTime.now(),
+      initialDate: initialValue ?? getNextSaturdayAt7pmUtc(),
       firstDate: firstDate,
       lastDate: lastDate,
     );
@@ -55,7 +58,7 @@ class ProDateTimePicker extends StatelessWidget {
       context: context,
       initialTime: initialValue != null
           ? TimeOfDay.fromDateTime(initialValue!)
-          : TimeOfDay.now(),
+          : TimeOfDay.fromDateTime(getNextSaturdayAt7pmUtc()),
     );
 
     if (pickedTime == null) return;
@@ -74,17 +77,18 @@ class ProDateTimePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-        final OutlineInputBorder overlayBorder = OutlineInputBorder(
+    final OutlineInputBorder overlayBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+      borderSide: BorderSide(
+          color: fillColor ??
+              Theme.of(context).colorScheme.primary.withOpacity(0.5)),
     );
 
     final OutlineInputBorder overlayFocusedBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(20),
-      borderSide: BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary),
+      borderSide:
+          BorderSide(color: fillColor ?? Theme.of(context).colorScheme.primary),
     );
-
 
     return TextFormField(
       controller: textEditingController,
@@ -103,7 +107,12 @@ class ProDateTimePicker extends StatelessWidget {
         fillColor: fillColor,
         contentPadding: contentPadding,
       ),
-      onTap: () => _selectDateTime(context),
+      onTap: () {
+        if (onTap != null) {
+          onTap!();
+        }
+        _selectDateTime(context);
+      },
     );
   }
 }

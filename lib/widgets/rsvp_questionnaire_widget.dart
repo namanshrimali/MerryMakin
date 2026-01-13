@@ -483,7 +483,7 @@ class _RsvpQuestionnaireWidgetState extends State<RsvpQuestionnaireWidget> {
                       ),
                       const SizedBox(height: 8),
                       ProText(
-                        'Help the host plan better by answering these questions',
+                        'Your answers help the host plan and will be visible to the host and other guests.',
                         textStyle: TextStyle(
                           fontSize: 14,
                           color: theme.colorScheme.onSurface.withOpacity(0.7),

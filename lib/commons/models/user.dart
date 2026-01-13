@@ -100,6 +100,6 @@ class User {
 
   bool isUserAuthorized() {
     // todo: requires users to logout and login again to see the guest list
-    return authorities!= null && authorities!.isNotEmpty && authorities!.contains('ROLE_USER');
+    return authorities!= null && authorities!.isNotEmpty && authorities!.contains('ROLE_USER') || authorities!.contains('ROLE_ADMIN');
   }
 }
