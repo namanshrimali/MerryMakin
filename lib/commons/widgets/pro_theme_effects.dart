@@ -221,6 +221,27 @@ class EffectPainter extends CustomPainter {
     if (effectType == ProEffectType.fall_leaves) {
       effectColors = [Colors.orangeAccent, Colors.red];
     }
+    // Romantic colors for hearts - soft pinks, roses, and warm reds
+    if (effectType == ProEffectType.hearts) {
+      if (themeType == ProThemeType.romantic) {
+        effectColors = [
+          const Color(0xFFFFB6C1), // Light Pink
+          const Color(0xFFFF69B4), // Hot Pink
+          const Color(0xFFFF1493), // Deep Pink
+          const Color(0xFFFFC0CB), // Pink
+          const Color(0xFFFFB6C1), // Light Pink
+        ];
+      } else {
+        effectColors = [
+          const Color(0xFFFF69B4), // Hot Pink
+          const Color(0xFFFF1493), // Deep Pink
+          const Color(0xFFFF6B9D), // Rose Pink
+          const Color(0xFFFFB6C1), // Light Pink
+          const Color(0xFFFFC0CB), // Pink
+          const Color(0xFFFF69B4), // Hot Pink
+        ];
+      }
+    }
 
     for (var effect in effects) {
       final paint = Paint()..style = PaintingStyle.fill;
@@ -228,7 +249,8 @@ class EffectPainter extends CustomPainter {
       // Rotate through colors for Chinese New Year theme
       if (effectType == ProEffectType.confetti ||
           effectType == ProEffectType.fall_leaves ||
-          effectType == ProEffectType.snowflake) {
+          effectType == ProEffectType.snowflake ||
+          effectType == ProEffectType.hearts) {
         paint.color =
             effectColors[effects.indexOf(effect) % effectColors.length]
                 .withOpacity(0.6);
@@ -318,7 +340,11 @@ class EffectPainter extends CustomPainter {
           _drawConfetti(canvas, currentPosition, effect.size, paint);
           break;
         case ProEffectType.hearts:
-          _drawHeart(canvas, currentPosition, effect.size, paint);
+          // Add gentle rotation and pulsing animation for romantic hearts
+          final heartRotation = effect.angle + (progress * 2 * pi * 0.2);
+          // Create a gentle pulsing effect (beating heart)
+          final pulse = 1.0 + sin(progress * 2 * pi * 2.5) * 0.1;
+          _drawHeart(canvas, currentPosition, effect.size * pulse, paint, heartRotation, progress);
           break;
         case ProEffectType.balloons:
           _drawBalloon(canvas, currentPosition, effect.size, paint);
@@ -361,31 +387,302 @@ class EffectPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _drawHeart(Canvas canvas, Offset center, double size, Paint paint) {
+  void _drawHeart(Canvas canvas, Offset center, double size, Paint paint, double rotation, double progress) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(rotation);
+    
+    final double heartSize = size * 0.5;
+    
+    // Create romantic, delicate heart shape with many smooth, elegant curves
+    // Using multiple bezier curves for ultra-smooth, detailed heart shape
     final path = Path();
-    path.moveTo(center.dx, center.dy + size * 0.3);
-
-    // Left curve
+    
+    // Start from bottom point - more rounded and delicate
+    path.moveTo(0, heartSize * 0.35);
+    
+    // Bottom left curve - first curve segment (more detailed)
     path.cubicTo(
-      center.dx - size * 0.5,
-      center.dy - size * 0.3,
-      center.dx - size * 0.5,
-      center.dy - size * 0.7,
-      center.dx,
-      center.dy - size * 0.2,
+      -heartSize * 0.15, heartSize * 0.28,  // Control point 1
+      -heartSize * 0.25, heartSize * 0.18, // Control point 2
+      -heartSize * 0.32, heartSize * 0.08, // End point
     );
-
-    // Right curve
+    
+    // Left side curve - second curve segment
     path.cubicTo(
-      center.dx + size * 0.5,
-      center.dy - size * 0.7,
-      center.dx + size * 0.5,
-      center.dy - size * 0.3,
-      center.dx,
-      center.dy + size * 0.3,
+      -heartSize * 0.38, heartSize * 0.0,  // Control point 1
+      -heartSize * 0.42, -heartSize * 0.12, // Control point 2
+      -heartSize * 0.45, -heartSize * 0.25, // End point
     );
-
-    canvas.drawPath(path, paint);
+    
+    // Left lower lobe curve - third curve segment
+    path.cubicTo(
+      -heartSize * 0.48, -heartSize * 0.38, // Control point 1
+      -heartSize * 0.50, -heartSize * 0.48, // Control point 2
+      -heartSize * 0.50, -heartSize * 0.58, // End point
+    );
+    
+    // Left upper lobe curve - fourth curve segment
+    path.cubicTo(
+      -heartSize * 0.50, -heartSize * 0.65, // Control point 1
+      -heartSize * 0.48, -heartSize * 0.72, // Control point 2
+      -heartSize * 0.44, -heartSize * 0.78, // End point
+    );
+    
+    // Top of left lobe - fifth curve segment (more rounded)
+    path.cubicTo(
+      -heartSize * 0.40, -heartSize * 0.82, // Control point 1
+      -heartSize * 0.34, -heartSize * 0.85, // Control point 2
+      -heartSize * 0.26, -heartSize * 0.80, // End point
+    );
+    
+    // Left lobe inner curve - sixth curve segment
+    path.cubicTo(
+      -heartSize * 0.20, -heartSize * 0.75, // Control point 1
+      -heartSize * 0.16, -heartSize * 0.70, // Control point 2
+      -heartSize * 0.14, -heartSize * 0.65, // End point
+    );
+    
+    // Approaching center dip - seventh curve segment
+    path.cubicTo(
+      -heartSize * 0.12, -heartSize * 0.60, // Control point 1
+      -heartSize * 0.10, -heartSize * 0.68, // Control point 2
+      -heartSize * 0.08, -heartSize * 0.72, // End point
+    );
+    
+    // Top center dip - eighth curve segment (deeper and more romantic)
+    path.cubicTo(
+      -heartSize * 0.05, -heartSize * 0.74, // Control point 1
+      heartSize * 0.05, -heartSize * 0.74,  // Control point 2
+      heartSize * 0.08, -heartSize * 0.72,  // End point
+    );
+    
+    // Leaving center dip - ninth curve segment
+    path.cubicTo(
+      heartSize * 0.10, -heartSize * 0.68, // Control point 1
+      heartSize * 0.12, -heartSize * 0.60, // Control point 2
+      heartSize * 0.14, -heartSize * 0.65, // End point
+    );
+    
+    // Right lobe inner curve - tenth curve segment
+    path.cubicTo(
+      heartSize * 0.16, -heartSize * 0.70, // Control point 1
+      heartSize * 0.20, -heartSize * 0.75, // Control point 2
+      heartSize * 0.26, -heartSize * 0.80, // End point
+    );
+    
+    // Top of right lobe - eleventh curve segment (more rounded)
+    path.cubicTo(
+      heartSize * 0.34, -heartSize * 0.85, // Control point 1
+      heartSize * 0.40, -heartSize * 0.82, // Control point 2
+      heartSize * 0.44, -heartSize * 0.78, // End point
+    );
+    
+    // Right upper lobe curve - twelfth curve segment
+    path.cubicTo(
+      heartSize * 0.48, -heartSize * 0.72, // Control point 1
+      heartSize * 0.50, -heartSize * 0.65, // Control point 2
+      heartSize * 0.50, -heartSize * 0.58, // End point
+    );
+    
+    // Right lower lobe curve - thirteenth curve segment
+    path.cubicTo(
+      heartSize * 0.50, -heartSize * 0.48, // Control point 1
+      heartSize * 0.48, -heartSize * 0.38, // Control point 2
+      heartSize * 0.45, -heartSize * 0.25, // End point
+    );
+    
+    // Right side curve - fourteenth curve segment
+    path.cubicTo(
+      heartSize * 0.42, -heartSize * 0.12, // Control point 1
+      heartSize * 0.38, heartSize * 0.0,  // Control point 2
+      heartSize * 0.32, heartSize * 0.08, // End point
+    );
+    
+    // Bottom right curve - fifteenth curve segment (completing the heart)
+    path.cubicTo(
+      heartSize * 0.25, heartSize * 0.18, // Control point 1
+      heartSize * 0.15, heartSize * 0.28, // Control point 2
+      0, heartSize * 0.35,                // Back to start
+    );
+    
+    path.close();
+    
+    // Create romantic gradient with warm, soft colors
+    // Use shimmer effect based on progress for romantic sparkle
+    final shimmerOffset = sin(progress * 2 * pi * 3) * 0.3;
+    final gradient = LinearGradient(
+      begin: Alignment(-0.5 + shimmerOffset, -0.8),
+      end: Alignment(0.5 - shimmerOffset, 0.8),
+      colors: [
+        paint.color,
+        _brightenColor(paint.color, 0.2),
+        paint.color,
+        _brightenColor(paint.color, 0.15),
+        paint.color.withOpacity(0.8),
+        paint.color.withOpacity(0.6),
+      ],
+      stops: const [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    );
+    
+    final gradientPaint = Paint()
+      ..shader = gradient.createShader(
+        Rect.fromCenter(
+          center: Offset.zero,
+          width: heartSize * 2.5,
+          height: heartSize * 2.5,
+        ),
+      )
+      ..style = PaintingStyle.fill;
+    
+    // Draw romantic glow effect - warmer and more intense
+    final glowPaint = Paint()
+      ..color = paint.color.withOpacity(0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    
+    canvas.drawPath(path, glowPaint);
+    
+    // Draw outer romantic glow layer
+    final outerGlowPaint = Paint()
+      ..color = paint.color.withOpacity(0.15)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
+    
+    canvas.drawPath(path, outerGlowPaint);
+    
+    // Draw main heart with romantic gradient
+    canvas.drawPath(path, gradientPaint);
+    
+    // Add beautiful, soft highlights for romantic 3D effect
+    final highlightPath = Path();
+    
+    // Left highlight - larger and softer
+    highlightPath.moveTo(-heartSize * 0.12, -heartSize * 0.35);
+    highlightPath.quadraticBezierTo(
+      -heartSize * 0.28,
+      -heartSize * 0.48,
+      -heartSize * 0.18,
+      -heartSize * 0.58,
+    );
+    highlightPath.quadraticBezierTo(
+      -heartSize * 0.08,
+      -heartSize * 0.52,
+      -heartSize * 0.04,
+      -heartSize * 0.42,
+    );
+    highlightPath.quadraticBezierTo(
+      -heartSize * 0.08,
+      -heartSize * 0.32,
+      -heartSize * 0.12,
+      -heartSize * 0.35,
+    );
+    
+    // Right highlight - larger and softer
+    highlightPath.moveTo(heartSize * 0.12, -heartSize * 0.35);
+    highlightPath.quadraticBezierTo(
+      heartSize * 0.28,
+      -heartSize * 0.48,
+      heartSize * 0.18,
+      -heartSize * 0.58,
+    );
+    highlightPath.quadraticBezierTo(
+      heartSize * 0.08,
+      -heartSize * 0.52,
+      heartSize * 0.04,
+      -heartSize * 0.42,
+    );
+    highlightPath.quadraticBezierTo(
+      heartSize * 0.08,
+      -heartSize * 0.32,
+      heartSize * 0.12,
+      -heartSize * 0.35,
+    );
+    
+    // Center highlight for extra romantic shimmer
+    highlightPath.addOval(
+      Rect.fromCenter(
+        center: Offset(0, -heartSize * 0.5),
+        width: heartSize * 0.15,
+        height: heartSize * 0.12,
+      ),
+    );
+    
+    final highlightPaint = Paint()
+      ..color = Colors.white.withOpacity(0.5)
+      ..style = PaintingStyle.fill;
+    
+    canvas.drawPath(highlightPath, highlightPaint);
+    
+    // Add shimmer sparkles around the heart
+    final sparklePaint = Paint()
+      ..color = Colors.white.withOpacity(0.8)
+      ..style = PaintingStyle.fill;
+    
+    final sparklePositions = [
+      Offset(-heartSize * 0.7, -heartSize * 0.3),
+      Offset(heartSize * 0.7, -heartSize * 0.3),
+      Offset(-heartSize * 0.5, heartSize * 0.1),
+      Offset(heartSize * 0.5, heartSize * 0.1),
+      Offset(0, -heartSize * 0.9),
+    ];
+    
+    for (var i = 0; i < sparklePositions.length; i++) {
+      final sparklePos = sparklePositions[i];
+      final sparkleOpacity = (sin(progress * 2 * pi * 4 + i) + 1) / 2;
+      final sparkleSize = 2.0 + sin(progress * 2 * pi * 3 + i) * 1.0;
+      
+      final sparkle = Paint()
+        ..color = Colors.white.withOpacity(0.6 * sparkleOpacity)
+        ..style = PaintingStyle.fill;
+      
+      // Draw sparkle as a small cross
+      canvas.drawCircle(sparklePos, sparkleSize, sparkle);
+      canvas.drawCircle(sparklePos, sparkleSize * 0.5, sparklePaint);
+    }
+    
+    // Add subtle inner glow for depth
+    final innerGlowPaint = Paint()
+      ..color = paint.color.withOpacity(0.4)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    
+    canvas.save();
+    canvas.scale(0.88);
+    canvas.drawPath(path, innerGlowPaint);
+    canvas.restore();
+    
+    // Add soft, romantic outline
+    final outlinePaint = Paint()
+      ..color = paint.color.withOpacity(0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    
+    canvas.drawPath(path, outlinePaint);
+    
+    // Add inner outline for extra definition
+    final innerOutlinePaint = Paint()
+      ..color = Colors.white.withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    
+    canvas.save();
+    canvas.scale(0.92);
+    canvas.drawPath(path, innerOutlinePaint);
+    canvas.restore();
+    
+    canvas.restore();
+  }
+  
+  // Helper function to brighten colors for romantic shimmer effect
+  Color _brightenColor(Color color, double amount) {
+    return Color.fromARGB(
+      color.alpha,
+      (color.red + (255 - color.red) * amount).clamp(0, 255).toInt(),
+      (color.green + (255 - color.green) * amount).clamp(0, 255).toInt(),
+      (color.blue + (255 - color.blue) * amount).clamp(0, 255).toInt(),
+    );
   }
 
   void _drawFlower(Canvas canvas, Offset center, double size, Paint paint) {
