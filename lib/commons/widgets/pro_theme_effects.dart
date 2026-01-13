@@ -101,20 +101,24 @@ class _ProThemeEffectsState extends State<ProThemeEffects>
     double windSensitivity = 0.0;
     if (widget.effectType == ProEffectType.fall_leaves) {
       // Leaves are most affected by wind
-      windSensitivity = 20 + random.nextDouble() * 10; // 0.8 to 1.2
+      windSensitivity = 20 + random.nextDouble() * 10;
     } else if (widget.effectType == ProEffectType.snowflake) {
       // Snowflakes drift with wind but less than leaves
-      windSensitivity = 10 + random.nextDouble() * 10; // 0.3 to 0.6
+      // All snowflakes use same sensitivity range for consistency
+      windSensitivity = 10 + random.nextDouble() * 10;
     } else if (widget.effectType == ProEffectType.confetti) {
       // Confetti is affected by wind
-      windSensitivity = 0.5 + random.nextDouble() * 0.3; // 0.5 to 0.8
+      windSensitivity = 20 + random.nextDouble() * 0.3;
     } else if (widget.effectType == ProEffectType.balloons) {
       // Balloons drift with wind
-      windSensitivity = 0.4 + random.nextDouble() * 0.3; // 0.4 to 0.7
+      windSensitivity = 20 + random.nextDouble() * 0.3;
     }
     
-    // Random phase offset for each effect to create varied wind patterns
-    final windPhase = random.nextDouble() * 2 * pi;
+    // For snowflakes, use same wind phase (0) so they all follow same wind direction
+    // For other effects, use random phase for individual variation
+    final windPhase = (widget.effectType == ProEffectType.snowflake) 
+        ? 0.0 
+        : random.nextDouble() * 2 * pi;
     
     return EffectItem(
       position: Offset(
@@ -234,42 +238,63 @@ class EffectPainter extends CustomPainter {
 
       final direction = (effectType == ProEffectType.balloons || effectType == ProEffectType.bubbles) ? -1 : 1;
 
-      // Calculate wind effect - creates a swaying motion
-      // Use multiple sine waves for more natural wind patterns
-      final windStrength = 0.15; // Base wind strength
-      final windSpeed1 = 0.3; // Primary wind oscillation speed
-      final windSpeed2 = 0.5; // Secondary wind oscillation speed
+      // Calculate global wind direction that changes over time
+      // Wind direction oscillates naturally using sine waves
+      final windDirectionSpeed1 = 0.03; // Slow primary direction change
+      final windDirectionSpeed2 = 0.08; // Faster secondary variation
       
-      // Combine multiple sine waves for realistic wind patterns
-      final wind1 = sin(progress * 2 * pi * windSpeed1 + effect.windPhase);
-      final wind2 = sin(progress * 2 * pi * windSpeed2 + effect.windPhase * 1.3);
-      final wind3 = sin(progress * 2 * pi * 0.2 + effect.windPhase * 0.7);
+      // Combine multiple sine waves for natural wind direction changes
+      final direction1 = sin(progress * 2 * pi * windDirectionSpeed1) * pi; // -π to π
+      final direction2 = sin(progress * 2 * pi * windDirectionSpeed2) * 0.5; // Smaller variation
       
-      // Combine wind components with different weights for natural variation
-      final combinedWind = (wind1 * 0.5 + wind2 * 0.3 + wind3 * 0.2);
+      // Base wind direction oscillates around 0 (horizontal) with natural variation
+      final baseWindDirection = direction1 * 0.7 + direction2 * 0.3;
       
-      // Calculate horizontal wind drift
-      final windDrift = combinedWind * windStrength * effect.windSensitivity * size.width;
+      // Wind strength varies over time (using multiple sine waves for natural variation)
+      final windStrengthSpeed1 = 0.3;
+      final windStrengthSpeed2 = 0.5;
+      final windStrengthSpeed3 = 0.2;
+      
+      final windStrength1 = sin(progress * 2 * pi * windStrengthSpeed1);
+      final windStrength2 = sin(progress * 2 * pi * windStrengthSpeed2);
+      final windStrength3 = sin(progress * 2 * pi * windStrengthSpeed3);
+      
+      // Combine wind strength components (normalized to 0-1 range, then scale)
+      final normalizedWindStrength = (windStrength1 * 0.5 + windStrength2 * 0.3 + windStrength3 * 0.2 + 1.0) / 2.0;
+      final windStrength = normalizedWindStrength * 0.2; // Base wind strength multiplier
+      
+      // For snowflakes, use the global wind direction directly
+      // For other effects, add individual phase variation
+      final windDirection = baseWindDirection + effect.windPhase;
+      
+      // Calculate wind vector components (x, y) based on direction
+      final windX = cos(windDirection) * windStrength * effect.windSensitivity;
+      final windY = sin(windDirection) * windStrength * effect.windSensitivity;
+      
+      // Apply wind as 2D offset
+      final windDriftX = windX * size.width;
+      final windDriftY = windY * size.height;
       
       // Update position based on progress
       final yOffset = direction * ((progress * effect.speed * size.height) % size.height);
       
-      // Calculate horizontal position with wind effect
+      // Calculate position with wind effect
       final baseX = effect.position.dx;
-      final windX = (baseX + windDrift) % size.width;
-      // Handle wrapping for negative values
-      final finalX = windX < 0 ? windX + size.width : windX;
+      final baseY = effect.position.dy;
       
-      final currentPosition = Offset(
-        finalX,
-        (effect.position.dy + yOffset) % size.height,
-      );
+      final windX_final = (baseX + windDriftX) % size.width;
+      final finalX = windX_final < 0 ? windX_final + size.width : windX_final;
       
-      // For leaves, update angle based on wind for realistic tilting
+      final windY_final = (baseY + yOffset + windDriftY) % size.height;
+      final finalY = windY_final < 0 ? windY_final + size.height : windY_final;
+      
+      final currentPosition = Offset(finalX, finalY);
+      
+      // For leaves, update angle based on wind direction for realistic tilting
       double currentAngle = effect.angle;
       if (effectType == ProEffectType.fall_leaves) {
-        // Leaves tilt more when wind is stronger
-        final windTilt = combinedWind * 0.3; // Max tilt of 0.3 radians (~17 degrees)
+        // Leaves tilt in the direction of wind
+        final windTilt = windDirection * 0.4; // Max tilt based on wind direction
         currentAngle = effect.angle + windTilt;
       }
 
