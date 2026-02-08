@@ -9,6 +9,7 @@ import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
 import 'package:merrymakin/commons/widgets/buttons/pro_icon_button.dart';
+import 'package:merrymakin/commons/widgets/phone_verification.dart';
 import 'package:merrymakin/commons/widgets/pro_bottom_modal_sheet.dart';
 import 'package:merrymakin/commons/widgets/pro_scaffold.dart';
 import 'package:merrymakin/commons/widgets/pro_text.dart';
@@ -243,6 +244,7 @@ class _MerryMakinWelcomeScreenState extends State<MerryMakinWelcomeScreen>
             }
           },
         ),
+        // child: PhoneVerification(userService: AppFactory().userService, sprylyService: SprylyServices.MerryMakin.name)
       ),
       themeData: theme,
       gradientColors: [theme.colorScheme.surface],
