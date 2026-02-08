@@ -61,6 +61,10 @@ class _HomeScreenState extends ConsumerState<BaseScreen> {
                 imageService: AppFactory().userIconService,
                 title: cookiesService.currentUser!.givenName == null || cookiesService.currentUser!.givenName == "" ? "Drop Your Name, Let’s Get This Party Lit!" : "Let's Double-Check Your Info!", showWarning: false);
           }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppFactory().notificationScheduler.syncAll(
+                events, cookiesService.currentUser);
+          });
           return AllEventsScreen(
               events: events, cookiesService: cookiesService);
         });

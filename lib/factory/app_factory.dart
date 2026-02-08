@@ -1,15 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:merrymakin/api/events_api.dart';
 import 'package:merrymakin/commons/dao/user_dao.dart';
 import 'package:merrymakin/commons/dao/cookies_dao.dart';
+import 'package:merrymakin/commons/notification/event_notification_scheduler.dart';
+import 'package:merrymakin/commons/notification/notification_scheduler.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/cookie_service.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/service/user_service.dart';
 import 'package:merrymakin/commons/service/cookies_service_mobile.dart';
-// import 'package:merrymakin/dao/event_to_attendee_dao.dart';
-// import 'package:merrymakin/dao/event_to_host_dao.dart';
-// import 'package:merrymakin/dao/events_dao.dart';
-// import 'package:merrymakin/service/event_service.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../commons/service/cookie_service_web.dart';
@@ -30,6 +29,7 @@ class AppFactory {
   late final EventsApi eventsApi;
   late final Function deleteEverything;
   late final ImageService gifService;
+  late final NotificationScheduler notificationScheduler;
 
   factory AppFactory.forFirstTimeMobile(Database database) {
     _instance ??= AppFactory._forMobile(database);
@@ -55,7 +55,11 @@ class AppFactory {
     userIconService = ImageService(USER_ICON_REPOSITORY_JSON, cookiesService);
     gifService = ImageService(GIF_REPOSITORY_JSON, cookiesService);
     eventsApi = EventsApi(cookiesService);
+    notificationScheduler = kIsWeb
+        ? NoOpNotificationScheduler()
+        : EventNotificationScheduler();
     deleteEverything = () {
+      notificationScheduler.cancelAll();
       cookiesService.clearCookies();
       userService.deleteAllUsers();
     };
@@ -69,6 +73,7 @@ class AppFactory {
     gifService = ImageService(GIF_REPOSITORY_JSON, cookiesService);
 
     eventsApi = EventsApi(cookiesService);
+    notificationScheduler = NoOpNotificationScheduler();
     deleteEverything = () {
       cookiesService.clearCookies();
       // userService.deleteAllUsers();

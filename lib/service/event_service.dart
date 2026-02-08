@@ -12,6 +12,8 @@ import 'package:merrymakin/commons/utils/colors.dart';
 import 'package:merrymakin/commons/widgets/pro_snackbar.dart';
 import 'package:merrymakin/factory/app_factory.dart';
 
+import 'package:merrymakin/commons/models/rsvp.dart';
+
 import '../commons/models/rsvp_selection.dart';
 
 final UserService userService = AppFactory().userService;
@@ -114,6 +116,14 @@ Future<void> rsvpForEvent(
         eventsCache = eventsCache!
             .map((eventIter) => eventIter.id == event.id ? event : eventIter)
             .toList();
+        final scheduler = AppFactory().notificationScheduler;
+        final user = AppFactory().cookiesService.locallyAvailableUserInfo;
+        if (rsvpSelection.rsvpStatus == RSVPStatus.GOING ||
+            rsvpSelection.rsvpStatus == RSVPStatus.MAYBE) {
+          scheduler.scheduleForEvent(event, user);
+        } else {
+          scheduler.cancelForEvent(event.id!);
+        }
         return event;
       }
     }
@@ -173,6 +183,10 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
           return event;
         }).toList();
       }
+      final scheduler = AppFactory().notificationScheduler;
+      scheduler.cancelForEvent(updatedEvent.id!);
+      scheduler.scheduleForEvent(
+          updatedEvent, AppFactory().cookiesService.locallyAvailableUserInfo);
       return updatedEvent;
     } else {
       if (context.mounted) {
@@ -195,6 +209,8 @@ Future<Event?> _addEvent(final Event event, BuildContext context) async {
       if (eventsCache != null && eventsCache!.isNotEmpty) {
         eventsCache!.add(savedEvent);
       }
+      AppFactory().notificationScheduler.scheduleForEvent(
+          savedEvent, AppFactory().cookiesService.locallyAvailableUserInfo);
       return savedEvent;
     } else {
       if (context.mounted) {
@@ -209,6 +225,7 @@ Future<Event?> _addEvent(final Event event, BuildContext context) async {
 
 Future<void> deleteEvent(String eventId) async {
   await eventsApi.deleteEventFromServer(eventId);
+  AppFactory().notificationScheduler.cancelForEvent(eventId);
   if (eventsCache != null && eventsCache!.isNotEmpty) {
     eventsCache!.removeWhere((event) => event.id == eventId);
   }

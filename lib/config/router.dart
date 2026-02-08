@@ -23,7 +23,11 @@ class AppRouter {
   static const String login = '/login';
   static const String profile = '/profile';
 
+// todo namnshri find if this is needed
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
   static final router = GoRouter(
+    navigatorKey: navigatorKey,
     initialLocation: home,
     routes: [
       GoRoute(
@@ -50,6 +54,7 @@ class AppRouter {
           userService: AppFactory().userService,
           cookiesService: AppFactory().cookiesService,
           onLogout: () {
+            AppFactory().notificationScheduler.cancelAll();
             AppFactory().deleteEverything();
           },
         ),
