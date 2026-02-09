@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:merrymakin/api/events_api.dart';
 import 'package:merrymakin/commons/dao/user_dao.dart';
 import 'package:merrymakin/commons/dao/cookies_dao.dart';
+import 'package:merrymakin/commons/notification/event_live_activity_controller.dart';
 import 'package:merrymakin/commons/notification/event_notification_scheduler.dart';
 import 'package:merrymakin/commons/notification/notification_scheduler.dart';
 import 'package:merrymakin/commons/resources.dart';
@@ -30,6 +33,7 @@ class AppFactory {
   late final Function deleteEverything;
   late final ImageService gifService;
   late final NotificationScheduler notificationScheduler;
+  late final EventLiveActivityController? liveActivityController;
 
   factory AppFactory.forFirstTimeMobile(Database database) {
     _instance ??= AppFactory._forMobile(database);
@@ -58,8 +62,12 @@ class AppFactory {
     notificationScheduler = kIsWeb
         ? NoOpNotificationScheduler()
         : EventNotificationScheduler();
+    liveActivityController = (kIsWeb || !Platform.isIOS)
+        ? null
+        : EventLiveActivityController(appGroupId: 'group.com.namanshrimali.merrymakin');
     deleteEverything = () {
       notificationScheduler.cancelAll();
+      liveActivityController?.endAll();
       cookiesService.clearCookies();
       userService.deleteAllUsers();
     };
@@ -74,6 +82,7 @@ class AppFactory {
 
     eventsApi = EventsApi(cookiesService);
     notificationScheduler = NoOpNotificationScheduler();
+    liveActivityController = null;
     deleteEverything = () {
       cookiesService.clearCookies();
       // userService.deleteAllUsers();

@@ -6,6 +6,7 @@ import 'package:merrymakin/commons/db/sql_lite.dart';
 import 'package:merrymakin/commons/notification/event_notification_scheduler.dart';
 import 'package:merrymakin/config/router.dart';
 import 'package:merrymakin/factory/app_factory.dart';
+import 'package:merrymakin/service/event_service.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:merrymakin/commons/utils/platform_web.dart'
     if (dart.library.io) 'package:merrymakin/commons/utils/platform_stub.dart'
@@ -35,6 +36,11 @@ Future<void> main() async {
       await scheduler.initialize();
       await scheduler.requestPermissions();
     }
+
+    final liveController = AppFactory().liveActivityController;
+    if (liveController != null) {
+      await liveController.init();
+    }
   }
 
   runApp(const ProviderScope(child: MyApp()));
@@ -59,18 +65,49 @@ Future<void> main() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _syncLiveActivities();
+    }
+  }
+
+  Future<void> _syncLiveActivities() async {
+    if (kIsWeb) return;
+    final controller = AppFactory().liveActivityController;
+    if (controller == null) return;
+    try {
+      final events = await allEvents;
+      final user = AppFactory().cookiesService.locallyAvailableUserInfo;
+      await controller.syncFromEvents(events, user);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'MerryMakin',
-      // theme: ProThemes.themes[ProThemeType.midnight]!.theme,
-      // darkTheme: ProThemes.themes[ProThemeType.midnight]!.theme,
-      // themeMode: ThemeMode.dark,
       routerConfig: AppRouter.router,
     );
   }

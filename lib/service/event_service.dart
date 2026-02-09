@@ -118,11 +118,14 @@ Future<void> rsvpForEvent(
             .toList();
         final scheduler = AppFactory().notificationScheduler;
         final user = AppFactory().cookiesService.locallyAvailableUserInfo;
+        final liveController = AppFactory().liveActivityController;
         if (rsvpSelection.rsvpStatus == RSVPStatus.GOING ||
             rsvpSelection.rsvpStatus == RSVPStatus.MAYBE) {
           scheduler.scheduleForEvent(event, user);
+          liveController?.startForEvent(event, user);
         } else {
           scheduler.cancelForEvent(event.id!);
+          liveController?.endForEvent(event.id!);
         }
         return event;
       }
@@ -184,8 +187,12 @@ Future<Event?> _updateEvent(final Event event, BuildContext context) {
         }).toList();
       }
       final scheduler = AppFactory().notificationScheduler;
+      final liveController = AppFactory().liveActivityController;
       scheduler.cancelForEvent(updatedEvent.id!);
       scheduler.scheduleForEvent(
+          updatedEvent, AppFactory().cookiesService.locallyAvailableUserInfo);
+      liveController?.endForEvent(updatedEvent.id!);
+      liveController?.startForEvent(
           updatedEvent, AppFactory().cookiesService.locallyAvailableUserInfo);
       return updatedEvent;
     } else {
@@ -209,8 +216,9 @@ Future<Event?> _addEvent(final Event event, BuildContext context) async {
       if (eventsCache != null && eventsCache!.isNotEmpty) {
         eventsCache!.add(savedEvent);
       }
-      AppFactory().notificationScheduler.scheduleForEvent(
-          savedEvent, AppFactory().cookiesService.locallyAvailableUserInfo);
+      final user = AppFactory().cookiesService.locallyAvailableUserInfo;
+      AppFactory().notificationScheduler.scheduleForEvent(savedEvent, user);
+      AppFactory().liveActivityController?.startForEvent(savedEvent, user);
       return savedEvent;
     } else {
       if (context.mounted) {
@@ -226,6 +234,7 @@ Future<Event?> _addEvent(final Event event, BuildContext context) async {
 Future<void> deleteEvent(String eventId) async {
   await eventsApi.deleteEventFromServer(eventId);
   AppFactory().notificationScheduler.cancelForEvent(eventId);
+  AppFactory().liveActivityController?.endForEvent(eventId);
   if (eventsCache != null && eventsCache!.isNotEmpty) {
     eventsCache!.removeWhere((event) => event.id == eventId);
   }
