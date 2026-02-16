@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:merrymakin/commons/widgets/pro_filter_chip.dart';
 import './pro_snackbar.dart';
 import 'dart:io';
 import '../service/image_service.dart';
 import '../utils/constants.dart';
 import './buttons/pro_outlined_button.dart';
 import './pro_text.dart';
+import './pro_image_picker_categorized_view.dart';
 
 class ProImagePicker extends StatefulWidget {
   final Function(String) onImageSelected;
@@ -15,6 +17,7 @@ class ProImagePicker extends StatefulWidget {
   final ImageService imageService;
   final bool canUpload;
   final bool showAll;
+  final bool useCategorizedFirstTab;
 
   const ProImagePicker({
     super.key,
@@ -24,6 +27,7 @@ class ProImagePicker extends StatefulWidget {
     this.spacing = generalAppLevelPadding / 2,
     this.canUpload = true,
     this.showAll = true,
+    this.useCategorizedFirstTab = false,
   });
 
   @override
@@ -88,9 +92,9 @@ class _ProImagePickerState extends State<ProImagePicker> {
                 Padding(
                   padding:
                       const EdgeInsets.only(right: generalAppLevelPadding / 2),
-                  child: FilterChip(
-                    label: const ProText('Trending'),
-                    selected: _selectedCategory == null,
+                  child: ProFilterChip(
+                    label: widget.useCategorizedFirstTab ? 'Suggested' : 'Trending',
+                    isSelected: _selectedCategory == null,
                     onSelected: (bool selected) {
                       setState(() {
                         _selectedCategory = null;
@@ -102,9 +106,9 @@ class _ProImagePickerState extends State<ProImagePicker> {
                 return Padding(
                   padding:
                       const EdgeInsets.only(right: generalAppLevelPadding / 2),
-                  child: FilterChip(
-                    label: ProText(category),
-                    selected: _selectedCategory == category,
+                  child: ProFilterChip(
+                    label: category,
+                    isSelected: _selectedCategory == category,
                     onSelected: (bool selected) {
                       setState(() {
                         _selectedCategory = selected ? category : null;
@@ -116,42 +120,51 @@ class _ProImagePickerState extends State<ProImagePicker> {
             ],
           ),
         ),
+        const SizedBox(height: generalAppLevelPadding),
 
-        // Image grid
+        // Body: categorized cards (Suggested) or tab grid
         Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(generalAppLevelPadding / 2),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: widget.crossAxisCount,
-              crossAxisSpacing: widget.spacing,
-              mainAxisSpacing: widget.spacing,
-            ),
-            itemCount: _getFilteredImages().length,
-            itemBuilder: (context, index) {
-              final imageUrl = _getFilteredImages()[index];
-              return GestureDetector(
-                onTap: () => widget.onImageSelected(imageUrl),
-                child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(generalAppLevelPadding / 2),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.error),
-                    ),
+          child: widget.useCategorizedFirstTab && _selectedCategory == null
+              ? CategorizedImagesView(
+                  imageService: widget.imageService,
+                  categoriesToShow: widget.imageService.getCategories(),
+                  onCategoryTap: (category) {
+                    setState(() => _selectedCategory = category);
+                  },
+                )
+              : GridView.builder(
+                  padding: const EdgeInsets.all(generalAppLevelPadding / 2),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: widget.crossAxisCount,
+                    crossAxisSpacing: widget.spacing,
+                    mainAxisSpacing: widget.spacing,
                   ),
+                  itemCount: _getFilteredImages().length,
+                  itemBuilder: (context, index) {
+                    final imageUrl = _getFilteredImages()[index];
+                    return GestureDetector(
+                      onTap: () => widget.onImageSelected(imageUrl),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                            generalAppLevelPadding / 2),
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey[200],
+                            child: const Icon(Icons.error),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
 
         // Upload button
@@ -167,7 +180,7 @@ class _ProImagePickerState extends State<ProImagePicker> {
                       children: [
                         Icon(Icons.upload),
                         SizedBox(width: 8),
-                        ProText('Upload Image'),
+                        ProText('Choose From Library'),
                       ],
                     ),
             ),

@@ -253,6 +253,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             _initializeGradient();
           },
           imageService: imageService,
+          useCategorizedFirstTab: true,
         ),
       ),
     );

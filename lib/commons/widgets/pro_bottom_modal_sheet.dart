@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:merrymakin/commons/widgets/buttons/pro_icon_button.dart';
+import 'package:merrymakin/commons/widgets/pro_text.dart';
 import '../utils/constants.dart';
 import '../themes/pro_themes.dart';
 import '../widgets/pro_theme_effects.dart';
@@ -16,6 +18,7 @@ const int _contentAnimationDuration = 200;
 Future openProBottomModalSheet(BuildContext context, Widget childWidget,
     {bool isFullScreen = false,
     bool isScrollControlled = true,
+    String? title = null,
     ThemeData? themeData,
     ProThemeType? themeType,
     List<Color>? gradientColors}) {
@@ -32,6 +35,7 @@ Future openProBottomModalSheet(BuildContext context, Widget childWidget,
       builder: (_) {
         return ProBottomModalSheetContent(
           isFullScreen: isFullScreen,
+          title: title,
           child: childWidget,
           theme: themeData,
           themeType: themeType,
@@ -52,13 +56,15 @@ class ProBottomModalSheetContent extends StatefulWidget {
   final ThemeData? theme;
   final ProThemeType? themeType;
   final List<Color>? gradientColors;
+  final String? title;  
   const ProBottomModalSheetContent(
       {super.key,
       required this.child,
       required this.isFullScreen,
       this.theme,
       this.themeType,
-      this.gradientColors});
+      this.gradientColors,
+      this.title});
 
   @override
   State<ProBottomModalSheetContent> createState() =>
@@ -182,6 +188,13 @@ class _ProBottomModalSheetContentState
     return Row(
       children: [
         const Spacer(),
+        // Dummy button to push title in center
+        Visibility(child: Container(width: 0, height: 0, color: themeColor.withOpacity(0.1)), visible: false),
+        const Spacer(),
+        if (widget.title != null) ...[
+          ProText(widget.title!, textStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w500, color: themeColor)),
+          const Spacer(),
+        ],
         IconButton(
           style: IconButton.styleFrom(
             backgroundColor: themeColor.withOpacity(0.1),
