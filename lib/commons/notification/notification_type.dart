@@ -13,10 +13,11 @@ enum NotificationType {
     idBase: 1000,
   ),
   /// Fires at startDateTime.
+  /// idBase must be >= 1000000 so IDs never overlap with twoHourReminder range.
   eventStart(
     offset: Duration.zero,
     channelId: 'event_start',
-    idBase: 2000,
+    idBase: 1000000,
   );
 
   const NotificationType({

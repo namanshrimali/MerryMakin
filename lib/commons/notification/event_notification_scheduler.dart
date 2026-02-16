@@ -223,9 +223,13 @@ class EventNotificationScheduler implements NotificationScheduler {
     await _plugin.cancelAll();
   }
 
+  /// Notification IDs must be unique and non-overlapping across (eventId, type)
+  /// to avoid cancelling the wrong notification. Each type uses a separate range.
+  static const int _idRangePerType = 999000;
+
   int _notificationId(String eventId, NotificationType type) {
-    final hash = Object.hash(eventId, type.name);
-    return (hash & 0x7FFFFFFF) + type.idBase;
+    final hash = Object.hash(eventId, type.name) & 0x7FFFFFFF;
+    return type.idBase + (hash % _idRangePerType);
   }
 
   NotificationDetails _notificationDetails(NotificationType type) {
