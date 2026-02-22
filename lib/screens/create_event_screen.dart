@@ -673,7 +673,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             onSaved: (value) {
               event.location = (value as String?)?.trim();
             },
-            hintText: 'Add location or link',
+            hintText: 'Add location',
             suffixWidget: const Icon(Icons.location_on),
           ),
         ],
