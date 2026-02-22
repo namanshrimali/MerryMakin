@@ -2,6 +2,7 @@ import 'package:merrymakin/commons/models/questionnaire_question.dart';
 
 import 'comment.dart';
 import 'chip_in.dart';
+import 'location.dart';
 
 class EventRequestDTO {
   String? id;
@@ -11,6 +12,7 @@ class EventRequestDTO {
   DateTime? endDateTime;
   String? description;
   String? location;
+  Location? locationDetails;
   int? spots; // number of spots available
   double? costPerSpot;
   String? countryCurrency;
@@ -44,6 +46,7 @@ class EventRequestDTO {
     this.countryCurrency,
     this.imageUrl = '',
     this.location,
+    this.locationDetails,
     required this.createdAt,
     required this.updatedAt,
     this.comments,
@@ -118,6 +121,7 @@ class EventRequestDTO {
       'imageUrl': imageUrl,
       'description': description ?? '',
       'location': location ?? '',
+      'locationDetails': locationDetails?.toMap(),
       'spots': spots ?? 0,
       'costPerSpot': costPerSpot ?? 0.0,
       'startDateTime': startDateTime?.toIso8601String() ?? '',

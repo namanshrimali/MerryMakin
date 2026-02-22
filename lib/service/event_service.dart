@@ -6,6 +6,7 @@ import 'package:merrymakin/api/events_api.dart';
 import 'package:merrymakin/commons/models/comment.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/event_attendee.dart';
+import 'package:merrymakin/commons/models/location.dart';
 import 'package:merrymakin/commons/resources.dart';
 import 'package:merrymakin/commons/service/user_service.dart';
 import 'package:merrymakin/commons/utils/colors.dart';
@@ -290,3 +291,7 @@ Future<void> removeReactionFromComment(final Event event,
     }
   });
 }
+
+  List<Location?> getPreviouslyHostedLocationsForUser(final String userId) {
+    return eventsCache?.where((event) => event.isHostedByMe(AppFactory().cookiesService.locallyAvailableUserInfo)).map((event) => event.locationDetails).where((location) => location != null).toList() ?? [];
+  }

@@ -39,6 +39,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../commons/themes/pro_themes.dart';
 import '../commons/widgets/pro_share_sheet.dart';
 import '../widgets/activity_section.dart';
+import '../widgets/event_location_map_card.dart';
 import '../widgets/guest_list.dart';
 import '../widgets/rsvp_modal.dart';
 
@@ -392,8 +393,9 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               ],
             ),
           ),
-          if (receivedEvent.location != null &&
-              receivedEvent.location!.isNotEmpty) ...[
+          if ((receivedEvent.location != null &&
+              receivedEvent.location!.isNotEmpty) || (receivedEvent.locationDetails != null &&
+              receivedEvent.locationDetails!.isNotEmpty)) ...[
             SizedBox(height: generalAppLevelPadding / 8),
             TextButton(
               style: TextButton.styleFrom(
@@ -404,7 +406,7 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
               onPressed: () =>
                   _showLocationOptionsModal(context, receivedEvent),
               child: ProText(
-                receivedEvent.location!,
+                receivedEvent.locationDetails != null ? receivedEvent.locationDetails!.name! : receivedEvent.location!,
                 color: Colors.white,
                 textStyle: const TextStyle(fontSize: 18, shadows: [
                   Shadow(
@@ -414,6 +416,28 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                 ]),
               ),
             ),
+            if (receivedEvent.locationDetails != null) ...[
+              SizedBox(height: generalAppLevelPadding / 8),
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () =>
+                  _showLocationOptionsModal(context, receivedEvent),
+              child: ProText(
+                receivedEvent.locationDetails!.address!,
+                color: Colors.white,
+                textStyle: const TextStyle(fontSize: 18, shadows: [
+                  Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 3,
+                      color: Colors.black26)
+                ]),
+              ),
+            ),
+            ]
           ]
         ],
       ),
@@ -598,7 +622,17 @@ class _EventDetailsScreenState extends ConsumerState<EventDetailsScreen> {
                             buildEventDetails(receivedEvent, constraints),
                             const SizedBox(height: generalAppLevelPadding),
                           ],
-
+                          if (receivedEvent.locationDetails != null ||
+                              (receivedEvent.location != null &&
+                                  receivedEvent.location!.isNotEmpty)) ...[
+                            EventLocationMapCard(
+                              event: receivedEvent,
+                              theme: ThemeData.dark(),
+                              showSnackBarCallback: (msg) =>
+                                  showSnackBar(context, msg),
+                            ),
+                            const SizedBox(height: generalAppLevelPadding),
+                          ],
                           GuestList(
                             event: receivedEvent,
                             maxHeight: constraints.maxHeight,

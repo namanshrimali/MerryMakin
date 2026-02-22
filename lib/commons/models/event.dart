@@ -11,6 +11,7 @@ import '../utils/constants.dart';
 import './country_currency.dart';
 import './user.dart';
 import './chip_in.dart';
+import './location.dart';
 
 class Event {
   String? id;
@@ -20,6 +21,7 @@ class Event {
   DateTime? endDateTime;
   String? description;
   String? location;
+  Location? locationDetails;
   int? spots; // number of spots available
   double? costPerSpot;
   CountryCurrency? countryCurrency;
@@ -55,6 +57,7 @@ class Event {
     this.countryCurrency,
     this.imageUrl = '',
     this.location,
+    this.locationDetails,
     required this.createdAt,
     required this.updatedAt,
     this.comments = const [],
@@ -81,6 +84,7 @@ class Event {
       endDateTime: $endDateTime,
       description: $description,
       location: $location,
+      locationDetails: $locationDetails,
       spots: $spots,
       costPerSpot: $costPerSpot,
       countryCurrency: $countryCurrency,
@@ -110,6 +114,9 @@ class Event {
       imageUrl: map['imageUrl'],
       description: map['description'],
       location: map['location'],
+      locationDetails: map['locationDetails'] != null
+          ? Location.fromMap(Map<String, dynamic>.from(map['locationDetails']))
+          : null,
       spots: map['spots'],
       costPerSpot: map['costPerSpot'],
       startDateTime: map['startDateTime'] == null ||
@@ -191,6 +198,7 @@ class Event {
       'imageUrl': imageUrl,
       'description': description ?? '',
       'location': location ?? '',
+      'locationDetails': locationDetails?.toMap(),
       'spots': spots ?? 0,
       'costPerSpot': costPerSpot ?? 0.0,
       'startDateTime': startDateTime?.toIso8601String() ?? '',
@@ -246,6 +254,7 @@ class Event {
       endDateTime: endDateTime,
       description: description,
       location: location,
+      locationDetails: locationDetails,
       spots: spots,
       costPerSpot: costPerSpot,
       countryCurrency: countryCurrency?.name ?? '',
@@ -376,6 +385,7 @@ class Event {
       imageUrl: imageUrl,
       description: description,
       location: location,
+      locationDetails: locationDetails?.deepCopy(),
       spots: spots,
       costPerSpot: costPerSpot,
       countryCurrency: countryCurrency,

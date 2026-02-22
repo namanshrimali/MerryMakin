@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:merrymakin/commons/models/event.dart';
 import 'package:merrymakin/commons/models/chip_in.dart';
 import 'package:merrymakin/commons/models/questionnaire_question.dart';
+import 'package:merrymakin/commons/models/location.dart';
 import 'package:merrymakin/commons/widgets/chip_in_modal.dart';
+import 'package:merrymakin/commons/widgets/location_picker_sheet.dart';
 import 'package:merrymakin/commons/service/image_service.dart';
 import 'package:merrymakin/commons/themes/pro_themes.dart';
 import 'package:merrymakin/commons/utils/constants.dart';
@@ -55,7 +57,9 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   final CookiesService cookiesService = AppFactory().cookiesService;
   late final FocusNode _eventNameFocusNode;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _locationController;
   bool _hasSyncedDescription = false;
+  bool _hasSyncedLocation = false;
   Color? _gradientColor;
   List<Color> _gradientColors = [Colors.black, Colors.black, Colors.black];
   String? _lastImageUrl;
@@ -100,7 +104,10 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
     _descriptionController.addListener(() {
       event.description = _descriptionController.text;
     });
+    _locationController =
+        TextEditingController(text: event.location ?? '');
     _hasSyncedDescription = widget.eventId == null;
+    _hasSyncedLocation = widget.eventId == null;
 
     Future eventFuture = Future<void>(() {}); // initialize with empty future
     if (widget.eventId != null) {
@@ -627,14 +634,36 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
           const SizedBox(height: generalAppLevelPadding),
           ProTextField(
             key: ValueKey('event-location-${event.id ?? 'new'}'),
-            initialValue: event.location,
+            textEditingController: _locationController,
             textAlign: TextAlign.center,
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              openProBottomModalSheet(
+                isFullScreen: true,
+                context,
+                LocationPickerSheet(
+                  initialLocation: event.locationDetails,
+                  themeType: defaultThemeType,
+                  onSelect: (Location loc) {
+                    setState(() {
+                      event.locationDetails = loc;
+                      event.location = loc.address ?? event.location;
+                      _locationController.text =
+                          loc.name ?? loc.address ?? '';
+                    });
+                  },
+                ),
+                themeData: defaultTheme,
+                themeType: defaultThemeType,
+                gradientColors: [_gradientColors[0]],
+                title: 'Location',
+              );
+            },
             onValidationCallback: validateLocationField,
             onChanged: (value) {
               setState(() {
                 event.location = (value as String);
               });
-              // Debounce the check to avoid showing prompt while typing
               Future.delayed(const Duration(milliseconds: 500), () {
                 if (mounted && event.location == value) {
                   _checkAndShowRegeneratePrompt();
@@ -644,12 +673,8 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
             onSaved: (value) {
               event.location = (value as String?)?.trim();
             },
-            // style: whiteTextStyle,
             hintText: 'Add location or link',
-            // hintStyle: whiteTextStyle.copyWith(color: Colors.white70),
             suffixWidget: const Icon(Icons.location_on),
-            // filled: true,
-            // fillColor: Colors.white.withOpacity(0.08),
           ),
         ],
       ),
@@ -1583,6 +1608,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
   void dispose() {
     _eventNameFocusNode.dispose();
     _descriptionController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -1595,6 +1621,7 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
               snapshot.data == null)) {
             return const Center(child: CircularProgressIndicator());
           }
+          print(event.locationDetails?.toString());
 
           if (snapshot.data != null &&
               snapshot.data!.isNotEmpty &&
@@ -1644,6 +1671,13 @@ class _AddOrEditEventState extends ConsumerState<AddOrEditEvent> {
                 ),
               );
               _hasSyncedDescription = true;
+            }
+            if (!_hasSyncedLocation) {
+              _locationController.text = event.locationDetails?.name ??
+                  event.locationDetails?.address ??
+                  event.location ??
+                  '';
+              _hasSyncedLocation = true;
             }
 
             // Initialize event details hash when event is loaded
